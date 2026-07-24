@@ -315,6 +315,86 @@ def test_empty_scores_writes_empty_outputs(tmp_path: Path):
     assert m["filing_fy_histogram"] == {}
 
 
+def test_anchor_floor_bumps_below_floor_anchor(tmp_path: Path):
+    """AAA anchor with tiny cap should get floored to anchor_min_weight."""
+    settings = replace(_settings_for(tmp_path), anchor_min_weight=0.10)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    # AAA is the anchor for bucket_a. Tiny cap makes weight_cap_score ~ 0.
+    _seed(conn, cik="cik_a", ticker="AAA", bucket_id="bucket_a",
+          scores=(0.5, 0.5), market_cap=1.0)
+    # Big non-anchor member.
+    _seed(conn, cik="cik_z", ticker="ZZZ", bucket_id="bucket_a",
+          scores=(0.9, 0.9), market_cap=10_000.0)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+    df_a = df[df["bucket_id"] == "bucket_a"].sort_values("ticker")
+    weights = dict(zip(df_a["ticker"], df_a["weight_cap_score"]))
+    # AAA should hit the 0.10 floor.
+    assert weights["AAA"] == pytest.approx(0.10, abs=1e-9)
+    # ZZZ absorbs the remainder.
+    assert weights["ZZZ"] == pytest.approx(0.90, abs=1e-9)
+    # Bucket still sums to 1.
+    assert (df_a["weight_cap_score"].sum()) == pytest.approx(1.0, abs=1e-9)
+
+
+def test_anchor_floor_includes_below_score_floor_anchor(tmp_path: Path):
+    """BBB anchor scoring 0.00 (below 0.10 score floor) still lands in bucket_b."""
+    settings = replace(_settings_for(tmp_path), anchor_min_weight=0.10)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed(conn, cik="cik_b", ticker="BBB", bucket_id="bucket_b",
+          scores=(0.0, 0.0), market_cap=100.0)
+    _seed(conn, cik="cik_x", ticker="XXX", bucket_id="bucket_b",
+          scores=(0.8, 0.8), market_cap=1000.0)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+    df_b = df[df["bucket_id"] == "bucket_b"]
+    assert set(df_b["ticker"]) == {"BBB", "XXX"}
+    bbb = df_b[df_b["ticker"] == "BBB"].iloc[0]
+    assert bbb["weight_cap_score"] == pytest.approx(0.10, abs=1e-9)
+
+
+def test_anchor_floor_zero_is_backwards_compat(tmp_path: Path):
+    """anchor_min_weight=0.0 gives identical results to the old behavior."""
+    settings = replace(_settings_for(tmp_path), anchor_min_weight=0.0)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+    # bucket_a: AAA cap*score = 100*0.8 = 80; CCC = 50*0.4 = 20; totals 100.
+    df_a = df[df["bucket_id"] == "bucket_a"].sort_values("ticker")
+    weights = dict(zip(df_a["ticker"], df_a["weight_cap_score"]))
+    assert weights["AAA"] == pytest.approx(0.80, abs=1e-9)
+    assert weights["CCC"] == pytest.approx(0.20, abs=1e-9)
+
+
+def test_manifest_records_anchor_min_weight(tmp_path: Path):
+    settings = replace(_settings_for(tmp_path), anchor_min_weight=0.07)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed(conn, cik="cik_a", ticker="AAA", bucket_id="bucket_a",
+          scores=(0.5, 0.5), market_cap=100.0)
+    _seed(conn, cik="cik_b", ticker="BBB", bucket_id="bucket_b",
+          scores=(0.5, 0.5), market_cap=100.0)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    manifest = json.loads((settings.outputs_dir / "2025-01-15" / "manifest.json").read_text())
+    assert manifest["anchor_min_weight"] == 0.07
+
+
 def test_manifest_prompt_version_mixed(tmp_path: Path):
     """Two different prompt_versions -> manifest['prompt_version'] == 'mixed'."""
     settings = _settings_for(tmp_path)

@@ -58,11 +58,27 @@ def _load_bucket_names(definitions_path: Path) -> dict[str, str]:
     return {b["id"]: b.get("name", b["id"]) for b in data["buckets"]}
 
 
-def _load_scored(conn: sqlite3.Connection, score_floor: float) -> pd.DataFrame:
+def _load_anchor_pairs(definitions_path: Path) -> set[tuple[str, str]]:
+    """(ticker.upper(), bucket_id) for every anchor in the YAML."""
+    data = yaml.safe_load(definitions_path.read_text(encoding="utf-8"))
+    out: set[tuple[str, str]] = set()
+    for b in data.get("buckets", []) or []:
+        bid = b["id"]
+        for t in (b.get("anchors") or []):
+            out.add((str(t).strip().upper(), bid))
+    return out
+
+
+def _load_scored(
+    conn: sqlite3.Connection,
+    score_floor: float,
+    anchor_pairs: set[tuple[str, str]] | None = None,
+) -> pd.DataFrame:
     """Read latest_scores >= floor joined to companies.market_cap.
 
-    latest_scores already carries its own `ticker`; we prefer that but fall
-    back to companies.ticker if latest_scores' is null.
+    Anchor pairs are ALWAYS included regardless of score, so a below-floor
+    anchor still lands in its bucket for weight-floor treatment downstream.
+    Adds an `is_anchor` bool column.
     """
     sql = """
     SELECT
@@ -79,9 +95,15 @@ def _load_scored(conn: sqlite3.Connection, score_floor: float) -> pd.DataFrame:
       c.market_cap      AS market_cap
     FROM latest_scores ls
     LEFT JOIN companies c ON c.cik = ls.cik
-    WHERE ls.score >= ?
     """
-    return pd.read_sql_query(sql, conn, params=(score_floor,))
+    df = pd.read_sql_query(sql, conn)
+    pairs = anchor_pairs or set()
+    df["is_anchor"] = df.apply(
+        lambda r: (str(r["ticker"] or "").upper(), r["bucket_id"]) in pairs,
+        axis=1,
+    )
+    keep = (df["score"] >= score_floor) | df["is_anchor"]
+    return df[keep].reset_index(drop=True)
 
 
 def _modal_or_mixed(values: pd.Series) -> str:
@@ -94,13 +116,55 @@ def _modal_or_mixed(values: pd.Series) -> str:
     return "mixed"
 
 
-def _compute_weights(df: pd.DataFrame) -> pd.DataFrame:
+def _apply_anchor_floor(
+    weights: pd.Series, is_anchor: pd.Series, min_weight: float
+) -> pd.Series:
+    """Bump anchor rows up to at least min_weight; renormalise non-anchors.
+
+    Preserves the invariant that weights sum to 1.0. Anchors already above
+    the floor keep their computed weight. If the anchor floor total already
+    meets or exceeds 1.0, anchors are normalised to sum to 1.0 and
+    non-anchors get 0.
+    """
+    if min_weight <= 0 or not is_anchor.any():
+        return weights
+
+    out = weights.copy().astype(float)
+    # Step 1: raise below-floor anchors to the floor.
+    below = is_anchor & (out < min_weight)
+    out.loc[below] = min_weight
+
+    anchor_sum = out.loc[is_anchor].sum()
+    non_anchor_sum = out.loc[~is_anchor].sum()
+
+    if anchor_sum >= 1.0:
+        # Degenerate: anchor floor consumes the whole bucket; distribute
+        # 1.0 across anchors proportionally, non-anchors get 0.
+        out.loc[~is_anchor] = 0.0
+        anchors = out.loc[is_anchor]
+        total = anchors.sum()
+        if total > 0:
+            out.loc[is_anchor] = anchors / total
+        return out
+
+    # Scale non-anchors to fill the remaining 1 - anchor_sum.
+    target = 1.0 - anchor_sum
+    if non_anchor_sum > 0:
+        out.loc[~is_anchor] = out.loc[~is_anchor] * (target / non_anchor_sum)
+    return out
+
+
+def _compute_weights(df: pd.DataFrame, anchor_min_weight: float = 0.0) -> pd.DataFrame:
     """Add weight_cap_score, weight_equal, weight_score columns.
 
     Assumes df is grouped-in-place by bucket_id. Missing market_cap is
     treated as 0 for the cap-score weight. If a bucket has zero total
     cap*score (e.g. all market caps missing), it falls back to equal
     weights and a warning is printed.
+
+    When ``anchor_min_weight`` > 0 and the df has an ``is_anchor`` column,
+    weight_cap_score is floored per anchor and non-anchor members are
+    renormalised so the bucket still sums to 1.0.
     """
     df = df.copy()
     # Fill missing market cap with 0 for weight math; keep original NaN in
@@ -137,6 +201,12 @@ def _compute_weights(df: pd.DataFrame) -> pd.DataFrame:
                 "for weight_cap_score."
             )
             g["weight_cap_score"] = 1.0 / n if n else 0.0
+
+        # Apply anchor-weight floor to weight_cap_score if requested.
+        if anchor_min_weight > 0 and "is_anchor" in g.columns and g["is_anchor"].any():
+            g["weight_cap_score"] = _apply_anchor_floor(
+                g["weight_cap_score"], g["is_anchor"], anchor_min_weight
+            )
 
         parts.append(g)
 
@@ -183,6 +253,7 @@ def _write_manifest(
         "embedding_model": settings.embedding_model,
         "similarity_threshold": float(settings.similarity_threshold),
         "score_floor": float(settings.score_floor),
+        "anchor_min_weight": float(getattr(settings, "anchor_min_weight", 0.0)),
         "definitions_sha256": settings.file_sha256(settings.definitions_path),
         "prompt_sha256": settings.file_sha256(settings.prompt_path),
         "filing_fy_histogram": filing_fy_histogram,
@@ -199,13 +270,15 @@ def build(asof: str, *, settings: Any = None) -> dict[str, Any]:
     """
     s = settings if settings is not None else config.get_settings()
     bucket_names = _load_bucket_names(s.definitions_path)
+    anchor_pairs = _load_anchor_pairs(s.definitions_path)
+    anchor_min_weight = float(getattr(s, "anchor_min_weight", 0.0))
 
     out_dir = s.outputs_dir / asof
     out_dir.mkdir(parents=True, exist_ok=True)
 
     conn = db.connect(s.db_path)
     try:
-        df = _load_scored(conn, s.score_floor)
+        df = _load_scored(conn, s.score_floor, anchor_pairs=anchor_pairs)
         if df.empty:
             print(
                 f"build: no scores >= floor {s.score_floor}; writing empty outputs "
@@ -228,7 +301,7 @@ def build(asof: str, *, settings: Any = None) -> dict[str, Any]:
                 "output_dir": out_dir,
             }
 
-        df = _compute_weights(df)
+        df = _compute_weights(df, anchor_min_weight=anchor_min_weight)
         df["bucket_name"] = df["bucket_id"].map(bucket_names).fillna(df["bucket_id"])
 
         # Reorder to spec.

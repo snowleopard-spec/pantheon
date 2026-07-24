@@ -34,6 +34,7 @@ class Settings:
     prompt_version: str
 
     max_item1_chars: int = 12_000
+    anchor_min_weight: float = 0.05
 
     def file_sha256(self, path: Path) -> str:
         return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -87,4 +88,5 @@ def get_settings() -> Settings:
         score_floor=float(os.environ.get("MINIDEX_SCORE_FLOOR", "0.10")),
         batch_model=os.environ.get("MINIDEX_BATCH_MODEL", "claude-haiku-4-5"),
         prompt_version=_read_prompt_version(prompt_path),
+        anchor_min_weight=float(os.environ.get("MINIDEX_ANCHOR_MIN_WEIGHT", "0.05")),
     )

@@ -15,7 +15,7 @@ def test_settings_loads_from_env():
 
 def test_prompt_version_parsed():
     s = config.get_settings()
-    assert s.prompt_version == "1.3"
+    assert s.prompt_version == "1.4"
 
 
 def test_paths_exist():

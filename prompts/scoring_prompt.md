@@ -1,4 +1,4 @@
-# mini-dex Stage 3 scoring prompt — v1.5
+# mini-dex Stage 3 scoring prompt — v1.6
 
 Intended usage: one batch-API call per company. Inject only the bucket
 definitions that survived the Stage 2 embedding shortlist for that company
@@ -36,13 +36,31 @@ Rules:
 4. THRESHOLD. If a bucket's revenue fraction is below 0.10, score it 0.0.
    Membership requires a material revenue driver, not a mention.
 
-5. CURRENT REVENUE ONLY, with one exception: pre-revenue or nominal-revenue
-   companies whose principal business purpose squarely matches a bucket
-   (common in PQC & quantum, SMR developers, early neoclouds) should be
-   scored on business purpose, with confidence "low" and the flag
-   "pre_revenue": true. Announced plans, partnerships, TAM claims and
-   aspirational language never raise scores for companies with an
-   established revenue base.
+5. PRE-REVENUE EXCEPTION (supersedes Rule 1 for qualifying companies).
+   A pre-revenue or nominal-revenue company whose PRINCIPAL BUSINESS
+   PURPOSE squarely matches a bucket's defined activity — most common in
+   PQC & quantum, SMR developers, early neoclouds — is scored on business
+   purpose, treating the intended activity as if it were current revenue.
+
+   Concrete scoring guidance for this exception:
+   - Pure-play (the entire company exists to pursue the bucket's activity,
+     no other lines of business): score 0.8–1.0, confidence "low",
+     pre_revenue: true.
+   - Partial match (some existing revenue outside the bucket, plus a
+     stated principal pivot): score 0.3–0.7, confidence "low",
+     pre_revenue: true.
+   - Aspirational only (established revenue base with talk of future
+     entry): score 0.0. Announced plans, partnerships, TAM claims and
+     marketing language never raise scores for companies with an
+     established revenue base.
+
+   Examples of pure-play pre-revenue companies:
+   - Oklo (Aurora fission reactors, principal purpose = data-centre
+     power generation) → 1.0 on power_generation.
+   - Nebius (Nebius, principal purpose = GPU cloud for AI) → 0.9 on
+     neoclouds.
+   - IonQ (trapped-ion quantum systems, principal purpose = quantum
+     computing) → 1.0 on pqc_quantum.
 
 6. DO NOT REWARD BUZZWORDS. Marketing language about AI, quantum, or the
    cloud does not create revenue exposure. A retailer describing an "AI

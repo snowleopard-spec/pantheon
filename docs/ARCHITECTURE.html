@@ -462,10 +462,65 @@
   existing set of scores takes seconds.
 </p>
 
+<h2>8. Exception rules and overrides</h2>
+<p>
+  Two calibration overrides sit on top of the base scoring and weighting logic. Both
+  exist so that the pipeline handles corner cases the naive "score = revenue fraction"
+  rule cannot capture on its own.
+</p>
+
+<h3>Pre-revenue exception (Rule 5 of the scoring prompt)</h3>
+<p>
+  A company that has no material revenue but whose <em>principal business purpose</em>
+  is exactly the bucket's defined activity should not score zero. Small modular
+  reactor (SMR) developers like Oklo and NuScale, quantum computing pure-plays like
+  IonQ and D-Wave, and early-stage GPU cloud providers like Nebius fall into this
+  category — they are the exact thematic exposure an index like this exists to
+  capture.
+</p>
+<p>
+  Rule 5 of the scoring prompt explicitly supersedes the "score = revenue fraction"
+  rule for these cases. The LLM is instructed to score pure-plays at 0.8–1.0, partial
+  matches at 0.3–0.7, and to leave aspirational-only names (established revenue base
+  with talk of future entry) at 0.0. Every pre-revenue score is flagged
+  <code>pre_revenue: true</code> in the output and forced to confidence
+  <code>"low"</code> so downstream QC can review them.
+</p>
+
+<h3>Anchor weight floor (Stage 7 index construction)</h3>
+<p>
+  Even with the pre-revenue exception, some legitimate thematic anchors will
+  score below the 0.10 <code>score_floor</code> that keeps immaterial exposures
+  out of the index. To make sure the canonical examples of each bucket are always
+  represented, Stage 7 applies an anchor-weight floor: any anchor ticker declared
+  in the YAML gets at least <code>anchor_min_weight</code> (default 5%) of its
+  bucket's <code>weight_cap_score</code>, even if the LLM scored it at zero.
+</p>
+<p>
+  The mechanics are: below-floor anchors are hard-fixed at exactly the floor;
+  above-floor members (whether anchor or not) scale proportionally into the
+  remaining pool so each bucket still sums to 1.0. In the over-constrained case
+  where the sum of floors would exceed 100%, the floored anchors split 1.0 equally
+  and everyone else drops to 0 with a warning. Set <code>anchor_min_weight</code>
+  to 0 in <code>config.json</code> to disable this override and get pure
+  market-cap&times;score weighting.
+</p>
+<p>
+  These two overrides work in tandem. The pre-revenue exception fixes the
+  scoring stage so that pure thematic plays get a real score. The anchor floor
+  is the safety net at the weighting stage — if the LLM still misses a
+  canonical name for any reason (definition ambiguity, run-to-run noise, or a
+  genuinely borderline case), the anchor floor guarantees representation. In
+  the pilot's <code>power_generation</code> bucket, the exception moved Oklo
+  and NuScale from 0.00 to 0.90, and the floor still guarantees them a 5%
+  slot in the final index regardless.
+</p>
+
 <footer>
   Generated for the mini-dex project. See <code>docs/MINIDEX_SPEC.md</code> for the full
   technical specification, <code>definitions/minidex_definitions.yaml</code> for the 22
-  bucket definitions, and <code>README.md</code> for the run sequence.
+  bucket definitions, <code>prompts/scoring_prompt.md</code> for the current scoring rules,
+  and <code>README.md</code> for the run sequence.
 </footer>
 
 </body>

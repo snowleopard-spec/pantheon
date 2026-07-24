@@ -1,0 +1,314 @@
+# mini-dex bucket definitions v1.0
+# Used for (a) embedding-side text in the Stage 2 shortlist, and (b) injected
+# definitions in the Stage 3 LLM scoring prompt.
+# Fields:
+#   id        - stable slug, used as DB key
+#   name      - display name
+#   group     - silicon | interconnect_hardware | infrastructure | software_frontier
+#   definition- the paragraph embedded/scored against; written to describe the
+#               REVENUE-GENERATING ACTIVITY, not the theme
+#   includes  - clarifying inclusions
+#   excludes  - common false positives to reject
+#   anchors   - tickers that must score >= 0.5 (calibration assertions)
+#   keywords  - assist Stage 1/2 recall only; never shown to the scoring LLM
+
+buckets:
+
+  # ---------------- SILICON ----------------
+
+  - id: fabless_chip_design
+    name: Fabless chip design
+    group: silicon
+    definition: >
+      Companies that derive revenue from designing and selling their own
+      semiconductor logic products — GPUs, CPUs, SoCs, ASICs, DPUs, basebands,
+      RF front-ends — while outsourcing wafer fabrication to third-party
+      foundries. Revenue comes from the sale of chips (or chip-based modules)
+      the company itself architects and markets under its own product line.
+    includes: [GPU/CPU/accelerator vendors, smartphone SoC vendors, custom ASIC design houses selling own silicon]
+    excludes: [pure IP licensors with no chip sales (see eda_ip), companies that fab their own logic (IDMs score here only for their fabless lines), distributors]
+    anchors: [NVDA, AMD, QCOM, MRVL, AVGO]
+    keywords: [fabless, GPU, SoC, ASIC, accelerator, chip design, semiconductor products]
+
+  - id: foundry
+    name: Foundry
+    group: silicon
+    definition: >
+      Companies whose revenue comes from manufacturing semiconductor wafers on
+      behalf of other companies — contract wafer fabrication, process
+      technology services, advanced packaging performed as a foundry service.
+      The customer owns the design; the company sells fabrication capacity.
+    includes: [pure-play foundries, specialty-process foundries, foundry segments of IDMs]
+    excludes: [companies fabbing only their own designs, OSAT-only assemblers unless packaging is a material revenue line]
+    anchors: [TSM, GFS, UMC]
+    keywords: [foundry, wafer fabrication, process node, contract manufacturing semiconductor]
+
+  - id: semicap_equipment
+    name: Semiconductor capital equipment
+    group: silicon
+    definition: >
+      Companies selling the capital equipment used to fabricate, inspect, test
+      or package semiconductors — deposition, etch, lithography, metrology,
+      inspection, ion implant, wafer handling, test systems — plus the
+      associated services and spares revenue.
+    includes: [front-end process tools, metrology/inspection, test equipment, advanced packaging tools]
+    excludes: [consumable materials (see semi_materials), companies merely using such equipment]
+    anchors: [AMAT, LRCX, KLAC]
+    keywords: [deposition, etch, lithography, metrology, wafer fab equipment, process control]
+
+  - id: eda_ip
+    name: EDA & semiconductor IP
+    group: silicon
+    definition: >
+      Companies earning revenue from electronic design automation software and
+      from licensing semiconductor intellectual property — processor cores,
+      interface IP, verification tools, chip design software subscriptions and
+      royalties. Revenue is software licences, royalties and design services
+      rather than physical chip sales.
+    includes: [EDA suites, CPU/GPU/NPU core licensing, interface and PHY IP, royalty streams]
+    excludes: [companies selling chips built on licensed IP]
+    anchors: [SNPS, CDNS, ARM]
+    keywords: [EDA, IP licensing, royalties, design software, processor cores, verification]
+
+  - id: memory_storage
+    name: Memory & storage
+    group: silicon
+    definition: >
+      Companies deriving revenue from designing and/or manufacturing memory and
+      storage semiconductors and devices — DRAM, HBM, NAND flash, SSDs,
+      hard drives, memory modules and controllers.
+    includes: [DRAM/NAND manufacturers, HBM, SSD/HDD makers, memory module and controller vendors]
+    excludes: [cloud storage services (see data_infrastructure or hyperscalers)]
+    anchors: [MU, WDC, SNDK, STX]
+    keywords: [DRAM, NAND, HBM, flash memory, SSD, storage devices]
+
+  - id: microcontrollers_embedded
+    name: Microcontrollers & embedded
+    group: silicon
+    definition: >
+      Companies earning revenue from microcontrollers, embedded processors,
+      FPGAs and connectivity chips sold into industrial, automotive, IoT and
+      edge applications — general-purpose programmable silicon for embedded
+      control rather than data-centre compute.
+    includes: [MCU vendors, embedded FPGA, automotive/industrial processors, IoT connectivity chips]
+    excludes: [data-centre CPUs/GPUs (fabless_chip_design)]
+    anchors: [MCHP, NXPI, STM]
+    keywords: [microcontroller, MCU, embedded, FPGA, IoT, automotive semiconductor]
+
+  - id: analog_power
+    name: Power & analog semis
+    group: silicon
+    definition: >
+      Companies earning revenue from analog, mixed-signal and power-management
+      semiconductors — amplifiers, data converters, sensor interfaces, voltage
+      regulators, power delivery and conversion silicon, including power
+      devices in silicon carbide and gallium nitride. Data-centre power
+      delivery (feeding high-wattage AI racks) is a core in-scope activity.
+    includes: [analog signal chain, power management ICs, SiC/GaN power devices, voltage regulation for servers/GPUs]
+    excludes: [grid-scale electrical equipment (dc_power_cooling), utilities (power_generation)]
+    anchors: [TXN, ADI, MPWR, ON]
+    keywords: [analog, mixed-signal, power management IC, voltage regulator, SiC, GaN, data converter]
+
+  - id: semi_materials
+    name: Semiconductor materials & consumables
+    group: silicon
+    definition: >
+      Companies selling the materials, chemistries and consumable
+      infrastructure used in chip fabrication — specialty chemicals and gases,
+      CMP slurries, photoresists, filtration and contamination control, wafer
+      substrates, targets and other fab consumables, plus cleaning and
+      materials-handling processes.
+    includes: [specialty chemicals/gases for fabs, filtration, substrates and wafers, CMP, photoresist]
+    excludes: [capital equipment (semicap_equipment)]
+    anchors: [ENTG, MKSI, ACMR]
+    keywords: [specialty chemicals, photoresist, CMP slurry, wafer substrate, filtration, fab consumables]
+
+  # ---------------- INTERCONNECT & HARDWARE ----------------
+
+  - id: photonics_optical
+    name: Photonics & optical interconnect
+    group: interconnect_hardware
+    definition: >
+      Companies earning revenue from optical and photonic components and
+      modules — lasers, optical transceivers, silicon photonics, co-packaged
+      optics, optical engines and related test — used to move data inside and
+      between data centres and across telecom networks.
+    includes: [optical transceivers, lasers/VCSELs, silicon photonics, co-packaged optics, optical components]
+    excludes: [copper interconnect (connectors), full network systems vendors unless optics is a material revenue line (networking)]
+    anchors: [COHR, LITE, AAOI]
+    keywords: [optical transceiver, silicon photonics, laser, co-packaged optics, 800G, optical interconnect]
+
+  - id: networking
+    name: Networking silicon & systems
+    group: interconnect_hardware
+    definition: >
+      Companies earning revenue from data-centre and carrier networking —
+      Ethernet switching and routing systems, switch/PHY/retimer/SerDes
+      silicon, interconnect fabrics for AI clusters, and network operating
+      software sold with such systems.
+    includes: [switch systems, networking ASICs, retimers/SerDes, PCIe/CXL connectivity silicon, DPU/NIC vendors]
+    excludes: [pure optical component vendors (photonics_optical), enterprise wifi/consumer networking scores lower]
+    anchors: [ANET, CRDO, ALAB, CIEN]
+    keywords: [Ethernet switch, SerDes, retimer, PCIe, CXL, interconnect, NIC, routing]
+
+  - id: dc_hardware
+    name: Data centre hardware & servers
+    group: interconnect_hardware
+    definition: >
+      Companies earning revenue from designing, integrating and selling
+      servers, GPU systems, rack-scale solutions and storage systems deployed
+      in data centres — the system-level hardware layer between chips and the
+      facility.
+    includes: [server OEMs, GPU/AI system integrators, rack-scale integration, enterprise storage systems]
+    excludes: [contract manufacturers building others' systems (ems_odm), facility equipment (dc_power_cooling)]
+    anchors: [SMCI, DELL, HPE]
+    keywords: [servers, rack-scale, GPU systems, AI infrastructure hardware, storage systems]
+
+  - id: ems_odm
+    name: EMS / ODM manufacturing
+    group: interconnect_hardware
+    definition: >
+      Companies earning revenue from electronics manufacturing services and
+      original design manufacturing — contract assembly of servers, networking
+      gear, boards and modules for OEM and hyperscaler customers, including
+      design-and-build ODM arrangements.
+    includes: [EMS providers, ODMs building AI servers/switches, PCB assembly at scale]
+    excludes: [companies selling own-brand systems (dc_hardware)]
+    anchors: [CLS, FLEX, JBL]
+    keywords: [EMS, ODM, contract manufacturing, electronics assembly, hyperscaler customers]
+
+  - id: connectors
+    name: Connectors & interconnect components
+    group: interconnect_hardware
+    definition: >
+      Companies earning revenue from electrical connectors, cable assemblies,
+      sockets, backplanes, thermal interface and other passive/electromechanical
+      interconnect components used in servers, networking equipment and
+      high-power electronics.
+    includes: [high-speed connectors, cable assemblies, sockets, busbars, thermal components]
+    excludes: [optical modules (photonics_optical), semiconductors]
+    anchors: [APH, TEL]
+    keywords: [connectors, cable assemblies, backplane, socket, electromechanical, interconnect components]
+
+  # ---------------- INFRASTRUCTURE ----------------
+
+  - id: hyperscalers
+    name: Hyperscalers
+    group: infrastructure
+    definition: >
+      Companies operating global-scale cloud platforms whose revenue derives
+      from selling public cloud compute, storage, and platform services —
+      and/or from consumer internet services monetised at hyperscale — while
+      building and operating their own data-centre estates and increasingly
+      their own silicon.
+    includes: [public cloud providers, hyperscale consumer platforms with material cloud/AI infrastructure]
+    excludes: [GPU-rental specialists (neoclouds), SaaS vendors running on others' clouds]
+    anchors: [MSFT, AMZN, GOOGL, ORCL, META]
+    keywords: [public cloud, IaaS, hyperscale, cloud platform, data centre operator]
+
+  - id: neoclouds
+    name: Neoclouds / GPU cloud
+    group: infrastructure
+    definition: >
+      Companies whose revenue comes from renting out GPU compute capacity for
+      AI training and inference — specialised AI cloud providers, including
+      former crypto miners that have repurposed power and facilities into GPU
+      hosting, typically under capacity contracts with AI labs and enterprises.
+    includes: [GPU-as-a-service, AI-specific clouds, bitcoin miners with material HPC/AI hosting revenue]
+    excludes: [diversified hyperscalers, pure crypto mining with no AI hosting revenue]
+    anchors: [CRWV, NBIS, IREN, APLD]
+    keywords: [GPU cloud, AI compute, GPU-as-a-service, HPC hosting, training capacity]
+
+  - id: dc_power_cooling
+    name: Data centre power & cooling equipment
+    group: infrastructure
+    definition: >
+      Companies selling the electrical and thermal infrastructure inside data
+      centres — UPS, switchgear, power distribution, transformers, generators,
+      liquid and air cooling systems, CDUs, and related services — i.e. the
+      facility equipment layer that powers and cools IT loads.
+    includes: [UPS/switchgear, liquid cooling, CDUs, thermal management, electrical distribution for DCs]
+    excludes: [electricity generation and sale (power_generation), power semiconductors (analog_power)]
+    anchors: [VRT, ETN, GEV]
+    keywords: [UPS, switchgear, liquid cooling, CDU, thermal management, power distribution]
+
+  - id: power_generation
+    name: Power generation for data centres
+    group: infrastructure
+    definition: >
+      Companies earning revenue from generating and selling electricity where
+      data-centre demand is a material and growing driver — independent power
+      producers, nuclear operators, and developers of new nuclear (SMR) or
+      other generation capacity contracted to serve data-centre loads.
+    includes: [IPPs with DC offtake, nuclear utilities, SMR developers, behind-the-meter generation for DCs]
+    excludes: [regulated utilities with no meaningful DC exposure score low, equipment makers (dc_power_cooling)]
+    anchors: [VST, CEG, TLN, OKLO, SMR]
+    keywords: [independent power producer, nuclear, SMR, PPA, data centre offtake, generation capacity]
+
+  - id: colo_reits
+    name: Colocation & data centre REITs
+    group: infrastructure
+    definition: >
+      Companies earning revenue from owning and leasing data-centre real
+      estate and colocation capacity — space, power and interconnection sold
+      to enterprises, hyperscalers and AI tenants, typically structured as
+      REITs or facility operators.
+    includes: [DC REITs, colocation operators, wholesale DC landlords]
+    excludes: [companies operating DCs solely for their own workloads (hyperscalers, neoclouds)]
+    anchors: [EQIX, DLR]
+    keywords: [colocation, data centre REIT, interconnection, wholesale leasing, megawatts leased]
+
+  # ---------------- SOFTWARE & FRONTIER ----------------
+
+  - id: ai_native_software
+    name: AI-native software & services
+    group: software_frontier
+    definition: >
+      Companies whose revenue comes from software or services in which AI/ML
+      models are the core product value — AI platforms, model-driven analytics,
+      speech and vision products, AI-driven diagnostics and decision systems —
+      as opposed to conventional software with incidental AI features.
+    includes: [AI platform vendors, applied-AI products, model-centric analytics, AI services]
+    excludes: [traditional SaaS adding AI features scores low, chipmakers, cloud providers]
+    anchors: [PLTR, AI, SOUN, TEM]
+    keywords: [artificial intelligence platform, machine learning products, LLM, computer vision, speech AI]
+
+  - id: data_infrastructure
+    name: Data infrastructure software
+    group: software_frontier
+    definition: >
+      Companies earning revenue from the software layer that stores, moves,
+      queries and monitors data at scale — cloud data warehouses, databases,
+      streaming platforms, observability and data pipeline tooling that
+      underpins analytics and AI workloads.
+    includes: [data warehouses/lakehouses, operational databases, streaming, observability, ETL/pipeline tools]
+    excludes: [storage hardware (memory_storage), BI-only application vendors score lower]
+    anchors: [SNOW, MDB, DDOG, CFLT]
+    keywords: [data warehouse, database, streaming, observability, data pipeline, lakehouse]
+
+  - id: pqc_quantum
+    name: PQC & quantum
+    group: software_frontier
+    definition: >
+      Companies earning revenue (or whose principal business purpose is)
+      quantum computing hardware and services, quantum networking, and
+      post-quantum cryptography — quantum-resistant security chips, PQC
+      software and migration services, QKD, and quantum processors offered
+      via cloud access.
+    includes: [quantum computer developers, quantum cloud services, PQC semiconductors and software, QKD]
+    excludes: [classical cybersecurity without PQC products (cybersecurity)]
+    anchors: [IONQ, RGTI, QBTS, LAES, ARQQ]
+    keywords: [quantum computing, qubits, post-quantum cryptography, PQC, QKD, quantum-safe]
+
+  - id: cybersecurity
+    name: Cybersecurity
+    group: software_frontier
+    definition: >
+      Companies earning revenue from security software and services —
+      endpoint, network and cloud security platforms, identity, SIEM/SOC
+      tooling and managed security — protecting enterprise and infrastructure
+      environments, increasingly including AI-workload security.
+    includes: [endpoint/EDR, network security, cloud security, identity, SIEM]
+    excludes: [PQC-focused vendors (pqc_quantum), physical security]
+    anchors: [CRWD, PANW, ZS, S]
+    keywords: [cybersecurity, endpoint protection, zero trust, SIEM, cloud security, identity]

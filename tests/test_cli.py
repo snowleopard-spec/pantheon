@@ -12,14 +12,17 @@ def test_help_lists_commands():
         assert cmd in r.stdout
 
 
-def test_init_creates_db(tmp_path, monkeypatch):
-    monkeypatch.setenv("HOME", str(tmp_path))
-    from minidex import config
+def test_init_invokes_db_init(monkeypatch):
+    """CLI `init` dispatches to _init_db without side-effects on the real DB."""
+    from minidex import cli as _cli
 
-    config.get_settings.cache_clear()
-    s = config.get_settings()
-    if s.db_path.exists():
-        s.db_path.unlink()
+    called = {"n": 0}
+
+    def _fake():
+        called["n"] += 1
+
+    monkeypatch.setattr(_cli, "_init_db", _fake)
     r = CliRunner().invoke(app, ["init"])
     assert r.exit_code == 0, r.output
-    assert s.db_path.exists()
+    assert called["n"] == 1
+    assert "initialized" in r.output.lower()

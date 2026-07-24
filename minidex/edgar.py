@@ -261,15 +261,29 @@ def _fmt_date(value: Any) -> str:
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
-def run() -> None:
+def run(ticker_list: list[str] | None = None) -> None:
     settings = config.get_settings()
     _ensure_identity(settings.sec_user_agent)
+    if not logging.getLogger().handlers:
+        logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     with db.connect(settings.db_path) as conn:
         db.init_schema(conn)
-        candidates = conn.execute(
-            "SELECT cik, ticker, name FROM companies WHERE is_candidate = 1"
-        ).fetchall()
+        if ticker_list:
+            allowed = {t.strip().upper() for t in ticker_list if t.strip()}
+            placeholders = ",".join("?" * len(allowed))
+            candidates = conn.execute(
+                f"SELECT cik, ticker, name FROM companies "
+                f"WHERE is_candidate = 1 AND UPPER(ticker) IN ({placeholders})",
+                tuple(allowed),
+            ).fetchall()
+            missing = allowed - {r["ticker"].upper() for r in candidates}
+            if missing:
+                print(f"fetch: skipping {len(missing)} tickers not in candidates: {sorted(missing)}")
+        else:
+            candidates = conn.execute(
+                "SELECT cik, ticker, name FROM companies WHERE is_candidate = 1"
+            ).fetchall()
 
         existing_pairs = {
             (row["cik"], row["accession"])
@@ -283,7 +297,9 @@ def run() -> None:
         n_skipped = 0
         n_market_cap = 0
 
-        for cand in candidates:
+        print(f"fetch: {n_candidates} candidates to process ({len(seen_ciks_with_filing)} already cached)")
+
+        for idx, cand in enumerate(candidates, 1):
             cik = cand["cik"]
             ticker = cand["ticker"]
 
@@ -336,13 +352,15 @@ def run() -> None:
 
             conn.commit()
 
-        logger.info(
-            "fetch: candidates=%d new_filings=%d fallback=%d skipped=%d market_cap=%d",
-            n_candidates,
-            n_new_filings,
-            n_fallback,
-            n_skipped,
-            n_market_cap,
+            if idx % 10 == 0 or idx == n_candidates:
+                print(
+                    f"fetch: {idx}/{n_candidates} processed | "
+                    f"new={n_new_filings} skipped={n_skipped} fallback={n_fallback} mcap={n_market_cap}"
+                )
+
+        print(
+            f"fetch: done. candidates={n_candidates} new_filings={n_new_filings} "
+            f"fallback={n_fallback} skipped={n_skipped} market_cap={n_market_cap}"
         )
 
 

@@ -40,11 +40,14 @@ def filter() -> None:
 
 
 @app.command()
-def fetch() -> None:
+def fetch(
+    tickers: str = typer.Option(None, help="Comma-separated ticker allowlist (pilot mode)."),
+) -> None:
     """Stage 3: pull 10-K/20-F Item 1 + segments per candidate."""
     from minidex import edgar as _mod
 
-    _mod.run()
+    ticker_list = [t.strip().upper() for t in tickers.split(",")] if tickers else None
+    _mod.run(ticker_list=ticker_list)
 
 
 @app.command()

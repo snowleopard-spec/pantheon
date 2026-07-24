@@ -55,6 +55,34 @@ def _pad_cik(cik) -> str:
     return str(int(cik)).zfill(10)
 
 
+def _ticker_rank(ticker: str) -> tuple[int, int]:
+    """Preference key when a CIK has multiple ticker rows.
+
+    Lower is better. Prefer common-stock forms (no dash, no 'W'/'WT'/'WS'
+    warrant suffix, no preferred `-P?` variants) and, tie-breaker, shorter.
+    """
+    t = ticker.upper()
+    penalty = 0
+    if "-" in t or "." in t:
+        penalty += 10
+    if t.endswith(("W", "WT", "WS")) and len(t) > 3:
+        penalty += 5
+    if t.endswith("F") and len(t) == 5:  # foreign OTC "F" suffix (e.g. STMEF, TSMWF)
+        penalty += 3
+    return (penalty, len(t))
+
+
+def _dedupe_by_cik(rows: list[dict]) -> list[dict]:
+    best: dict[str, dict] = {}
+    for r in rows:
+        cik = _pad_cik(r["cik"])
+        cand = {**r, "cik": cik, "ticker": str(r["ticker"]).upper()}
+        prev = best.get(cik)
+        if prev is None or _ticker_rank(cand["ticker"]) < _ticker_rank(prev["ticker"]):
+            best[cik] = cand
+    return list(best.values())
+
+
 def _set_identity() -> None:
     import edgar
 
@@ -69,7 +97,7 @@ def run() -> None:
     _set_identity()
 
     tickers_df = edgar.get_company_tickers()
-    rows = tickers_df.to_dict("records")
+    rows = _dedupe_by_cik(tickers_df.to_dict("records"))
 
     with db.connect(s.db_path) as conn:
         db.init_schema(conn)
@@ -82,11 +110,10 @@ def run() -> None:
 
         with db.transaction(conn):
             for r in rows:
-                cik = _pad_cik(r["cik"])
                 db.upsert_company(
                     conn,
-                    cik=cik,
-                    ticker=str(r["ticker"]).upper(),
+                    cik=r["cik"],
+                    ticker=r["ticker"],
                     name=r.get("company"),
                     exchange=r.get("exchange"),
                 )
@@ -97,7 +124,7 @@ def run() -> None:
         enriched = 0
         with db.transaction(conn):
             for i, r in enumerate(rows, 1):
-                cik = _pad_cik(r["cik"])
+                cik = r["cik"]
                 if existing_sic.get(cik):
                     continue
                 try:
@@ -107,7 +134,7 @@ def run() -> None:
                     print(f"universe: SIC fetch failed for cik={cik}: {exc}")
                     continue
                 if sic:
-                    db.upsert_company(conn, cik=cik, ticker=str(r["ticker"]).upper(), sic=str(sic))
+                    db.upsert_company(conn, cik=cik, ticker=r["ticker"], sic=str(sic))
                     enriched += 1
                 if i % 250 == 0:
                     print(f"universe: enriched {enriched}/{i}")

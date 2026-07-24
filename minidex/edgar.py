@@ -186,11 +186,12 @@ def _fact_period(fact: Any) -> str | None:
     return None
 
 
-def _extract_market_cap(company: Any) -> tuple[float, str] | None:
-    """Return (market_cap, asof_yyyy_mm_dd) if derivable from company facts.
+def _extract_market_cap(company: Any, ticker: str) -> tuple[float, str] | None:
+    """Return (market_cap, asof_yyyy_mm_dd) from EDGAR shares × yfinance price.
 
-    Uses shares outstanding × any recent price found via edgartools. Skips
-    silently on any failure.
+    SEC XBRL doesn't publish market cap or share price, so we multiply the
+    curated `common_shares_outstanding` fact from edgartools by the last
+    close price from yfinance. Fails silently on any missing input.
     """
     try:
         facts = company.get_facts()
@@ -200,20 +201,39 @@ def _extract_market_cap(company: Any) -> tuple[float, str] | None:
     if facts is None:
         return None
 
-    shares = _pick_recent_fact(facts, ("CommonStockSharesOutstanding", "EntityCommonStockSharesOutstanding"))
-    price = _pick_recent_fact(facts, ("SharePrice", "ClosePrice"))
-    market_cap_direct = _pick_recent_fact(facts, ("MarketCapitalization",))
+    try:
+        shares_meta = facts.get_concept("common_shares_outstanding", return_metadata=True)
+    except Exception as exc:
+        logger.debug("get_concept(common_shares_outstanding) failed: %s", exc)
+        return None
+    if not shares_meta or shares_meta.get("value") is None:
+        return None
+    shares_val = float(shares_meta["value"])
+    shares_asof = shares_meta.get("period_end") or shares_meta.get("filing_date")
 
-    if market_cap_direct is not None:
-        value, asof = market_cap_direct
-        return float(value), _fmt_date(asof)
+    price, price_asof = _latest_close_yf(ticker)
+    if price is None:
+        return None
+    asof = price_asof or _fmt_date(shares_asof) or ""
+    return shares_val * float(price), asof
 
-    if shares is not None and price is not None:
-        s_val, s_asof = shares
-        p_val, _ = price
-        return float(s_val) * float(p_val), _fmt_date(s_asof)
 
-    return None
+def _latest_close_yf(ticker: str) -> tuple[float | None, str | None]:
+    """Last close via yfinance. Lazy import; returns (None, None) on any failure."""
+    try:
+        import yfinance as yf
+    except ImportError:
+        logger.debug("yfinance not installed; skipping market cap for %s", ticker)
+        return None, None
+    try:
+        hist = yf.Ticker(ticker).history(period="5d", auto_adjust=False)
+        if hist is None or hist.empty:
+            return None, None
+        row = hist.iloc[-1]
+        return float(row["Close"]), row.name.date().isoformat()
+    except Exception as exc:
+        logger.debug("yfinance history failed for %s: %s", ticker, exc)
+        return None, None
 
 
 def _pick_recent_fact(facts: Any, concepts: tuple[str, ...]) -> tuple[float, str] | None:
@@ -290,6 +310,11 @@ def run(ticker_list: list[str] | None = None) -> None:
             for row in conn.execute("SELECT cik, accession FROM filings").fetchall()
         }
         seen_ciks_with_filing = {cik for (cik, _) in existing_pairs}
+        ciks_with_mcap = {
+            r["cik"] for r in conn.execute(
+                "SELECT cik FROM companies WHERE market_cap IS NOT NULL"
+            ).fetchall()
+        }
 
         n_candidates = len(candidates)
         n_new_filings = 0
@@ -303,8 +328,9 @@ def run(ticker_list: list[str] | None = None) -> None:
             cik = cand["cik"]
             ticker = cand["ticker"]
 
-            # Idempotency: if this CIK already has any filing row, skip network.
-            if cik in seen_ciks_with_filing:
+            filing_cached = cik in seen_ciks_with_filing
+            need_mcap = cik not in ciks_with_mcap
+            if filing_cached and not need_mcap:
                 n_skipped += 1
                 continue
 
@@ -314,35 +340,28 @@ def run(ticker_list: list[str] | None = None) -> None:
                 logger.warning("[%s] Company lookup failed: %s", ticker, exc)
                 continue
 
-            filing = _latest_annual_filing(company)
-            if filing is None:
-                logger.info("[%s] no 10-K or 20-F found", ticker)
-                continue
+            if not filing_cached:
+                filing = _latest_annual_filing(company)
+                if filing is None:
+                    logger.info("[%s] no 10-K or 20-F found", ticker)
+                elif not getattr(filing, "accession_number", None):
+                    logger.warning("[%s] filing missing accession_number", ticker)
+                else:
+                    accession = str(filing.accession_number)
+                    if (cik, accession) in existing_pairs:
+                        n_skipped += 1
+                    else:
+                        used_fallback = _process_and_store(
+                            conn=conn, settings=settings, cik=cik,
+                            ticker=ticker, filing=filing, accession=accession,
+                        )
+                        if used_fallback:
+                            n_fallback += 1
+                        n_new_filings += 1
+                        existing_pairs.add((cik, accession))
+                        seen_ciks_with_filing.add(cik)
 
-            accession = str(getattr(filing, "accession_number", "") or "")
-            if not accession:
-                logger.warning("[%s] filing missing accession_number", ticker)
-                continue
-
-            if (cik, accession) in existing_pairs:
-                n_skipped += 1
-                continue
-
-            used_fallback = _process_and_store(
-                conn=conn,
-                settings=settings,
-                cik=cik,
-                ticker=ticker,
-                filing=filing,
-                accession=accession,
-            )
-            if used_fallback:
-                n_fallback += 1
-            n_new_filings += 1
-            existing_pairs.add((cik, accession))
-            seen_ciks_with_filing.add(cik)
-
-            mc = _extract_market_cap(company)
+            mc = _extract_market_cap(company, ticker) if need_mcap else None
             if mc is not None:
                 value, asof = mc
                 db.upsert_company(

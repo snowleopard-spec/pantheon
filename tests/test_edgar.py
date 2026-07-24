@@ -45,11 +45,17 @@ def conn(settings_tmp):
     c.close()
 
 
-def _seed_candidate(conn, cik: str, ticker: str, is_candidate: int = 1) -> None:
-    db.upsert_company(
-        conn, cik=cik, ticker=ticker, name=f"{ticker} Inc", sic="7372",
+def _seed_candidate(
+    conn, cik: str, ticker: str, is_candidate: int = 1, market_cap: float | None = None
+) -> None:
+    kwargs = dict(
+        cik=cik, ticker=ticker, name=f"{ticker} Inc", sic="7372",
         is_candidate=is_candidate,
     )
+    if market_cap is not None:
+        kwargs["market_cap"] = market_cap
+        kwargs["market_cap_asof"] = "2025-01-01"
+    db.upsert_company(conn, **kwargs)
     conn.commit()
 
 
@@ -172,47 +178,42 @@ def test_extract_segments_swallows_exceptions():
     assert edgar._extract_segments(filing) == []
 
 
-def test_extract_market_cap_from_direct_fact():
+def test_extract_market_cap_shares_times_yf_price(monkeypatch):
     facts = MagicMock()
-
-    def query(concept: str):
-        if concept == "MarketCapitalization":
-            return [{"value": 1_000_000_000.0, "period": "2025-01-31"}]
-        return []
-
-    facts.query.side_effect = query
+    facts.get_concept.return_value = {
+        "value": 2_000_000.0,
+        "period_end": "2025-02-15",
+    }
     company = MagicMock()
     company.get_facts.return_value = facts
 
-    mc = edgar._extract_market_cap(company)
-    assert mc == (1_000_000_000.0, "2025-01-31")
+    monkeypatch.setattr(edgar, "_latest_close_yf", lambda t: (50.0, "2025-03-01"))
+    mc = edgar._extract_market_cap(company, "AAA")
+    assert mc == (2_000_000.0 * 50.0, "2025-03-01")
 
 
-def test_extract_market_cap_from_shares_times_price():
+def test_extract_market_cap_returns_none_when_shares_missing(monkeypatch):
     facts = MagicMock()
-
-    def query(concept: str):
-        if concept == "CommonStockSharesOutstanding":
-            return [{"value": 2_000_000.0, "period": "2025-03-01"}]
-        if concept == "SharePrice":
-            return [{"value": 50.0, "period": "2025-03-01"}]
-        return []
-
-    facts.query.side_effect = query
+    facts.get_concept.return_value = None
     company = MagicMock()
     company.get_facts.return_value = facts
-
-    mc = edgar._extract_market_cap(company)
-    assert mc is not None
-    value, asof = mc
-    assert value == 100_000_000.0
-    assert asof == "2025-03-01"
+    monkeypatch.setattr(edgar, "_latest_close_yf", lambda t: (50.0, "2025-03-01"))
+    assert edgar._extract_market_cap(company, "AAA") is None
 
 
-def test_extract_market_cap_returns_none_when_facts_missing():
+def test_extract_market_cap_returns_none_when_price_missing(monkeypatch):
+    facts = MagicMock()
+    facts.get_concept.return_value = {"value": 100.0, "period_end": "2025-01-01"}
+    company = MagicMock()
+    company.get_facts.return_value = facts
+    monkeypatch.setattr(edgar, "_latest_close_yf", lambda t: (None, None))
+    assert edgar._extract_market_cap(company, "AAA") is None
+
+
+def test_extract_market_cap_returns_none_when_facts_error():
     company = MagicMock()
     company.get_facts.side_effect = RuntimeError("no facts")
-    assert edgar._extract_market_cap(company) is None
+    assert edgar._extract_market_cap(company, "AAA") is None
 
 
 def test_latest_annual_filing_falls_back_to_20f():
@@ -245,18 +246,11 @@ def test_run_populates_filings_and_writes_raw_file(settings_tmp, conn, monkeypat
         business_text="Item 1 Business " * 500,
     )
     facts = MagicMock()
-    facts.query.return_value = [
-        {"value": 1_500_000_000.0, "period": "2025-02-01"}
-    ]
-    # Only respond to MarketCapitalization to keep test simple.
-    def q(concept: str):
-        if concept == "MarketCapitalization":
-            return [{"value": 1_500_000_000.0, "period": "2025-02-01"}]
-        return []
-    facts.query.side_effect = q
+    facts.get_concept.return_value = {"value": 30_000_000.0, "period_end": "2025-01-15"}
 
     company = _company_with_filings([filing], facts=facts)
     _install_edgar(monkeypatch, company_by_cik={"0000001": company})
+    monkeypatch.setattr(edgar, "_latest_close_yf", lambda t: (50.0, "2025-02-01"))
 
     edgar.run()
 
@@ -275,7 +269,7 @@ def test_run_populates_filings_and_writes_raw_file(settings_tmp, conn, monkeypat
     assert "_fallback" not in raw_file.name
     assert raw_file.read_text().startswith("Item 1 Business")
 
-    # market cap populated
+    # market cap populated: 30M shares × $50 = $1.5B
     comp = c2.execute("SELECT market_cap, market_cap_asof FROM companies WHERE cik='0000001'").fetchone()
     assert comp["market_cap"] == 1_500_000_000.0
     assert comp["market_cap_asof"] == "2025-02-01"
@@ -333,17 +327,20 @@ def test_run_segments_json_is_valid_json(settings_tmp, conn, monkeypatch):
 def test_run_is_idempotent_and_makes_zero_network_calls_on_rerun(
     settings_tmp, conn, monkeypatch
 ):
-    _seed_candidate(conn, "0000004", "DDD")
+    _seed_candidate(conn, "0000004", "DDD", market_cap=1.23e9)
 
     filing = _make_filing(accession="0004-24-1")
-    company = _company_with_filings([filing])
+    facts = MagicMock()
+    facts.get_concept.return_value = {"value": 1.0, "period_end": "2025-01-01"}
+    company = _company_with_filings([filing], facts=facts)
     calls = _install_edgar(monkeypatch, company_by_cik={"0000004": company})
+    monkeypatch.setattr(edgar, "_latest_close_yf", lambda t: (1.0, "2025-01-01"))
 
     edgar.run()
     assert calls["companies"] == 1
     assert calls["set_identity"] == 1
 
-    # Second run: no filings should be fetched, no Company lookup.
+    # Second run: filing cached AND market_cap already set → no Company lookup.
     edgar.run()
     assert calls["companies"] == 1, "second run should not fetch anything"
     assert calls["set_identity"] == 2  # identity set every run, cheap and local

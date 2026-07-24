@@ -825,10 +825,6 @@ dependencies = [
     { name = "pyyaml" },
     { name = "sentence-transformers" },
     { name = "typer" },
-]
-
-[package.optional-dependencies]
-prices = [
     { name = "yfinance" },
 ]
 
@@ -850,9 +846,8 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "sentence-transformers", specifier = ">=3.0" },
     { name = "typer", specifier = ">=0.12" },
-    { name = "yfinance", marker = "extra == 'prices'", specifier = ">=0.2" },
+    { name = "yfinance", specifier = ">=0.2" },
 ]
-provides-extras = ["prices"]
 
 [package.metadata.requires-dev]
 dev = [

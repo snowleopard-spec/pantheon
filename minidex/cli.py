@@ -9,6 +9,27 @@ app = typer.Typer(add_completion=False, no_args_is_help=True, help="mini-dex pip
 score_app = typer.Typer(help="Stage 5: LLM scoring via Anthropic batch API")
 app.add_typer(score_app, name="score")
 
+seg_app = typer.Typer(help="Stage 3.5 (optional): LLM extraction of revenue disaggregation")
+app.add_typer(seg_app, name="fetch-segments-llm")
+
+
+@seg_app.command("submit")
+def seg_submit(
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip cost confirmation prompt."),
+) -> None:
+    """Submit LLM segment refinement batch for filings without proper splits."""
+    from minidex import llm_segments as _mod
+
+    _mod.submit(assume_yes=yes)
+
+
+@seg_app.command("poll")
+def seg_poll() -> None:
+    """Poll open segment batches and write results back to filings.segments_json."""
+    from minidex import llm_segments as _mod
+
+    _mod.poll()
+
 
 def _init_db() -> None:
     s = config.get_settings()

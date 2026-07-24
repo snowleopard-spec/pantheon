@@ -56,7 +56,7 @@ None of these are wrong ideas in the spec — they are all impedance mismatches 
 
 ## 5. Pilot iteration — score deltas across prompt versions
 
-Five full scoring passes were run to isolate the effect of each change.
+Seven full scoring passes were run to isolate the effect of each change.
 
 | Version | Change | Anchor PASS | Segments coverage | Cost |
 |---|---|---:|---:|---:|
@@ -65,16 +65,25 @@ Five full scoring passes were run to isolate the effect of each change.
 | v1.2 | Segments injected (XBRL only, per-segment splits) | 67/79 | 49/77 | $1.17 |
 | v1.3 | Segments + single-segment total-revenue fallback | 66/79 | 75/77 | $1.17 |
 | v1.4 | Segments + LLM-extracted disaggregation | 66/79 | 55/77 real + 21 total-only | $1.17 |
+| v1.5 | All 22 bucket definitions gained the "(or whose principal business purpose is)" clause previously only on `pqc_quantum` | 66/79 | (unchanged) | $1.17 |
+| v1.6 | Rule 5 rewritten with explicit numerical bands (pure-play 0.8–1.0, partial 0.3–0.7, aspirational 0.0) and named examples | **71/79** | (unchanged) | $1.19 |
 
-Aggregate anchor count plateaus at v1.2. The v1.3 and v1.4 improvements show up in per-bucket weights, not in the PASS count: AMZN's hyperscalers weight moved from 0.65 → 0.45 (correctly excluding retail); AMD's fabless score sharpened with segment splits. Past v1.2, anchor PASS is at the model-noise floor and further tuning has to be evaluated on weight quality, not counts.
+The v1.5 → v1.6 jump was the biggest single-version win. Rule 5's original phrasing ("should be scored on business purpose") was too soft against Rule 1's imperative "SCORE = REVENUE FRACTION". The rewrite explicitly supersedes Rule 1 for qualifying companies and gives the LLM numerical bands to hit. Result: OKLO/SMR/NBIS moved from 0.0 to 0.9 on their intended buckets. Side effects worth watching (CEG jumped 0.15 → 0.85, NVDA dc_hardware dropped 0.85 → 0.40) suggest the model is being more generous with the exception; net anchor count still improved.
+
+### Anchor weight floor (Stage 7 override)
+Independent of scoring, `indices.py` now applies an anchor-weight floor at Stage 7 (default 5%, configurable in `config.json` as `anchor_min_weight`). Below-floor anchors are hard-fixed at exactly the floor; above-floor members (anchor or not) scale proportionally into the remaining pool so each bucket still sums to 1.0. This is a belt-and-suspenders guarantee: even if the LLM misses a canonical anchor for any reason, it still gets 5% of the bucket. In the pilot's `power_generation` bucket, OKLO and SMR now land at exactly 5.00% each in v1.6, with the LLM scoring plus the floor both contributing.
+
+### Configuration file (config.json)
+As of `d50e013`, six tuning knobs (`embedding_model`, `similarity_threshold`, `score_floor`, `batch_model`, `max_item1_chars`, `anchor_min_weight`) live in a plain JSON file at the repo root instead of environment variables. Secrets (`ANTHROPIC_API_KEY`, `SEC_USER_AGENT`) stay in `.env`. Precedence: env var beats JSON beats hardcoded default, so per-run droplet overrides still work without editing files.
 
 ## 6. Files persisted
 
-- **13 git commits** on `main`, all pushed to `https://github.com/snowleopard-spec/pantheon`.
-- **13 DB snapshots** at `data/minidex.db.*.bak` — one after each expensive stage (`universe`, `filter`, `fetch_pilot`, `fetch_mcap`, `shortlist`, `scored`, `scored_v11..v14`, `segments`, `segments2`, `llmseg`). Cheap insurance against another DB-wipe.
-- **5 output snapshots** in `outputs/2026-07-24{,-v11,-v12,-v13,-v14}/` — one weighted-index snapshot (`minidex_weights.csv/.parquet` + `manifest.json`) per prompt version.
+- **16 git commits** on `main`, all pushed to `https://github.com/snowleopard-spec/pantheon`.
+- **15 DB snapshots** at `data/minidex.db.*.bak` — one after each expensive stage and each re-score (`universe`, `filter`, `fetch_pilot`, `fetch_mcap`, `shortlist`, `scored`, `scored_v11..v16`, `segments`, `segments2`, `llmseg`). Cheap insurance against another DB-wipe.
+- **6 output snapshots** in `outputs/` — v1.0 (`2026-07-24/`), v1.1 (`-v11/`), v1.2 (`-v12/`), v1.3 (`-v13/`), v1.4 (`-v14/`), v1.6 (`2026-07-25/`). Each contains `minidex_weights.csv/.parquet` + `manifest.json`.
 - **QC report** at `outputs/qc_report.md`.
-- **Total pilot spend:** ~$5.96 (5 Anthropic Batches × ~$1.17 + $0.11 for the Stage 3.5 LLM segment extraction).
+- **Architecture doc** at `docs/ARCHITECTURE.html` — self-contained (~26 KB) with inline SVG diagram, per-module purpose table, config-key legend, and exception-rule section.
+- **Total pilot spend:** ~$8.32 (6 scoring batches × ~$1.17–1.19 + $0.11 for the Stage 3.5 LLM segment extraction).
 
 ## 7. Pilot vs spec acceptance criteria
 
@@ -113,16 +122,36 @@ uv sync
 
 ## 9. Next steps (ordered)
 
-1. **Rotate** the Anthropic API key that was originally committed in plaintext (still valid).
-2. Spin up an 8 GB DO droplet; bootstrap per §8.
-3. Copy the pilot DB up (`scp data/minidex.db root@newdroplet:pantheon/data/`) so Stage 1/2 don't need to re-run.
+1. **Rotate** the Anthropic API key that was originally committed in plaintext (still valid). Replace value in `.env` after rotation.
+2. Spin up an 8 GB DO droplet (dedicated — do not shoehorn onto `unicorn-hunt`); bootstrap per §8.
+3. Copy the pilot DB up (`scp data/minidex.db root@newdroplet:pantheon/data/`) so Stage 1/2 don't need to re-run. Alternatively `scp data/minidex.db.scored_v16.bak` and rename on the far side to preserve the scored pilot as a starting point.
 4. Run the full pipeline. Estimated ~8–9 hours (dominated by Stage 3 EDGAR fetch of ~1,300 remaining tickers) and ~$25–35 in Anthropic spend for scoring.
 5. Snapshot the final DB and copy `outputs/` back locally.
-6. Optional: revisit the 11 flagged anchor definitions once full-universe scores are available for comparison.
+6. Optional: revisit the remaining flagged anchor definitions once full-universe scores are available for comparison (v1.6 side effects like CEG 0.15 → 0.85 may indicate the Rule 5 rewrite is over-generous for revenue-stage IPPs; the model-noise floor makes it hard to judge at pilot scale).
 7. Optional: wire up a prices CSV and run `scripts/performance.py` to get cumulative bucket returns.
 
 ## 10. Open questions
 
-- **Anchor threshold.** Current 0.30. Should it go lower for conglomerate anchors where the anchor bucket is a genuine minority of revenue (AWS is ~18% of AMZN, Azure is ~25% of MSFT)?
-- **Weight scheme priority.** All three (`cap_x_score`, `equal`, `score_only`) are produced. Which is the primary downstream artefact? That decides which one gets QC attention.
+- **Anchor threshold.** Current 0.30. Should it go lower for conglomerate anchors where the anchor bucket is a genuine minority of revenue (AWS is ~18% of AMZN, Azure is ~25% of MSFT)? The anchor-weight floor of 5% partially compensates for this in the index composition, but the QC signal still flags them as failures.
+- **Weight scheme priority.** All three (`weight_cap_score`, `weight_equal`, `weight_score`) are produced. Which is the primary downstream artefact? That decides which one gets QC attention.
 - **Refresh cadence.** Spec assumes annual. Given filings drift, would a monthly Stage 5 re-score (reusing Stage 3 filings) actually be useful, or is this a one-shot?
+- **v1.6 over-generosity risk.** The Rule 5 rewrite worked as intended for the pre-revenue names but also moved some revenue-stage IPPs (CEG 0.15 → 0.85). If full-universe scoring shows systematic inflation for borderline names, a v1.7 tightening of the "pure-play" definition may be needed.
+
+## 11. Handoff notes for next session
+
+**State when this session ended:** pilot at v1.6, all 16 commits pushed to `origin/main`, no uncommitted changes, no open background jobs, all tests green (117 pass excluding anchors; 71/79 anchor tests pass under v1.6).
+
+**Key files to re-read at session start:**
+- `docs/PROGRESS_REPORT.md` (this file) — the timeline and current state.
+- `docs/ARCHITECTURE.html` — the mental model, including the two exception rules.
+- `prompts/scoring_prompt.md` — the current v1.6 prompt including the rewritten Rule 5.
+- `config.json` — the current tuning-knob values.
+- `git log --oneline` — the commit history is the reliable trail of what changed.
+
+**Do not re-run** stages 1–5 on the local machine. The pilot DB (`data/minidex.db`) and its `.bak` snapshots are the canonical source of pilot state. The full-universe run belongs on the droplet.
+
+**Reserved batch IDs** already used and terminated: `msgbatch_01JcDNRKExA9eRMHLCvzkHYP` (v1.0), `msgbatch_01KbLVcp7vtqBXqhsnk4a2A3` (v1.1), `msgbatch_01MFyzBKG2MgZFizFHEhjArU` (v1.2), `msgbatch_0134J39PCbSn2RWh5NA72Jxr` (v1.3), `msgbatch_014tkSUvD8iTJZZoThHJcKcq` (v1.4), `msgbatch_01G5aJwLnwTHLEqPR2S2ztgX` (Stage 3.5 llm_segments), `msgbatch_012oGwzFQTby3igNMiMiZ1vB` (v1.5), `msgbatch_011JstP5BUT5469tmiWigw6x` (v1.6). All ended; DB has all their rows keyed by `prompt_version`.
+
+**Pilot ticker list** for `--tickers` flags is cached at `/tmp/pilot_tickers.txt` locally but that path is ephemeral — regenerate on the droplet from the YAML anchors + AVGO,DELL,ETN,VST,ARW,IBM if needed for a pilot-scope re-run.
+
+**Immediate next action** when the next session opens: user is expected to have spun up the new 8 GB droplet. Confirm droplet IP, then walk through the bootstrap in §8 and monitor the full-universe run.

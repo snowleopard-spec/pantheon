@@ -303,7 +303,7 @@ def build_batch_requests(
             max_item1_chars=max_item1_chars,
         )
         for run in runs:
-            custom_id = f"{cand.ticker}|{cand.fy}|run{run}"
+            custom_id = f"{cand.ticker}_{cand.fy}_run{run}"
             reqs.append(
                 {
                     "custom_id": custom_id,
@@ -487,9 +487,9 @@ def _message_text(message: Any) -> str:
 
 
 def _parse_custom_id(cid: str) -> tuple[str, int, int] | None:
-    """'TICKER|FY|runN' -> (ticker, fy, run) or None."""
+    """'TICKER_FY_runN' -> (ticker, fy, run) or None."""
     try:
-        ticker, fy_s, run_s = cid.split("|")
+        ticker, fy_s, run_s = cid.rsplit("_", 2)
         return ticker, int(fy_s), int(run_s.replace("run", ""))
     except Exception:
         return None

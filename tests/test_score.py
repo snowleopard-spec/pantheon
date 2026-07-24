@@ -239,7 +239,7 @@ def test_build_batch_requests_creates_two_runs_per_candidate(scored_settings):
     )
     assert len(reqs) == 4  # 2 candidates x 2 runs
     ids = {r["custom_id"] for r in reqs}
-    assert ids == {"NVDA|2024|run1", "NVDA|2024|run2", "AMD|2024|run1", "AMD|2024|run2"}
+    assert ids == {"NVDA_2024_run1", "NVDA_2024_run2", "AMD_2024_run1", "AMD_2024_run2"}
     for r in reqs:
         assert r["params"]["temperature"] == 0
         assert r["params"]["system"] == sys_p
@@ -292,7 +292,7 @@ def test_submit_assume_yes_creates_batch(scored_settings, monkeypatch, capsys):
     assert len(fake.messages.batches.created) == 1
     assert len(fake.messages.batches.created[0]) == 2
     cids = {r["custom_id"] for r in fake.messages.batches.created[0]}
-    assert cids == {"NVDA|2024|run1", "NVDA|2024|run2"}
+    assert cids == {"NVDA_2024_run1", "NVDA_2024_run2"}
 
     # Batch row inserted with in_progress status
     conn = db.connect(scored_settings.db_path)
@@ -355,7 +355,7 @@ def test_submit_ticker_list_filters(scored_settings):
         settings=scored_settings,
     )
     cids = {r["custom_id"] for r in fake.messages.batches.created[0]}
-    assert cids == {"NVDA|2024|run1", "NVDA|2024|run2"}
+    assert cids == {"NVDA_2024_run1", "NVDA_2024_run2"}
 
 
 # ---------- poll: valid / malformed / schema failures ---------------------
@@ -382,19 +382,19 @@ def test_poll_ingests_valid_response(scored_settings):
         scored_settings,
         [("0000010", "NVDA", "NVIDIA", 2024, ["fabless_chip_design", "networking"])],
     )
-    _prime_batch(scored_settings, "b1", ["NVDA|2024|run1", "NVDA|2024|run2"])
+    _prime_batch(scored_settings, "b1", ["NVDA_2024_run1", "NVDA_2024_run2"])
 
     fake = FakeClient()
     fake.messages.batches.results_map["b1"] = [
         _Individual(
-            "NVDA|2024|run1",
+            "NVDA_2024_run1",
             _Res(
                 "succeeded",
                 message=_Msg(_valid_response_json("NVDA", 2024, ["fabless_chip_design", "networking"])),
             ),
         ),
         _Individual(
-            "NVDA|2024|run2",
+            "NVDA_2024_run2",
             _Res(
                 "succeeded",
                 message=_Msg(
@@ -437,16 +437,16 @@ def test_poll_malformed_and_schema_invalid_go_to_failures(scored_settings):
         scored_settings,
         [("0000010", "NVDA", "NVIDIA", 2024, ["fabless_chip_design"])],
     )
-    _prime_batch(scored_settings, "b2", ["NVDA|2024|run1", "NVDA|2024|run2"])
+    _prime_batch(scored_settings, "b2", ["NVDA_2024_run1", "NVDA_2024_run2"])
 
     fake = FakeClient()
     fake.messages.batches.results_map["b2"] = [
         _Individual(
-            "NVDA|2024|run1",
+            "NVDA_2024_run1",
             _Res("succeeded", message=_Msg("this is not JSON at all!")),
         ),
         _Individual(
-            "NVDA|2024|run2",
+            "NVDA_2024_run2",
             _Res(
                 "succeeded",
                 message=_Msg(
@@ -483,20 +483,20 @@ def test_poll_malformed_and_schema_invalid_go_to_failures(scored_settings):
     failures_path = scored_settings.data_dir / score.FAILURES_FILENAME
     assert failures_path.exists()
     failures = json.loads(failures_path.read_text())
-    assert {f["custom_id"] for f in failures} == {"NVDA|2024|run1", "NVDA|2024|run2"}
+    assert {f["custom_id"] for f in failures} == {"NVDA_2024_run1", "NVDA_2024_run2"}
     reasons = " ".join(f["reason"] for f in failures)
     assert "json_decode" in reasons or "schema" in reasons
 
 
 def test_poll_missing_custom_id_goes_to_failures(scored_settings):
     _seed_db(scored_settings, [("0000010", "NVDA", "NVIDIA", 2024, ["fabless_chip_design"])])
-    _prime_batch(scored_settings, "b3", ["NVDA|2024|run1", "NVDA|2024|run2"])
+    _prime_batch(scored_settings, "b3", ["NVDA_2024_run1", "NVDA_2024_run2"])
 
     fake = FakeClient()
     # Only run1 comes back; run2 is missing.
     fake.messages.batches.results_map["b3"] = [
         _Individual(
-            "NVDA|2024|run1",
+            "NVDA_2024_run1",
             _Res(
                 "succeeded",
                 message=_Msg(_valid_response_json("NVDA", 2024, ["fabless_chip_design"])),
@@ -509,17 +509,17 @@ def test_poll_missing_custom_id_goes_to_failures(scored_settings):
     assert result["n_failures"] == 1
 
     failures = json.loads((scored_settings.data_dir / score.FAILURES_FILENAME).read_text())
-    assert failures[0]["custom_id"] == "NVDA|2024|run2"
+    assert failures[0]["custom_id"] == "NVDA_2024_run2"
     assert failures[0]["reason"] == "missing_from_batch_results"
 
 
 def test_poll_errored_result_goes_to_failures(scored_settings):
     _seed_db(scored_settings, [("0000010", "NVDA", "NVIDIA", 2024, ["fabless_chip_design"])])
-    _prime_batch(scored_settings, "b4", ["NVDA|2024|run1"])
+    _prime_batch(scored_settings, "b4", ["NVDA_2024_run1"])
 
     fake = FakeClient()
     fake.messages.batches.results_map["b4"] = [
-        _Individual("NVDA|2024|run1", _Res("errored", error={"type": "server_error"})),
+        _Individual("NVDA_2024_run1", _Res("errored", error={"type": "server_error"})),
     ]
 
     result = score.poll(client_factory=lambda: fake, settings=scored_settings)
@@ -530,7 +530,7 @@ def test_poll_errored_result_goes_to_failures(scored_settings):
 
 def test_poll_skips_batch_still_in_progress(scored_settings):
     _seed_db(scored_settings, [("0000010", "NVDA", "NVIDIA", 2024, ["fabless_chip_design"])])
-    _prime_batch(scored_settings, "b5", ["NVDA|2024|run1"])
+    _prime_batch(scored_settings, "b5", ["NVDA_2024_run1"])
 
     fake = FakeClient()
     fake.messages.batches.status_map["b5"] = "in_progress"
@@ -558,7 +558,7 @@ def test_retry_resubmits_only_failures(scored_settings):
         ],
     )
     # Simulate a prior poll that left one failure for NVDA run2 only.
-    failures = [{"custom_id": "NVDA|2024|run2", "reason": "json_decode:oops", "raw": "bad"}]
+    failures = [{"custom_id": "NVDA_2024_run2", "reason": "json_decode:oops", "raw": "bad"}]
     (scored_settings.data_dir / score.FAILURES_FILENAME).write_text(json.dumps(failures))
 
     fake = FakeClient()
@@ -570,7 +570,7 @@ def test_retry_resubmits_only_failures(scored_settings):
     assert len(batch_ids) == 1
     submitted = fake.messages.batches.created[0]
     assert len(submitted) == 1
-    assert submitted[0]["custom_id"] == "NVDA|2024|run2"
+    assert submitted[0]["custom_id"] == "NVDA_2024_run2"
     # Failures file cleared
     remaining = json.loads((scored_settings.data_dir / score.FAILURES_FILENAME).read_text())
     assert remaining == []

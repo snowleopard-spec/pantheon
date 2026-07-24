@@ -1,4 +1,4 @@
-# mini-dex Stage 3 scoring prompt — v1.1
+# mini-dex Stage 3 scoring prompt — v1.2
 
 Intended usage: one batch-API call per company. Inject only the bucket
 definitions that survived the Stage 2 embedding shortlist for that company

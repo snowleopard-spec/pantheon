@@ -110,34 +110,81 @@ _REVENUE_CONCEPTS = frozenset({
 _SEG_DIM_COL = "dim_us-gaap_StatementBusinessSegmentsAxis"
 
 
-def _extract_segments(filing: Any) -> list[dict]:
+def _extract_total_revenue(company: Any) -> dict | None:
+    """Fallback for single-segment issuers: total FY revenue via curated concept.
+
+    Returns a single {segment, revenue, period} dict or None. Tries the two
+    most recent fiscal years since a company's latest filing may still be
+    the prior FY around annual-report season.
+    """
+    try:
+        facts = company.get_facts()
+    except Exception as exc:
+        logger.debug("get_facts failed in total-revenue fallback: %s", exc)
+        return None
+    if facts is None:
+        return None
+    from datetime import date
+
+    year = date.today().year
+    for fy in (year, year - 1, year - 2):
+        try:
+            r = facts.get_concept("revenue", period=f"{fy}-FY", return_metadata=True)
+        except Exception:
+            r = None
+        if not r or r.get("value") is None:
+            continue
+        val = float(r["value"])
+        # Sanity gate: reject values above $1T. Walmart (largest US-listed by
+        # revenue) is under $700B; anything past $1T is a unit / currency error
+        # (seen on IFRS filers with base-currency multipliers, e.g. ARQQ).
+        if val > 1_000_000_000_000:
+            continue
+        period = r.get("period_end")
+        return {
+            "segment": "Total revenue",
+            "revenue": val,
+            "period": str(period) if period is not None else "",
+        }
+    return None
+
+
+def _extract_segments(filing: Any, company: Any = None) -> list[dict]:
     """Segment revenue per reporting segment for the newest fiscal year.
 
     Reads the filing's XBRL facts as a DataFrame with dimensions, filters to
     revenue concepts tagged with the StatementBusinessSegmentsAxis, and
-    returns one row per segment for the most recent period_end. Empty list on
-    any failure, missing XBRL, or filings that don't report by segment.
+    returns one row per segment for the most recent period_end. For
+    single-segment issuers (no segment axis in XBRL), falls back to a single
+    'Total revenue' entry via the curated `revenue` concept on company facts
+    if ``company`` is provided.
     """
+    def _fallback() -> list[dict]:
+        if company is None:
+            return []
+        r = _extract_total_revenue(company)
+        return [r] if r else []
+
     try:
         xbrl = filing.xbrl()
     except Exception as exc:
         logger.debug("filing.xbrl() failed: %s", exc)
-        return []
+        return _fallback()
     if xbrl is None:
-        return []
+        return _fallback()
 
     try:
         df = xbrl.query(include_dimensions=True).to_dataframe()
     except Exception as exc:
         logger.debug("xbrl.query().to_dataframe() failed: %s", exc)
-        return []
+        return _fallback()
     if df is None or len(df) == 0 or _SEG_DIM_COL not in df.columns:
-        return []
+        return _fallback()
 
     mask = df["concept"].isin(_REVENUE_CONCEPTS) & df[_SEG_DIM_COL].notna()
     seg_df = df[mask]
     if len(seg_df) == 0:
-        return []
+        return _fallback()
 
     # Newest period_end only — one row per segment.
     try:
@@ -393,6 +440,7 @@ def run(ticker_list: list[str] | None = None) -> None:
                         used_fallback = _process_and_store(
                             conn=conn, settings=settings, cik=cik,
                             ticker=ticker, filing=filing, accession=accession,
+                            company=company,
                         )
                         if used_fallback:
                             n_fallback += 1
@@ -403,7 +451,7 @@ def run(ticker_list: list[str] | None = None) -> None:
                 filing_for_backfill = _latest_annual_filing(company)
 
             if filing_for_backfill is not None:
-                segments = _extract_segments(filing_for_backfill)
+                segments = _extract_segments(filing_for_backfill, company=company)
                 if segments:
                     accession = str(getattr(filing_for_backfill, "accession_number", "") or "")
                     if accession:
@@ -450,13 +498,14 @@ def _process_and_store(
     ticker: str,
     filing: Any,
     accession: str,
+    company: Any = None,
 ) -> bool:
     """Extract text + segments and write filings row + raw text file.
 
     Returns True if Item 1 parsing fell back to the raw filing body.
     """
     text, used_fallback = _extract_item1(filing)
-    segments = _extract_segments(filing)
+    segments = _extract_segments(filing, company=company)
 
     out_path = _item1_path(settings.raw_dir, accession, used_fallback)
     out_path.parent.mkdir(parents=True, exist_ok=True)

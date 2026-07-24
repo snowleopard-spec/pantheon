@@ -211,6 +211,40 @@ def test_extract_segments_swallows_exceptions():
     assert edgar._extract_segments(filing) == []
 
 
+def test_extract_segments_falls_back_to_total_revenue_for_single_segment():
+    # XBRL has no segment axis → fallback triggers when company provided.
+    filing = _make_filing(xbrl=_make_xbrl_df([]))
+    facts = MagicMock()
+    facts.get_concept.return_value = {
+        "value": 9_005_700_000.0, "period_end": "2025-12-31",
+        "tag_used": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+    }
+    company = MagicMock()
+    company.get_facts.return_value = facts
+    segs = edgar._extract_segments(filing, company=company)
+    assert len(segs) == 1
+    assert segs[0]["segment"] == "Total revenue"
+    assert segs[0]["revenue"] == 9_005_700_000.0
+    assert segs[0]["period"] == "2025-12-31"
+
+
+def test_extract_segments_fallback_rejects_absurd_values():
+    # Foreign-filer unit / currency errors sometimes surface trillion+ values.
+    filing = _make_filing(xbrl=_make_xbrl_df([]))
+    facts = MagicMock()
+    facts.get_concept.return_value = {
+        "value": 2_894_307_700_000.0, "period_end": "2024-12-31",
+    }
+    company = MagicMock()
+    company.get_facts.return_value = facts
+    assert edgar._extract_segments(filing, company=company) == []
+
+
+def test_extract_segments_fallback_none_when_no_company():
+    filing = _make_filing(xbrl=_make_xbrl_df([]))
+    assert edgar._extract_segments(filing) == []
+
+
 def test_extract_market_cap_shares_times_yf_price(monkeypatch):
     facts = MagicMock()
     facts.get_concept.return_value = {

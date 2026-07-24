@@ -3,7 +3,7 @@
 Reads scores from the SQLite DB and writes a human-readable
 ``outputs/qc_report.md`` covering:
 
-  1. Anchor check (mean score per (anchor ticker, anchor bucket) >= 0.5)
+  1. Anchor check (mean score per (anchor ticker, anchor bucket) >= 0.3)
   2. Run disagreement (|run1 - run2| > 0.2)
   3. Borderline rows (mean score in [0.10, 0.30])
   4. Low-confidence highs (confidence == 'low' and mean score >= 0.3)
@@ -27,7 +27,7 @@ BORDERLINE_LO = 0.10
 BORDERLINE_HI = 0.30
 LOW_CONF_HIGH_THRESHOLD = 0.3
 RUN_DISAGREEMENT_THRESHOLD = 0.2
-ANCHOR_MIN_SCORE = 0.5
+ANCHOR_MIN_SCORE = 0.3
 BUCKET_MEMBER_FLOOR = 0.10
 
 

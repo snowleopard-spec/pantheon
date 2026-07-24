@@ -76,9 +76,9 @@ def seeded(tmp_path: Path):
     _insert_pair(conn, cik="0000010", ticker="GOOD",
                  bucket_id="bucket_alpha", run1_score=0.8, run2_score=0.8)
 
-    # (1) Anchor FAIL: BAD on bucket_alpha, mean 0.3
+    # (1) Anchor FAIL: BAD on bucket_alpha, mean 0.2 (< ANCHOR_MIN_SCORE=0.3)
     _insert_pair(conn, cik="0000011", ticker="BAD",
-                 bucket_id="bucket_alpha", run1_score=0.3, run2_score=0.3)
+                 bucket_id="bucket_alpha", run1_score=0.2, run2_score=0.2)
 
     # (1) Anchor SKIP: MISSING has no scored rows at all
 
@@ -194,7 +194,7 @@ def test_anchor_scores_returns_expected(seeded):
         conn.close()
     by_ticker = {r.ticker: r for r in results}
     assert by_ticker["GOOD"].mean_score == pytest.approx(0.8)
-    assert by_ticker["BAD"].mean_score == pytest.approx(0.3)
+    assert by_ticker["BAD"].mean_score == pytest.approx(0.2)
     assert by_ticker["MISSING"].mean_score is None
 
 

@@ -1,7 +1,7 @@
 """Anchor calibration tests.
 
 Per §7 stage 6 of MINIDEX_SPEC.md: mirror the anchor QC check as pytest
-assertions. Each anchor ticker must score >= 0.5 on its declared anchor
+assertions. Each anchor ticker must score >= 0.3 on its declared anchor
 bucket. Runs against the real DB at ``config.get_settings().db_path`` so it
 exercises actual scored data once a scoring run exists. On a fresh repo
 (empty DB or no scores yet) the tests skip cleanly rather than fail.

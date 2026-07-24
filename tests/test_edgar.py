@@ -150,30 +150,63 @@ def test_extract_segments_returns_empty_on_no_xbrl():
     assert edgar._extract_segments(filing) == []
 
 
-def test_extract_segments_dict_shape_returns_valid_json():
-    fact_a = {"segment": "DataCenter", "value": 100.0, "period": "2024-12-31"}
-    fact_b = {"segment": "Gaming", "value": 50.0, "period": "2024-12-31"}
-    xbrl = SimpleNamespace(facts={"Revenues": [fact_a, fact_b]})
+def _make_xbrl_df(rows: list[dict]):
+    """Build a mock xbrl object whose .query(...).to_dataframe() returns a DataFrame."""
+    import pandas as pd
+    df = pd.DataFrame(rows)
+    query = MagicMock()
+    query.to_dataframe.return_value = df
+    xbrl = MagicMock()
+    xbrl.query.return_value = query
+    return xbrl
 
-    # Wire a fact query onto the facts container so the code path runs.
-    facts_container = MagicMock()
-    facts_container.query.return_value = [fact_a, fact_b]
-    xbrl = SimpleNamespace(facts=facts_container)
 
-    filing = _make_filing(xbrl=xbrl)
+def test_extract_segments_returns_newest_period_per_segment():
+    rows = [
+        {
+            "concept": "us-gaap:Revenues", "numeric_value": 100.0,
+            "period_end": "2024-12-31", "dimension_label": "DataCenter",
+            "dim_us-gaap_StatementBusinessSegmentsAxis": "co:DCSegmentMember",
+        },
+        {
+            "concept": "us-gaap:Revenues", "numeric_value": 50.0,
+            "period_end": "2024-12-31", "dimension_label": "Gaming",
+            "dim_us-gaap_StatementBusinessSegmentsAxis": "co:GamingSegmentMember",
+        },
+        {  # older period — should be filtered out
+            "concept": "us-gaap:Revenues", "numeric_value": 80.0,
+            "period_end": "2023-12-31", "dimension_label": "DataCenter",
+            "dim_us-gaap_StatementBusinessSegmentsAxis": "co:DCSegmentMember",
+        },
+    ]
+    filing = _make_filing(xbrl=_make_xbrl_df(rows))
     segs = edgar._extract_segments(filing)
     assert len(segs) == 2
-    # JSON round-trip must succeed
-    dumped = json.dumps(segs)
-    loaded = json.loads(dumped)
-    assert loaded[0]["segment"] == "DataCenter"
-    assert loaded[0]["revenue"] == 100.0
+    labels = {s["segment"] for s in segs}
+    assert labels == {"DataCenter", "Gaming"}
+    dc = next(s for s in segs if s["segment"] == "DataCenter")
+    assert dc["revenue"] == 100.0
+    assert dc["period"] == "2024-12-31"
+    # JSON round-trip
+    import json as _json
+    _json.dumps(segs)
+
+
+def test_extract_segments_ignores_undimensioned_revenue():
+    rows = [
+        {
+            "concept": "us-gaap:Revenues", "numeric_value": 200.0,
+            "period_end": "2024-12-31", "dimension_label": None,
+            "dim_us-gaap_StatementBusinessSegmentsAxis": None,
+        }
+    ]
+    filing = _make_filing(xbrl=_make_xbrl_df(rows))
+    assert edgar._extract_segments(filing) == []
 
 
 def test_extract_segments_swallows_exceptions():
     xbrl = MagicMock()
-    xbrl.facts = MagicMock()
-    xbrl.facts.query.side_effect = RuntimeError("boom")
+    xbrl.query.side_effect = RuntimeError("boom")
     filing = _make_filing(xbrl=xbrl)
     assert edgar._extract_segments(filing) == []
 
@@ -302,13 +335,12 @@ def test_run_uses_fallback_suffix_when_item1_missing(settings_tmp, conn, monkeyp
 def test_run_segments_json_is_valid_json(settings_tmp, conn, monkeypatch):
     _seed_candidate(conn, "0000003", "CCC")
 
-    facts_container = MagicMock()
-    facts_container.query.return_value = [
-        {"segment": "Cloud", "value": 250.0, "period": "2024-12-31"},
-    ]
-    xbrl = SimpleNamespace(facts=facts_container)
-
-    filing = _make_filing(accession="0003-24-1", xbrl=xbrl)
+    seg_rows = [{
+        "concept": "us-gaap:Revenues", "numeric_value": 250.0,
+        "period_end": "2024-12-31", "dimension_label": "Cloud",
+        "dim_us-gaap_StatementBusinessSegmentsAxis": "co:CloudMember",
+    }]
+    filing = _make_filing(accession="0003-24-1", xbrl=_make_xbrl_df(seg_rows))
     company = _company_with_filings([filing])
     _install_edgar(monkeypatch, company_by_cik={"0000003": company})
 
@@ -329,7 +361,12 @@ def test_run_is_idempotent_and_makes_zero_network_calls_on_rerun(
 ):
     _seed_candidate(conn, "0000004", "DDD", market_cap=1.23e9)
 
-    filing = _make_filing(accession="0004-24-1")
+    seg_rows = [{
+        "concept": "us-gaap:Revenues", "numeric_value": 42.0,
+        "period_end": "2024-12-31", "dimension_label": "OneSegment",
+        "dim_us-gaap_StatementBusinessSegmentsAxis": "co:OneMember",
+    }]
+    filing = _make_filing(accession="0004-24-1", xbrl=_make_xbrl_df(seg_rows))
     facts = MagicMock()
     facts.get_concept.return_value = {"value": 1.0, "period_end": "2025-01-01"}
     company = _company_with_filings([filing], facts=facts)
@@ -340,7 +377,7 @@ def test_run_is_idempotent_and_makes_zero_network_calls_on_rerun(
     assert calls["companies"] == 1
     assert calls["set_identity"] == 1
 
-    # Second run: filing cached AND market_cap already set → no Company lookup.
+    # Second run: filing cached, market_cap set, segments non-empty → no Company lookup.
     edgar.run()
     assert calls["companies"] == 1, "second run should not fetch anything"
     assert calls["set_identity"] == 2  # identity set every run, cheap and local

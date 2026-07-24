@@ -100,48 +100,77 @@ def _extract_item1(filing: Any) -> tuple[str, bool]:
     return body[:FALLBACK_CHARS].strip(), True
 
 
-def _extract_segments(filing: Any) -> list[dict]:
-    """Best-effort segment revenue extraction. Empty list on any failure.
+_REVENUE_CONCEPTS = frozenset({
+    "us-gaap:Revenues",
+    "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+    "us-gaap:RevenueFromContractWithCustomerIncludingAssessedTax",
+    "us-gaap:SalesRevenueNet",
+})
 
-    Looks for XBRL facts tagged with segment axis members. Different filings
-    expose this differently; we probe a couple of common shapes and give up
-    gracefully otherwise.
+_SEG_DIM_COL = "dim_us-gaap_StatementBusinessSegmentsAxis"
+
+
+def _extract_segments(filing: Any) -> list[dict]:
+    """Segment revenue per reporting segment for the newest fiscal year.
+
+    Reads the filing's XBRL facts as a DataFrame with dimensions, filters to
+    revenue concepts tagged with the StatementBusinessSegmentsAxis, and
+    returns one row per segment for the most recent period_end. Empty list on
+    any failure, missing XBRL, or filings that don't report by segment.
     """
     try:
         xbrl = filing.xbrl()
-    except Exception:
+    except Exception as exc:
+        logger.debug("filing.xbrl() failed: %s", exc)
         return []
     if xbrl is None:
         return []
 
-    # Preferred path: xbrl.query() for revenue-like concepts by segment.
     try:
-        facts = xbrl.facts  # may be dict-like or a helper object
-    except Exception:
-        facts = None
-
-    results: list[dict] = []
-    try:
-        # Try common shapes without assuming edgartools internals.
-        iterable: Iterable = []
-        if facts is None:
-            iterable = []
-        elif hasattr(facts, "query"):
-            iterable = list(facts.query(concept="Revenues"))
-        elif isinstance(facts, dict):
-            iterable = list(facts.values())
-        else:
-            iterable = list(facts)
-        for fact in iterable:
-            seg = _fact_segment(fact)
-            rev = _fact_number(fact)
-            period = _fact_period(fact)
-            if seg and rev is not None:
-                results.append({"segment": seg, "revenue": float(rev), "period": period})
+        df = xbrl.query(include_dimensions=True).to_dataframe()
     except Exception as exc:
-        logger.debug("segment extraction failed: %s", exc)
+        logger.debug("xbrl.query().to_dataframe() failed: %s", exc)
         return []
-    return results
+    if df is None or len(df) == 0 or _SEG_DIM_COL not in df.columns:
+        return []
+
+    mask = df["concept"].isin(_REVENUE_CONCEPTS) & df[_SEG_DIM_COL].notna()
+    seg_df = df[mask]
+    if len(seg_df) == 0:
+        return []
+
+    # Newest period_end only — one row per segment.
+    try:
+        latest_period = seg_df["period_end"].max()
+    except Exception:
+        return []
+    seg_df = seg_df[seg_df["period_end"] == latest_period]
+
+    out: list[dict] = []
+    seen: set[str] = set()
+    for _, row in seg_df.iterrows():
+        key = row.get(_SEG_DIM_COL)  # e.g. "nvda:ComputeAndNetworkingSegmentMember"
+        display = row.get("dimension_label") or row.get("dimension_member_label") or key
+        val = row.get("numeric_value")
+        if key is None or val is None or display is None:
+            continue
+        key = str(key).strip()
+        display = str(display).strip()
+        if not key or key in seen or not display:
+            continue
+        try:
+            revenue = float(val)
+        except (TypeError, ValueError):
+            continue
+        seen.add(key)
+        out.append(
+            {
+                "segment": display,
+                "revenue": revenue,
+                "period": str(latest_period) if latest_period is not None else "",
+            }
+        )
+    return out
 
 
 def _fact_segment(fact: Any) -> str | None:
@@ -315,12 +344,20 @@ def run(ticker_list: list[str] | None = None) -> None:
                 "SELECT cik FROM companies WHERE market_cap IS NOT NULL"
             ).fetchall()
         }
+        # (cik, accession) rows whose segments are still empty and worth re-attempting.
+        empty_seg_rows = {
+            (r["cik"], r["accession"])
+            for r in conn.execute(
+                "SELECT cik, accession FROM filings WHERE segments_json IS NULL OR segments_json IN ('', '[]')"
+            ).fetchall()
+        }
 
         n_candidates = len(candidates)
         n_new_filings = 0
         n_fallback = 0
         n_skipped = 0
         n_market_cap = 0
+        n_segments_backfilled = 0
 
         print(f"fetch: {n_candidates} candidates to process ({len(seen_ciks_with_filing)} already cached)")
 
@@ -330,7 +367,8 @@ def run(ticker_list: list[str] | None = None) -> None:
 
             filing_cached = cik in seen_ciks_with_filing
             need_mcap = cik not in ciks_with_mcap
-            if filing_cached and not need_mcap:
+            need_segments = any(cik == p[0] for p in empty_seg_rows)
+            if filing_cached and not need_mcap and not need_segments:
                 n_skipped += 1
                 continue
 
@@ -340,6 +378,7 @@ def run(ticker_list: list[str] | None = None) -> None:
                 logger.warning("[%s] Company lookup failed: %s", ticker, exc)
                 continue
 
+            filing_for_backfill = None
             if not filing_cached:
                 filing = _latest_annual_filing(company)
                 if filing is None:
@@ -360,6 +399,19 @@ def run(ticker_list: list[str] | None = None) -> None:
                         n_new_filings += 1
                         existing_pairs.add((cik, accession))
                         seen_ciks_with_filing.add(cik)
+            elif need_segments:
+                filing_for_backfill = _latest_annual_filing(company)
+
+            if filing_for_backfill is not None:
+                segments = _extract_segments(filing_for_backfill)
+                if segments:
+                    accession = str(getattr(filing_for_backfill, "accession_number", "") or "")
+                    if accession:
+                        conn.execute(
+                            "UPDATE filings SET segments_json = ? WHERE cik = ? AND accession = ?",
+                            (json.dumps(segments, separators=(",", ":")), cik, accession),
+                        )
+                        n_segments_backfilled += 1
 
             mc = _extract_market_cap(company, ticker) if need_mcap else None
             if mc is not None:
@@ -374,12 +426,14 @@ def run(ticker_list: list[str] | None = None) -> None:
             if idx % 10 == 0 or idx == n_candidates:
                 print(
                     f"fetch: {idx}/{n_candidates} processed | "
-                    f"new={n_new_filings} skipped={n_skipped} fallback={n_fallback} mcap={n_market_cap}"
+                    f"new={n_new_filings} skipped={n_skipped} fallback={n_fallback} "
+                    f"mcap={n_market_cap} seg_bf={n_segments_backfilled}"
                 )
 
         print(
             f"fetch: done. candidates={n_candidates} new_filings={n_new_filings} "
-            f"fallback={n_fallback} skipped={n_skipped} market_cap={n_market_cap}"
+            f"fallback={n_fallback} skipped={n_skipped} market_cap={n_market_cap} "
+            f"segments_backfilled={n_segments_backfilled}"
         )
 
 

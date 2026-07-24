@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>mini-dex — Architecture (non-technical)</title>
+<style>
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: Georgia, "Times New Roman", Times, serif;
+    color: #1c1c1c;
+    background: #fdfdfb;
+    max-width: 900px;
+    margin: 2.4rem auto;
+    padding: 0 1.4rem 4rem 1.4rem;
+    line-height: 1.55;
+    font-size: 17px;
+  }
+  h1 {
+    font-size: 2rem;
+    margin: 0 0 0.2rem 0;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-size: 1.35rem;
+    margin: 2.4rem 0 0.6rem 0;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #d8d5cd;
+  }
+  h3 {
+    font-size: 1.1rem;
+    margin: 1.6rem 0 0.4rem 0;
+  }
+  p { margin: 0.6rem 0 1rem 0; }
+  .subtitle {
+    color: #666;
+    font-style: italic;
+    margin-top: 0;
+    margin-bottom: 1.6rem;
+  }
+  .meta {
+    color: #777;
+    font-size: 0.85rem;
+    margin-top: -0.4rem;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.8rem 0 1.4rem 0;
+    font-size: 0.95rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid #e2ded4;
+    vertical-align: top;
+  }
+  th {
+    background: #f2efe6;
+    font-weight: 600;
+  }
+  td code, p code, li code {
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.86em;
+    background: #f2efe6;
+    padding: 0.05rem 0.3rem;
+    border-radius: 3px;
+  }
+  ul, ol { margin: 0.4rem 0 1rem 1.4rem; }
+  li { margin: 0.25rem 0; }
+  .callout {
+    border-left: 3px solid #7a8fa6;
+    background: #f4f6f9;
+    padding: 0.6rem 0.9rem;
+    margin: 1rem 0 1.4rem 0;
+    font-size: 0.95rem;
+    color: #333;
+  }
+  .diagram {
+    margin: 1rem 0 1.6rem 0;
+    text-align: center;
+  }
+  .diagram svg {
+    max-width: 100%;
+    height: auto;
+  }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #d8d5cd;
+    color: #777;
+    font-size: 0.85rem;
+  }
+  @media print {
+    body { margin: 0; font-size: 11pt; max-width: none; }
+    h2 { page-break-after: avoid; }
+    .diagram, table, .callout { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<h1>mini-dex</h1>
+<p class="subtitle">A non-technical guide to how the pipeline turns 8,000 SEC filings into 22 thematic stock baskets.</p>
+<p class="meta">Companion to <code>docs/MINIDEX_SPEC.md</code>. Written for product managers and analysts who want the shape of the system without the code.</p>
+
+<h2>1. What this system does</h2>
+<p>
+  mini-dex classifies US-listed technology and AI-adjacent companies into 22 thematic
+  sub-indices &mdash; things like &ldquo;fabless chip design,&rdquo; &ldquo;AI-native data-centre
+  power,&rdquo; and &ldquo;frontier model labs.&rdquo; For each theme it produces a weighted list
+  of member companies, so that basket can be back-tested against real prices. The buckets are
+  not mutually exclusive: a company like NVIDIA earns weight in several themes at once, in
+  proportion to how much of its revenue plausibly comes from each. Output is a set of frozen
+  CSV and Parquet files plus a manifest describing the run. It is a batch pipeline, refreshed
+  perhaps annually, not a live service.
+</p>
+
+<h2>2. The end-to-end journey of one company</h2>
+<p>
+  The clearest way to see the pipeline is to follow a single name through it. Take NVIDIA
+  (ticker NVDA). Its trip through mini-dex has seven stops.
+</p>
+
+<p>
+  <strong>Stop 1 &mdash; Universe pull.</strong> The pipeline downloads the SEC&rsquo;s master
+  list of every US-registered public filer &mdash; roughly 8,000 companies with their tickers,
+  names, and SIC industry codes. NVDA is in there, along with everything from banks to
+  biotech to oil producers.
+</p>
+
+<p>
+  <strong>Stop 2 &mdash; Industry filter.</strong> A hand-curated list of SIC code ranges
+  keeps only the tech-adjacent slice: semiconductors, computers, software, communications
+  equipment, electrical apparatus, measuring instruments, telecom, data-centre REITs, and
+  electric utilities. That trims the universe to about 1,376 candidates. NVDA (SIC 3674,
+  semiconductors) survives. JPMorgan and Pfizer do not.
+</p>
+
+<p>
+  <strong>Stop 3 &mdash; Filing fetch and reading.</strong> For each candidate the pipeline
+  pulls the most recent 10-K &mdash; the annual report every US public company is required
+  to file with the SEC. It extracts &ldquo;Item 1: Business,&rdquo; the plain-English section
+  where the company describes what it actually does and how it makes money. In parallel it
+  pulls any structured revenue-by-segment data from XBRL (the machine-readable tags in the
+  filing). For NVDA that gives the pipeline both the narrative (&ldquo;we design GPUs and
+  networking for AI training&hellip;&rdquo;) and the segment table (&ldquo;Data Center: $47.5B;
+  Gaming: $10.4B; &hellip;&rdquo;). When XBRL is thin or missing, an optional LLM step reads
+  the 10-K text and pulls out any dollar-quantified splits the company mentions in prose.
+</p>
+
+<p>
+  <strong>Stop 4 &mdash; Embedding shortlist.</strong> Rather than ask an LLM to score NVDA
+  against all 22 buckets, the pipeline first uses embeddings &mdash; a technique that turns a
+  piece of text into a list of numbers so that texts about similar topics land near each
+  other in that number space. Cosine similarity then measures how close two of those number
+  lists are (0 = unrelated, 1 = identical topic). NVDA&rsquo;s Item 1 gets embedded, each
+  bucket&rsquo;s definition gets embedded, and only buckets above a similarity cut-off (0.60)
+  make NVDA&rsquo;s shortlist &mdash; typically 1 to 6 buckets. NVDA lands on
+  <em>fabless chip design</em>, <em>AI accelerators</em>, <em>data-centre networking</em>,
+  and a couple of neighbours. It does not land on <em>foundry</em> or
+  <em>frontier model labs</em>.
+</p>
+
+<p>
+  <strong>Stop 5 &mdash; LLM scoring.</strong> Only the shortlisted (company, bucket) pairs
+  are sent to the Anthropic Message Batches API. The prompt shows the model NVDA&rsquo;s
+  Item 1 text, its segment table, and the definitions of just the buckets on its shortlist.
+  The model returns, for each bucket, an estimated share of revenue (0 to 1), a confidence
+  label, and a one-line rationale. Every company is scored twice, independently, so the QC
+  step can see where the model disagrees with itself.
+</p>
+
+<p>
+  <strong>Stops 6 and 7 &mdash; QC and weighting.</strong> The QC step runs sanity checks:
+  known anchor companies must score highly on their designated buckets (NVDA must land above
+  0.5 on <em>fabless chip design</em>); the two independent runs must roughly agree; borderline
+  scores get flagged. Then the build step converts scores into weights three ways &mdash; equal-weight,
+  score-weighted, and score &times; market-cap-weighted &mdash; normalised so each bucket sums
+  to 1. NVDA ends up as a heavy weight in several silicon buckets and a lighter weight in a
+  few software-adjacent ones, and the whole run is frozen to disk with a manifest recording
+  every input version.
+</p>
+
+<h2>3. Data-flow diagram</h2>
+<div class="diagram">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 720" role="img" aria-label="mini-dex data flow">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a6a8a"/>
+    </marker>
+    <style>
+      .box { fill: #f2efe6; stroke: #8a8578; stroke-width: 1; }
+      .ext { fill: #e6edf4; stroke: #7a8fa6; stroke-width: 1; }
+      .out { fill: #eae4d6; stroke: #8a7a4a; stroke-width: 1; }
+      .lbl { font: 12px Georgia, serif; fill: #1c1c1c; }
+      .lbl b { font-weight: 700; }
+      .sub { font: 10.5px Georgia, serif; fill: #555; }
+      .tag { font: 10px "SFMono-Regular", Menlo, monospace; fill: #333; }
+      .arrow { stroke: #4a6a8a; stroke-width: 1.4; fill: none; }
+      .title { font: bold 13px Georgia, serif; fill: #1c1c1c; }
+    </style>
+  </defs>
+
+  <!-- external inputs (left column) -->
+  <text x="80" y="24" class="title" text-anchor="middle">External inputs</text>
+
+  <rect class="ext" x="10" y="40" width="140" height="46" rx="4"/>
+  <text x="80" y="60" class="lbl" text-anchor="middle">SEC EDGAR</text>
+  <text x="80" y="76" class="sub" text-anchor="middle">company list, SIC</text>
+
+  <rect class="ext" x="10" y="150" width="140" height="46" rx="4"/>
+  <text x="80" y="170" class="lbl" text-anchor="middle">SEC 10-K filings</text>
+  <text x="80" y="186" class="sub" text-anchor="middle">Item 1 text + XBRL</text>
+
+  <rect class="ext" x="10" y="290" width="140" height="46" rx="4"/>
+  <text x="80" y="310" class="lbl" text-anchor="middle">HuggingFace</text>
+  <text x="80" y="326" class="sub" text-anchor="middle">BGE embeddings (local)</text>
+
+  <rect class="ext" x="10" y="400" width="140" height="46" rx="4"/>
+  <text x="80" y="420" class="lbl" text-anchor="middle">Anthropic API</text>
+  <text x="80" y="436" class="sub" text-anchor="middle">Message Batches</text>
+
+  <rect class="ext" x="10" y="510" width="140" height="46" rx="4"/>
+  <text x="80" y="530" class="lbl" text-anchor="middle">yfinance</text>
+  <text x="80" y="546" class="sub" text-anchor="middle">market cap prices</text>
+
+  <!-- pipeline stages (center column) -->
+  <text x="430" y="24" class="title" text-anchor="middle">Pipeline stages</text>
+
+  <rect class="box" x="290" y="40" width="280" height="60" rx="4"/>
+  <text x="430" y="60" class="lbl" text-anchor="middle"><tspan font-weight="700">1. Universe</tspan> &mdash; pull ~8,000 filers</text>
+  <text x="430" y="78" class="sub" text-anchor="middle">writes: companies</text>
+  <text x="430" y="93" class="tag" text-anchor="middle">universe.py</text>
+
+  <rect class="box" x="290" y="120" width="280" height="60" rx="4"/>
+  <text x="430" y="140" class="lbl" text-anchor="middle"><tspan font-weight="700">2. Filter</tspan> &mdash; SIC keep, ~1,376 candidates</text>
+  <text x="430" y="158" class="sub" text-anchor="middle">updates: companies.is_candidate</text>
+  <text x="430" y="173" class="tag" text-anchor="middle">universe.py</text>
+
+  <rect class="box" x="290" y="200" width="280" height="70" rx="4"/>
+  <text x="430" y="220" class="lbl" text-anchor="middle"><tspan font-weight="700">3. Fetch</tspan> &mdash; 10-K Item 1 + XBRL segments</text>
+  <text x="430" y="238" class="sub" text-anchor="middle">writes: filings, data/raw/*_item1.txt</text>
+  <text x="430" y="253" class="sub" text-anchor="middle">optional 3.5: LLM segment fallback</text>
+  <text x="430" y="266" class="tag" text-anchor="middle">edgar.py &nbsp;+&nbsp; llm_segments.py</text>
+
+  <rect class="box" x="290" y="290" width="280" height="60" rx="4"/>
+  <text x="430" y="310" class="lbl" text-anchor="middle"><tspan font-weight="700">4. Shortlist</tspan> &mdash; embed &amp; cosine-match</text>
+  <text x="430" y="328" class="sub" text-anchor="middle">writes: shortlist (1&ndash;6 buckets/company)</text>
+  <text x="430" y="343" class="tag" text-anchor="middle">shortlist.py</text>
+
+  <rect class="box" x="290" y="370" width="280" height="80" rx="4"/>
+  <text x="430" y="390" class="lbl" text-anchor="middle"><tspan font-weight="700">5. Score</tspan> &mdash; LLM revenue-fraction per pair</text>
+  <text x="430" y="408" class="sub" text-anchor="middle">two independent runs; only paid stage</text>
+  <text x="430" y="423" class="sub" text-anchor="middle">writes: scores, batches</text>
+  <text x="430" y="440" class="tag" text-anchor="middle">score.py</text>
+
+  <rect class="box" x="290" y="470" width="280" height="60" rx="4"/>
+  <text x="430" y="490" class="lbl" text-anchor="middle"><tspan font-weight="700">6. QC</tspan> &mdash; anchor checks + disagreements</text>
+  <text x="430" y="508" class="sub" text-anchor="middle">writes: outputs/qc_report.md</text>
+  <text x="430" y="523" class="tag" text-anchor="middle">qc.py</text>
+
+  <rect class="box" x="290" y="550" width="280" height="70" rx="4"/>
+  <text x="430" y="570" class="lbl" text-anchor="middle"><tspan font-weight="700">7. Build</tspan> &mdash; three weight schemes / bucket</text>
+  <text x="430" y="588" class="sub" text-anchor="middle">reads: latest_scores view + market_cap</text>
+  <text x="430" y="605" class="tag" text-anchor="middle">indices.py</text>
+
+  <!-- outputs (right column) -->
+  <text x="770" y="24" class="title" text-anchor="middle">Outputs</text>
+
+  <rect class="out" x="700" y="200" width="150" height="46" rx="4"/>
+  <text x="775" y="220" class="lbl" text-anchor="middle">data/minidex.db</text>
+  <text x="775" y="236" class="sub" text-anchor="middle">SQLite, all stages</text>
+
+  <rect class="out" x="700" y="260" width="150" height="46" rx="4"/>
+  <text x="775" y="280" class="lbl" text-anchor="middle">data/raw/</text>
+  <text x="775" y="296" class="sub" text-anchor="middle">cached Item 1 text</text>
+
+  <rect class="out" x="700" y="550" width="150" height="70" rx="4"/>
+  <text x="775" y="570" class="lbl" text-anchor="middle">outputs/&lt;date&gt;/</text>
+  <text x="775" y="586" class="sub" text-anchor="middle">weights.csv/parquet</text>
+  <text x="775" y="600" class="sub" text-anchor="middle">manifest.json</text>
+
+  <!-- arrows: inputs -> stages -->
+  <path class="arrow" d="M150,63 L290,63" marker-end="url(#arr)"/>
+  <path class="arrow" d="M150,173 L290,220" marker-end="url(#arr)"/>
+  <path class="arrow" d="M150,313 L290,315" marker-end="url(#arr)"/>
+  <path class="arrow" d="M150,423 L290,405" marker-end="url(#arr)"/>
+  <path class="arrow" d="M150,533 L290,585" marker-end="url(#arr)"/>
+
+  <!-- arrows: stage-to-stage -->
+  <path class="arrow" d="M430,100 L430,120" marker-end="url(#arr)"/>
+  <path class="arrow" d="M430,180 L430,200" marker-end="url(#arr)"/>
+  <path class="arrow" d="M430,270 L430,290" marker-end="url(#arr)"/>
+  <path class="arrow" d="M430,350 L430,370" marker-end="url(#arr)"/>
+  <path class="arrow" d="M430,450 L430,470" marker-end="url(#arr)"/>
+  <path class="arrow" d="M430,530 L430,550" marker-end="url(#arr)"/>
+
+  <!-- arrows: stages -> outputs -->
+  <path class="arrow" d="M570,235 L700,225" marker-end="url(#arr)"/>
+  <path class="arrow" d="M570,255 L700,278" marker-end="url(#arr)"/>
+  <path class="arrow" d="M570,585 L700,580" marker-end="url(#arr)"/>
+
+  <!-- footer note -->
+  <text x="430" y="675" class="sub" text-anchor="middle">Modules communicate only via the SQLite database and the on-disk file cache.</text>
+  <text x="430" y="692" class="sub" text-anchor="middle">Definitions of the 22 buckets live in definitions/minidex_definitions.yaml.</text>
+</svg>
+</div>
+
+<h2>4. The role of each Python file</h2>
+<p>
+  Each module owns one job and talks to the others only through the database or the file
+  cache. That is the whole reason the pipeline can be resumed, retried, and re-run stage by
+  stage without redoing the expensive parts.
+</p>
+<table>
+  <thead><tr><th style="width: 24%">File</th><th>What it does, in one sentence</th></tr></thead>
+  <tbody>
+    <tr><td><code>config.py</code></td><td>Loads API keys and paths from <code>.env</code> and exposes a single frozen settings object every other module reads.</td></tr>
+    <tr><td><code>db.py</code></td><td>Creates and opens the SQLite database and defines the tables (<code>companies</code>, <code>filings</code>, <code>shortlist</code>, <code>scores</code>, <code>batches</code>) plus the <code>latest_scores</code> view.</td></tr>
+    <tr><td><code>universe.py</code></td><td>Stages 1&ndash;2: pulls the SEC master company list, tags each row with an industry code, and marks the tech-adjacent slice as candidates.</td></tr>
+    <tr><td><code>edgar.py</code></td><td>Stage 3: for each candidate, downloads the latest 10-K, extracts the Item 1 business description, pulls segment revenue from the filing&rsquo;s structured XBRL data, and records market cap.</td></tr>
+    <tr><td><code>llm_segments.py</code></td><td>Optional stage 3.5: for filings where XBRL segments are missing or useless, asks an LLM to extract quantified revenue splits from the 10-K text &mdash; refusing to guess if none are stated.</td></tr>
+    <tr><td><code>shortlist.py</code></td><td>Stage 4: turns each Item 1 and each bucket definition into embeddings and keeps only the (company, bucket) pairs whose cosine similarity clears the threshold.</td></tr>
+    <tr><td><code>score.py</code></td><td>Stage 5: builds the LLM prompt for every shortlisted pair, submits them via the Anthropic Message Batches API twice for independence, and parses the JSON responses into the <code>scores</code> table.</td></tr>
+    <tr><td><code>models.py</code></td><td>Pydantic schemas that the LLM output must match &mdash; a defensive layer that rejects malformed rows before they touch the database.</td></tr>
+    <tr><td><code>qc.py</code></td><td>Stage 6: produces a human-readable Markdown report of anchor-ticker sanity checks, run-to-run disagreements, borderline scores, and per-bucket member counts.</td></tr>
+    <tr><td><code>indices.py</code></td><td>Stage 7: joins scores to market cap, computes three weight schemes per bucket (equal, score, score &times; cap), and freezes the run to <code>outputs/&lt;date&gt;/</code> with a manifest.</td></tr>
+    <tr><td><code>cli.py</code></td><td>Thin Typer dispatcher that maps <code>minidex &lt;stage&gt;</code> commands to the module functions above; contains no business logic.</td></tr>
+    <tr><td><code>scripts/performance.py</code></td><td>Standalone static back-test: reads a frozen weights file and a price history, holds weights constant from the freeze date, and prints cumulative return per bucket.</td></tr>
+  </tbody>
+</table>
+
+<h2>5. Major external dependencies</h2>
+<table>
+  <thead><tr><th style="width: 30%">Service or library</th><th>What it&rsquo;s used for</th></tr></thead>
+  <tbody>
+    <tr><td>SEC EDGAR (via <code>edgartools</code>)</td><td>The master list of US public filers, each company&rsquo;s SIC industry code, the latest 10-K annual report, and the machine-readable XBRL tags inside it that give segment revenue.</td></tr>
+    <tr><td>Anthropic Message Batches API</td><td>The only paid input. Powers stage 5 scoring (revenue-fraction estimation per bucket) and the optional stage 3.5 segment extraction. Batches let us submit tens of thousands of prompts as one job at a discount.</td></tr>
+    <tr><td>HuggingFace <code>BAAI/bge-large-en-v1.5</code></td><td>Runs locally to turn text into embeddings for the stage 4 shortlist. Free, offline, deterministic. A smaller variant is available for faster iteration.</td></tr>
+    <tr><td>Yahoo Finance (via <code>yfinance</code>)</td><td>Recent share prices for computing market cap in stage 3, and optional price history for the stand-alone back-test script.</td></tr>
+    <tr><td>SQLite (stdlib)</td><td>A single local database file that stores everything each stage produces so the next stage can pick it up without re-running the previous one.</td></tr>
+  </tbody>
+</table>
+
+<h2>6. Why the multi-stage design</h2>
+<p>
+  A tempting shortcut would be to hand each company&rsquo;s 10-K to an LLM once and ask
+  &ldquo;score this against all 22 buckets.&rdquo; The pipeline is deliberately not built that
+  way, and the biggest reason is cost.
+</p>
+<p>
+  With ~1,376 candidate companies and 22 buckets, that naive approach means roughly 30,000
+  (company, bucket) pairs to score &mdash; and each pair needs the full bucket definition
+  injected into the prompt. The embedding shortlist collapses that: typical companies match
+  only 1&ndash;6 buckets closely, so the LLM is asked about roughly 22&times; fewer pairs. A
+  full pilot run scores something like 77 companies for around $25&ndash;$35 total. Without the
+  shortlist, the same run would cost hundreds. Embeddings are essentially free to run locally,
+  so pushing as much filtering as possible into that stage is the single biggest lever on
+  budget.
+</p>
+<p>
+  Segment extraction is the second big lever, on accuracy rather than cost. If the LLM can
+  see &ldquo;Data Center: $47.5B, Gaming: $10.4B&rdquo; alongside the narrative, its revenue
+  fractions are anchored in filed numbers rather than adjectives. When XBRL is silent, the
+  optional LLM segment step recovers what it can from the prose without fabricating.
+</p>
+<p>
+  The final reason is iteration. Because every stage writes its output to SQLite or disk,
+  we can re-run the cheap stages &mdash; tweak the SIC filter, adjust the similarity
+  threshold, re-embed with a different model &mdash; without paying to re-score everything.
+  Only stage 5 costs money, and it is deliberately gated behind a confirmation prompt and a
+  printed cost estimate. QC and build are pure recomputation; freezing a new index from an
+  existing set of scores takes seconds.
+</p>
+
+<footer>
+  Generated for the mini-dex project. See <code>docs/MINIDEX_SPEC.md</code> for the full
+  technical specification, <code>definitions/minidex_definitions.yaml</code> for the 22
+  bucket definitions, and <code>README.md</code> for the run sequence.
+</footer>
+
+</body>
+</html>

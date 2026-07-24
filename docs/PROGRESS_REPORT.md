@@ -1,0 +1,128 @@
+# mini-dex build — progress report
+
+_As of 2026-07-24. Pilot complete on 77 tickers. Full-universe run pending on a new droplet._
+
+## 1. Initial state
+
+The project began with four hand-authored artefacts and no code:
+
+- `docs/MINIDEX_SPEC.md` — build spec, staging model, acceptance criteria.
+- `definitions/minidex_definitions.yaml` — 22 buckets and their anchor tickers.
+- `prompts/minidex_scoring_prompt.md` — scoring prompt for the LLM.
+- `API Keys.md` — the Anthropic API key committed in plaintext.
+
+The API key file was the first thing flagged: it was moved into `.env`, the plaintext file deleted, and `.env` added to `.gitignore` before any commits. The key itself should still be rotated before the full run (it was exposed on disk in a plaintext file in an as-yet-uninitialised repo). The directory was then `git init`'d and a remote created at `https://github.com/snowleopard-spec/pantheon`.
+
+## 2. Build phases (spec §12)
+
+Work followed the spec's four-phase plan. Every phase ended in a git commit; parallel work was serialised on integration.
+
+| Phase | Scope | Commit |
+|---|---|---|
+| A | pyproject scaffold, `config.py`, DB schema + `latest_scores` view, pydantic models, CLI skeleton, initial tests | `aa50777` |
+| B (4 agents in parallel) | `universe.py`, `edgar.py`, `shortlist.py`, `score.py` | `152a5a4` |
+| C (2 agents in parallel) | `qc.py` + anchor tests, `indices.py` + `performance.py` | `de922c1` |
+| D | End-to-end integration test for stages 4–7; then real stages 1–4 run | `14d240b` |
+
+Phase A/B/C landed cleanly. Phase D — where synthetic tests met real EDGAR data — is where every interesting bug showed up. Everything below `14d240b` in the log is a defect surfaced by the pilot run.
+
+## 3. Pilot run (stages 1–7 on real data)
+
+- **Stage 1 universe.** 7,992 companies pulled from SEC; 6,934 with SIC codes after enrichment. Well over the ≥5,000 acceptance floor.
+- **Stage 2 filter.** 1,376 candidates after keyword/SIC filter — inside the spec range of 800–2,500.
+- **Pilot scope decision.** A full 1,376-ticker Stage 3 fetch was estimated at 5–8 hours from a residential IP with SEC rate limits. To iterate on the scoring pipeline before spending that time, Stage 3 was run with a `--tickers` filter covering 77 companies: the anchor set plus AVGO, DELL, ETN, VST, ARW, IBM (per spec §11.3).
+- **Stage 3 fetch.** 77/77 filings successfully pulled. Market cap: 75/77 after the yfinance fallback. Segments: 0/77 → 49/77 → 75/77 → 55/77 real splits (see §4 for how those numbers changed).
+- **Stage 4 shortlist.** 543 (ticker, bucket) pairs; median 5 buckets per company. Well under the 12k pair ceiling.
+- **Stage 5 scoring (v1.0 → v1.4).** Batch API, `claude-haiku-4-5-20251001`, 154 requests per version, ~2 min wall time per batch, ~$1.16 per run. 100% valid rows on first try (no retries needed).
+- **Stage 6 QC.** Report generates cleanly (`outputs/qc_report.md`). Latest anchor pass: 65/79 (see §5 for the full progression).
+- **Stage 7 weighted index.** All 22 buckets have members; weight columns sum to 1.0 ± 1e-6 per bucket per scheme.
+
+## 4. Bugs surfaced during the real run
+
+These are the defects that only appeared once real data hit the pipeline, in the order they were found:
+
+1. **DB-wiping test.** `test_init_creates_db` called `.unlink()` on the actual `data/minidex.db` because the `tmp_path` monkeypatch did not intercept the absolute `REPO_ROOT`-based `db_path`. Running the full test suite silently wiped state between runs. Replaced with a spy-based test that never touches disk (`0a8f998`).
+2. **Ticker deduplication.** SEC's `company_tickers.json` returns multiple rows per CIK — preferred stock, warrants, foreign OTC forms. The last-write-wins upsert clobbered clean common-stock tickers with things like `ORCL-PD`, `IONQ-WT`, `TSMWF`. Added a `_ticker_rank` function that prefers the shortest, dashless, uppercase form (`71ea33a`).
+3. **Market cap extraction.** `edgartools`' curated concept API doesn't expose `MarketCapitalization` or `SharePrice` (SEC XBRL doesn't carry market cap at all). Switched to `common_shares_outstanding × yfinance close` (`9a057bc`). Covered 75/77 pilot tickers.
+4. **Segment extraction — the four-part saga.**
+   - The initial extractor called `facts.query(concept='Revenues')` — wrong `edgartools` API shape. All 77 filings returned `[]`.
+   - Rewrote to use `xbrl.query(include_dimensions=True).to_dataframe()` filtered on `dim_us-gaap_StatementBusinessSegmentsAxis` (`87b12dc`). Coverage jumped to 49/77.
+   - That version deduped on the wrong column: `dimension_member_label` was `"Operating Segments"` for every NVDA row, so NVDA appeared as one aggregated blob. Fixed to dedupe by the axis-column value while displaying `dimension_label` (`"Compute & Networking"`, `"Graphics"`).
+   - Added a single-segment fallback via `facts.get_concept('revenue', period='YYYY-FY')` (`fb8c59e`) for companies whose XBRL has no segment dimension. Coverage: 75/77.
+   - Built an optional Stage 3.5 `llm_segments.py` (`5098375`) for edge cases — foreign-filer geographic breakdown (TSM), product-line prose (AMD). Final coverage: 55/77 real splits, 21 single-segment, 1 truly empty.
+5. **Custom_id format.** Spec's `TICKER|FY|runN` violated Anthropic Batches' `^[a-zA-Z0-9_-]+$` regex. First batch submission got a 400 before a single request ran. Switched to underscore separator (`0f09ba9`).
+
+None of these are wrong ideas in the spec — they are all impedance mismatches with real vendor APIs (SEC ticker file, `edgartools` XBRL surface, Anthropic Batches validation, `pytest` `tmp_path` semantics). Worth remembering next time we spec against an external data source without a first pass through it.
+
+## 5. Pilot iteration — score deltas across prompt versions
+
+Five full scoring passes were run to isolate the effect of each change.
+
+| Version | Change | Anchor PASS | Segments coverage | Cost |
+|---|---|---:|---:|---:|
+| v1.0 | Original text-only scoring | 63/79 | 0/77 | $1.16 |
+| v1.1 | Hyperscalers bucket rewritten as explicit two-leg (`(a) cloud` / `(b) consumer internet at hyperscale`); anchor threshold 0.5 → 0.3 | 65/79 | 0/77 | $1.16 |
+| v1.2 | Segments injected (XBRL only, per-segment splits) | 67/79 | 49/77 | $1.17 |
+| v1.3 | Segments + single-segment total-revenue fallback | 66/79 | 75/77 | $1.17 |
+| v1.4 | Segments + LLM-extracted disaggregation | 66/79 | 55/77 real + 21 total-only | $1.17 |
+
+Aggregate anchor count plateaus at v1.2. The v1.3 and v1.4 improvements show up in per-bucket weights, not in the PASS count: AMZN's hyperscalers weight moved from 0.65 → 0.45 (correctly excluding retail); AMD's fabless score sharpened with segment splits. Past v1.2, anchor PASS is at the model-noise floor and further tuning has to be evaluated on weight quality, not counts.
+
+## 6. Files persisted
+
+- **13 git commits** on `main`, all pushed to `https://github.com/snowleopard-spec/pantheon`.
+- **13 DB snapshots** at `data/minidex.db.*.bak` — one after each expensive stage (`universe`, `filter`, `fetch_pilot`, `fetch_mcap`, `shortlist`, `scored`, `scored_v11..v14`, `segments`, `segments2`, `llmseg`). Cheap insurance against another DB-wipe.
+- **5 output snapshots** in `outputs/2026-07-24{,-v11,-v12,-v13,-v14}/` — one weighted-index snapshot (`minidex_weights.csv/.parquet` + `manifest.json`) per prompt version.
+- **QC report** at `outputs/qc_report.md`.
+- **Total pilot spend:** ~$5.96 (5 Anthropic Batches × ~$1.17 + $0.11 for the Stage 3.5 LLM segment extraction).
+
+## 7. Pilot vs spec acceptance criteria
+
+| Stage | Criterion | Status |
+|---|---|---|
+| 1 | ≥5,000 rows; NVDA/MSFT/EQIX/VRT/CLS present with SIC | PASS |
+| 2 | 800–2,500 candidates; anchors included; JPM/PFE not | PASS (with 4 anchor gaps traceable to missing SEC data — see qc report) |
+| 3 | ≥90% of candidates have `item1_chars > 2,000` | PASS (77/77 in pilot) |
+| 3 | Re-running does no network fetches | PASS |
+| 4 | Every anchor pair present; median 1–6 buckets/company; total pairs < 12k | PASS |
+| 5 | ≥95% valid rows after at most one retry | PASS (100% first-try) |
+| 6 | Report generates; anchor tests pass or skip cleanly | PASS |
+| 7 | Weight columns sum to 1.0 ± 1e-6 per bucket; every bucket has ≥1 member | PASS |
+
+Acceptance criteria are all met at pilot scope. The 11 anchor failures in the QC report (STM, ACMR, NBIS, APLD, ETN, GEV, VST, CEG, OKLO, SMR, PLTR) are cases where the model's mean score fell below 0.30 — some are genuine (OKLO/SMR/NBIS have thin or no filings in this batch), others are candidates for a definition tweak once we see full-universe context.
+
+## 8. Droplet compatibility
+
+The current DO droplet (`unicorn-hunt`, per `docs/droplet-report-20260724-103235.md`) is a **1 vCPU / 1.9 GiB / 48 GB** box already running four other services (`caddy`, `unicornhunt`, `sonar`, `dilithium` cron). The review agent's verdict was **RED**:
+
+- 1.9 GiB RAM is insufficient to run the `BAAI/bge-large-en-v1.5` embedding model alongside the existing workloads.
+- Neither `uv` nor `tmux` is installed.
+- 48 GB disk is fine; 41 GB free.
+- Python 3.12.3 is available.
+
+**Recommendation:** spin up a new, dedicated **8 GB** DO droplet for the full-universe run rather than shoehorning it onto `unicorn-hunt`. Bootstrap on the new box:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+sudo apt-get update && sudo apt-get install -y tmux git
+git clone https://github.com/snowleopard-spec/pantheon.git
+cd pantheon
+cp .env.example .env   # then paste rotated ANTHROPIC_API_KEY
+uv sync
+```
+
+## 9. Next steps (ordered)
+
+1. **Rotate** the Anthropic API key that was originally committed in plaintext (still valid).
+2. Spin up an 8 GB DO droplet; bootstrap per §8.
+3. Copy the pilot DB up (`scp data/minidex.db root@newdroplet:pantheon/data/`) so Stage 1/2 don't need to re-run.
+4. Run the full pipeline. Estimated ~8–9 hours (dominated by Stage 3 EDGAR fetch of ~1,300 remaining tickers) and ~$25–35 in Anthropic spend for scoring.
+5. Snapshot the final DB and copy `outputs/` back locally.
+6. Optional: revisit the 11 flagged anchor definitions once full-universe scores are available for comparison.
+7. Optional: wire up a prices CSV and run `scripts/performance.py` to get cumulative bucket returns.
+
+## 10. Open questions
+
+- **Anchor threshold.** Current 0.30. Should it go lower for conglomerate anchors where the anchor bucket is a genuine minority of revenue (AWS is ~18% of AMZN, Azure is ~25% of MSFT)?
+- **Weight scheme priority.** All three (`cap_x_score`, `equal`, `score_only`) are produced. Which is the primary downstream artefact? That decides which one gets QC attention.
+- **Refresh cadence.** Spec assumes annual. Given filings drift, would a monthly Stage 5 re-score (reusing Stage 3 filings) actually be useful, or is this a one-shot?

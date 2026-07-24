@@ -196,15 +196,21 @@ buckets:
     name: Hyperscalers
     group: infrastructure
     definition: >
-      Companies operating global-scale cloud platforms whose revenue derives
-      from selling public cloud compute, storage, and platform services —
-      and/or from consumer internet services monetised at hyperscale — while
-      building and operating their own data-centre estates and increasingly
-      their own silicon.
-    includes: [public cloud providers, hyperscale consumer platforms with material cloud/AI infrastructure]
-    excludes: [GPU-rental specialists (neoclouds), SaaS vendors running on others' clouds]
+      Companies that operate internet infrastructure at global, multi-region
+      scale. Membership is satisfied by EITHER of two revenue streams:
+      (a) selling public cloud compute, storage, or platform services to
+      external customers on-demand (IaaS/PaaS); (b) operating self-owned
+      hyperscale data-centre infrastructure to run the company's own consumer
+      or advertising internet properties (search, social, video, messaging,
+      e-commerce) from which its ad or subscription revenue is derived. Score
+      the total revenue fraction attributable to EITHER leg. Both are
+      "hyperscaler" business models by industry convention, and a company can
+      qualify on one leg, the other, or both. Members typically also design
+      and operate their own silicon and networking.
+    includes: [public cloud providers (AWS, Azure, Google Cloud, Oracle Cloud), consumer/advertising internet giants running self-operated hyperscale infra (Meta family, Google Search + YouTube, TikTok parent), cloud-infra and consumer-internet segments of diversified tech firms (sum both legs)]
+    excludes: [GPU-rental specialists offering short-term accelerator capacity without a full cloud platform (see neoclouds), SaaS or enterprise software vendors running on third-party clouds, physical retail / streaming media / telecom revenue whose hyperscale infra is incidental to the customer transaction]
     anchors: [MSFT, AMZN, GOOGL, ORCL, META]
-    keywords: [public cloud, IaaS, hyperscale, cloud platform, data centre operator]
+    keywords: [public cloud, IaaS, hyperscale, cloud platform, data centre operator, consumer internet at scale]
 
   - id: neoclouds
     name: Neoclouds / GPU cloud

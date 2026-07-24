@@ -342,7 +342,96 @@
   </tbody>
 </table>
 
-<h2>6. Why the multi-stage design</h2>
+<h2>6. Configuration knobs (<code>config.json</code>)</h2>
+<p>
+  Six tuning parameters live in a plain JSON file at the repo root
+  (<code>config.json</code>) so they can be hand-edited without touching code
+  or environment variables. Secrets (<code>ANTHROPIC_API_KEY</code>,
+  <code>SEC_USER_AGENT</code>) stay in <code>.env</code>; only these tuning
+  knobs live in the JSON. An environment variable
+  (<code>MINIDEX_&lt;NAME_IN_CAPS&gt;</code>) beats the JSON value if set, and the
+  JSON value beats the hardcoded default &mdash; so you get file-based
+  defaults with per-run overrides for free.
+</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 22%">Key</th>
+      <th style="width: 14%">Default</th>
+      <th>What it controls</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>embedding_model</code></td>
+      <td><code>BAAI/bge-large-en-v1.5</code></td>
+      <td>
+        Which HuggingFace sentence-transformer to use for the stage 4
+        shortlist. The default is a 335 M-parameter model that loads to
+        ~1.3&nbsp;GB of RAM &mdash; excellent semantic matching. Swap to
+        <code>BAAI/bge-small-en-v1.5</code> (~130 MB) for RAM-constrained
+        hosts; you'll typically want to lower
+        <code>similarity_threshold</code> too since the smaller model
+        produces slightly lower cosine scores.
+      </td>
+    </tr>
+    <tr>
+      <td><code>similarity_threshold</code></td>
+      <td><code>0.60</code></td>
+      <td>
+        The cosine-similarity cutoff for stage 4. Any (company, bucket)
+        pair whose Item-1 vs. bucket-definition similarity exceeds this
+        value goes into the shortlist to be scored by the LLM. Anchors
+        are always included regardless. Lower values &rarr; more pairs
+        scored &rarr; higher stage&nbsp;5 cost but broader recall.
+      </td>
+    </tr>
+    <tr>
+      <td><code>score_floor</code></td>
+      <td><code>0.10</code></td>
+      <td>
+        Minimum LLM score required for a company to be included in a
+        bucket's final composition (stage 7). Rows below the floor are
+        dropped as immaterial exposure. Anchor tickers can override the
+        floor via <code>anchor_min_weight</code>.
+      </td>
+    </tr>
+    <tr>
+      <td><code>batch_model</code></td>
+      <td><code>claude-haiku-4-5</code></td>
+      <td>
+        Which Anthropic model powers stage&nbsp;5 scoring (and the
+        optional stage&nbsp;3.5 segment fallback). Haiku is fast and
+        cheap; you can swap to Sonnet if you want higher-quality scoring
+        at ~4&times; the cost.
+      </td>
+    </tr>
+    <tr>
+      <td><code>max_item1_chars</code></td>
+      <td><code>12000</code></td>
+      <td>
+        Truncation length applied to each 10-K Item 1 text before it's
+        sent to the LLM. ~12k characters is roughly 3k tokens, small
+        enough to keep batch prompts cheap but large enough for most
+        business descriptions. Raise for more context, lower for cheaper
+        prompts.
+      </td>
+    </tr>
+    <tr>
+      <td><code>anchor_min_weight</code></td>
+      <td><code>0.05</code></td>
+      <td>
+        Minimum <code>weight_cap_score</code> that any anchor ticker
+        receives in its bucket at stage&nbsp;7. Below-floor anchors are
+        force-included and hard-fixed at this weight; above-floor members
+        scale down proportionally. Set to <code>0.0</code> to disable the
+        floor entirely and use pure market-cap&times;score weighting.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>7. Why the multi-stage design</h2>
 <p>
   A tempting shortcut would be to hand each company&rsquo;s 10-K to an LLM once and ask
   &ldquo;score this against all 22 buckets.&rdquo; The pipeline is deliberately not built that

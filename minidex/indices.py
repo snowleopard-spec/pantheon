@@ -119,38 +119,50 @@ def _modal_or_mixed(values: pd.Series) -> str:
 def _apply_anchor_floor(
     weights: pd.Series, is_anchor: pd.Series, min_weight: float
 ) -> pd.Series:
-    """Bump anchor rows up to at least min_weight; renormalise non-anchors.
+    """Hard-fix below-floor anchors at min_weight; scale the rest to fit.
 
-    Preserves the invariant that weights sum to 1.0. Anchors already above
-    the floor keep their computed weight. If the anchor floor total already
-    meets or exceeds 1.0, anchors are normalised to sum to 1.0 and
-    non-anchors get 0.
+    Preserves the invariant that weights sum to 1.0. Only anchors whose
+    pre-floor weight is strictly below ``min_weight`` are fixed at exactly
+    ``min_weight``. All other members (above-floor anchors AND non-anchors)
+    are scaled proportionally so the total equals 1.0.
+
+    If the fixed portion alone would exceed or equal 1.0 (over-constrained,
+    e.g. too many below-floor anchors), distribute 1.0 equally across the
+    fixed anchors and zero everyone else, and print a warning.
     """
     if min_weight <= 0 or not is_anchor.any():
         return weights
 
     out = weights.copy().astype(float)
-    # Step 1: raise below-floor anchors to the floor.
-    below = is_anchor & (out < min_weight)
-    out.loc[below] = min_weight
 
-    anchor_sum = out.loc[is_anchor].sum()
-    non_anchor_sum = out.loc[~is_anchor].sum()
+    # Step 1: identify below-floor anchors (these get hard-fixed at the floor).
+    below_floor_anchors = is_anchor & (out < min_weight)
+    others = ~below_floor_anchors
 
-    if anchor_sum >= 1.0:
-        # Degenerate: anchor floor consumes the whole bucket; distribute
-        # 1.0 across anchors proportionally, non-anchors get 0.
-        out.loc[~is_anchor] = 0.0
-        anchors = out.loc[is_anchor]
-        total = anchors.sum()
-        if total > 0:
-            out.loc[is_anchor] = anchors / total
+    # Step 2: reserve the fixed portion.
+    n_fixed = int(below_floor_anchors.sum())
+    reserved = n_fixed * min_weight
+
+    if reserved >= 1.0:
+        # Over-constrained: fixed anchors alone consume >= the whole bucket.
+        # Distribute 1.0 equally across the fixed anchors; zero everyone else.
+        print(
+            f"WARNING: anchor floor {min_weight} across {n_fixed} below-floor "
+            f"anchors reserves {reserved:.4f} >= 1.0; distributing equally "
+            "across those anchors and zeroing all other members."
+        )
+        out.loc[others] = 0.0
+        out.loc[below_floor_anchors] = 1.0 / n_fixed
         return out
 
-    # Scale non-anchors to fill the remaining 1 - anchor_sum.
-    target = 1.0 - anchor_sum
-    if non_anchor_sum > 0:
-        out.loc[~is_anchor] = out.loc[~is_anchor] * (target / non_anchor_sum)
+    # Step 3: hard-fix below-floor anchors at exactly the floor.
+    out.loc[below_floor_anchors] = min_weight
+
+    # Step 4: scale "everyone else" proportionally into the remaining pool.
+    remaining_pool = 1.0 - reserved
+    others_sum = out.loc[others].sum()
+    if others_sum > 0:
+        out.loc[others] = out.loc[others] * (remaining_pool / others_sum)
     return out
 
 

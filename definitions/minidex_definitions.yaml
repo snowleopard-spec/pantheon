@@ -20,7 +20,7 @@ buckets:
     name: Fabless chip design
     group: silicon
     definition: >
-      Companies that derive revenue from designing and selling their own
+      Companies that derive revenue from (or whose principal business purpose is) designing and selling their own
       semiconductor logic products — GPUs, CPUs, SoCs, ASICs, DPUs, basebands,
       RF front-ends — while outsourcing wafer fabrication to third-party
       foundries. Revenue comes from the sale of chips (or chip-based modules)
@@ -34,7 +34,7 @@ buckets:
     name: Foundry
     group: silicon
     definition: >
-      Companies whose revenue comes from manufacturing semiconductor wafers on
+      Companies whose revenue comes from (or whose principal business purpose is) manufacturing semiconductor wafers on
       behalf of other companies — contract wafer fabrication, process
       technology services, advanced packaging performed as a foundry service.
       The customer owns the design; the company sells fabrication capacity.
@@ -47,7 +47,7 @@ buckets:
     name: Semiconductor capital equipment
     group: silicon
     definition: >
-      Companies selling the capital equipment used to fabricate, inspect, test
+      Companies selling (or whose principal business purpose is) the capital equipment used to fabricate, inspect, test
       or package semiconductors — deposition, etch, lithography, metrology,
       inspection, ion implant, wafer handling, test systems — plus the
       associated services and spares revenue.
@@ -60,7 +60,7 @@ buckets:
     name: EDA & semiconductor IP
     group: silicon
     definition: >
-      Companies earning revenue from electronic design automation software and
+      Companies earning revenue from (or whose principal business purpose is) electronic design automation software and
       from licensing semiconductor intellectual property — processor cores,
       interface IP, verification tools, chip design software subscriptions and
       royalties. Revenue is software licences, royalties and design services
@@ -74,7 +74,7 @@ buckets:
     name: Memory & storage
     group: silicon
     definition: >
-      Companies deriving revenue from designing and/or manufacturing memory and
+      Companies deriving revenue from (or whose principal business purpose is) designing and/or manufacturing memory and
       storage semiconductors and devices — DRAM, HBM, NAND flash, SSDs,
       hard drives, memory modules and controllers.
     includes: [DRAM/NAND manufacturers, HBM, SSD/HDD makers, memory module and controller vendors]
@@ -86,7 +86,7 @@ buckets:
     name: Microcontrollers & embedded
     group: silicon
     definition: >
-      Companies earning revenue from microcontrollers, embedded processors,
+      Companies earning revenue from (or whose principal business purpose is) microcontrollers, embedded processors,
       FPGAs and connectivity chips sold into industrial, automotive, IoT and
       edge applications — general-purpose programmable silicon for embedded
       control rather than data-centre compute.
@@ -99,7 +99,7 @@ buckets:
     name: Power & analog semis
     group: silicon
     definition: >
-      Companies earning revenue from analog, mixed-signal and power-management
+      Companies earning revenue from (or whose principal business purpose is) analog, mixed-signal and power-management
       semiconductors — amplifiers, data converters, sensor interfaces, voltage
       regulators, power delivery and conversion silicon, including power
       devices in silicon carbide and gallium nitride. Data-centre power
@@ -113,7 +113,7 @@ buckets:
     name: Semiconductor materials & consumables
     group: silicon
     definition: >
-      Companies selling the materials, chemistries and consumable
+      Companies selling (or whose principal business purpose is) the materials, chemistries and consumable
       infrastructure used in chip fabrication — specialty chemicals and gases,
       CMP slurries, photoresists, filtration and contamination control, wafer
       substrates, targets and other fab consumables, plus cleaning and
@@ -129,7 +129,7 @@ buckets:
     name: Photonics & optical interconnect
     group: interconnect_hardware
     definition: >
-      Companies earning revenue from optical and photonic components and
+      Companies earning revenue from (or whose principal business purpose is) optical and photonic components and
       modules — lasers, optical transceivers, silicon photonics, co-packaged
       optics, optical engines and related test — used to move data inside and
       between data centres and across telecom networks.
@@ -142,7 +142,7 @@ buckets:
     name: Networking silicon & systems
     group: interconnect_hardware
     definition: >
-      Companies earning revenue from data-centre and carrier networking —
+      Companies earning revenue from (or whose principal business purpose is) data-centre and carrier networking —
       Ethernet switching and routing systems, switch/PHY/retimer/SerDes
       silicon, interconnect fabrics for AI clusters, and network operating
       software sold with such systems.
@@ -155,7 +155,7 @@ buckets:
     name: Data centre hardware & servers
     group: interconnect_hardware
     definition: >
-      Companies earning revenue from designing, integrating and selling
+      Companies earning revenue from (or whose principal business purpose is) designing, integrating and selling
       servers, GPU systems, rack-scale solutions and storage systems deployed
       in data centres — the system-level hardware layer between chips and the
       facility.
@@ -168,7 +168,7 @@ buckets:
     name: EMS / ODM manufacturing
     group: interconnect_hardware
     definition: >
-      Companies earning revenue from electronics manufacturing services and
+      Companies earning revenue from (or whose principal business purpose is) electronics manufacturing services and
       original design manufacturing — contract assembly of servers, networking
       gear, boards and modules for OEM and hyperscaler customers, including
       design-and-build ODM arrangements.
@@ -181,7 +181,7 @@ buckets:
     name: Connectors & interconnect components
     group: interconnect_hardware
     definition: >
-      Companies earning revenue from electrical connectors, cable assemblies,
+      Companies earning revenue from (or whose principal business purpose is) electrical connectors, cable assemblies,
       sockets, backplanes, thermal interface and other passive/electromechanical
       interconnect components used in servers, networking equipment and
       high-power electronics.
@@ -196,7 +196,7 @@ buckets:
     name: Hyperscalers
     group: infrastructure
     definition: >
-      Companies that operate internet infrastructure at global, multi-region
+      Companies that operate (or whose principal business purpose is) internet infrastructure at global, multi-region
       scale. Membership is satisfied by EITHER of two revenue streams:
       (a) selling public cloud compute, storage, or platform services to
       external customers on-demand (IaaS/PaaS); (b) operating self-owned
@@ -216,7 +216,7 @@ buckets:
     name: Neoclouds / GPU cloud
     group: infrastructure
     definition: >
-      Companies whose revenue comes from renting out GPU compute capacity for
+      Companies whose revenue comes from (or whose principal business purpose is) renting out GPU compute capacity for
       AI training and inference — specialised AI cloud providers, including
       former crypto miners that have repurposed power and facilities into GPU
       hosting, typically under capacity contracts with AI labs and enterprises.
@@ -229,7 +229,7 @@ buckets:
     name: Data centre power & cooling equipment
     group: infrastructure
     definition: >
-      Companies selling the electrical and thermal infrastructure inside data
+      Companies selling (or whose principal business purpose is) the electrical and thermal infrastructure inside data
       centres — UPS, switchgear, power distribution, transformers, generators,
       liquid and air cooling systems, CDUs, and related services — i.e. the
       facility equipment layer that powers and cools IT loads.
@@ -242,7 +242,7 @@ buckets:
     name: Power generation for data centres
     group: infrastructure
     definition: >
-      Companies earning revenue from generating and selling electricity where
+      Companies earning revenue from (or whose principal business purpose is) generating and selling electricity where
       data-centre demand is a material and growing driver — independent power
       producers, nuclear operators, and developers of new nuclear (SMR) or
       other generation capacity contracted to serve data-centre loads.
@@ -255,7 +255,7 @@ buckets:
     name: Colocation & data centre REITs
     group: infrastructure
     definition: >
-      Companies earning revenue from owning and leasing data-centre real
+      Companies earning revenue from (or whose principal business purpose is) owning and leasing data-centre real
       estate and colocation capacity — space, power and interconnection sold
       to enterprises, hyperscalers and AI tenants, typically structured as
       REITs or facility operators.
@@ -270,7 +270,7 @@ buckets:
     name: AI-native software & services
     group: software_frontier
     definition: >
-      Companies whose revenue comes from software or services in which AI/ML
+      Companies whose revenue comes from (or whose principal business purpose is) software or services in which AI/ML
       models are the core product value — AI platforms, model-driven analytics,
       speech and vision products, AI-driven diagnostics and decision systems —
       as opposed to conventional software with incidental AI features.
@@ -283,7 +283,7 @@ buckets:
     name: Data infrastructure software
     group: software_frontier
     definition: >
-      Companies earning revenue from the software layer that stores, moves,
+      Companies earning revenue from (or whose principal business purpose is) the software layer that stores, moves,
       queries and monitors data at scale — cloud data warehouses, databases,
       streaming platforms, observability and data pipeline tooling that
       underpins analytics and AI workloads.
@@ -310,7 +310,7 @@ buckets:
     name: Cybersecurity
     group: software_frontier
     definition: >
-      Companies earning revenue from security software and services —
+      Companies earning revenue from (or whose principal business purpose is) security software and services —
       endpoint, network and cloud security platforms, identity, SIEM/SOC
       tooling and managed security — protecting enterprise and infrastructure
       environments, increasingly including AI-workload security.

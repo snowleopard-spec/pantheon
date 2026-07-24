@@ -14,6 +14,18 @@ cp .env.example .env      # fill in ANTHROPIC_API_KEY and SEC_USER_AGENT
 uv run minidex init       # create SQLite schema
 ```
 
+## Configuration
+
+Secrets live in `.env` (`ANTHROPIC_API_KEY`, `SEC_USER_AGENT`).
+
+Tuning knobs live in `config.json` at the repo root (committed) — edit this
+file to change defaults for `embedding_model`, `similarity_threshold`,
+`score_floor`, `batch_model`, `max_item1_chars`, `anchor_min_weight`.
+
+Precedence for tuning knobs is env var (`MINIDEX_*`) > `config.json` >
+hardcoded default. This lets droplet-side deploys override individual knobs
+via environment without editing the file.
+
 ## Run sequence
 
 ```bash

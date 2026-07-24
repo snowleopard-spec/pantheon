@@ -361,6 +361,65 @@ def test_anchor_floor_includes_below_score_floor_anchor(tmp_path: Path):
     assert bbb["weight_cap_score"] == pytest.approx(0.10, abs=1e-9)
 
 
+def test_anchor_floor_all_anchors_below_floor_shrinks_above_floor_anchors_only(capsys):
+    """Below-floor anchors hit exactly the floor; above-floor anchors shrink
+    proportionally to absorb the shortfall.
+
+    Mirrors the pilot's `power_generation` bucket: 5 anchors, 3 above-floor
+    and 2 below-floor (pre-floor weight 0.0). No non-anchors in the bucket.
+    """
+    # Pre-floor weights sum to 1.0.
+    tickers = ["CEG", "TLN", "VST", "OKLO", "SMR"]
+    pre = pd.Series(
+        [0.4430, 0.3033, 0.2537, 0.0, 0.0],
+        index=tickers,
+        name="weight_cap_score",
+    )
+    is_anchor = pd.Series([True] * 5, index=tickers)
+    min_weight = 0.05
+
+    out = indices._apply_anchor_floor(pre, is_anchor, min_weight)
+
+    # Below-floor anchors land at EXACTLY the floor.
+    assert out["OKLO"] == pytest.approx(min_weight, abs=1e-12)
+    assert out["SMR"] == pytest.approx(min_weight, abs=1e-12)
+
+    # Above-floor anchors shrink proportionally into the remaining 0.9 pool.
+    above = ["CEG", "TLN", "VST"]
+    above_pre_sum = pre[above].sum()
+    remaining_pool = 1.0 - 2 * min_weight
+    scale = remaining_pool / above_pre_sum
+    for t in above:
+        assert out[t] == pytest.approx(pre[t] * scale, abs=1e-12)
+
+    # Overall bucket still sums to 1.0.
+    assert out.sum() == pytest.approx(1.0, abs=1e-9)
+
+    # No warning printed on the well-defined case.
+    assert "WARNING" not in capsys.readouterr().out
+
+
+def test_anchor_floor_overconstrained_bucket(capsys):
+    """3 anchors, each with a 40% floor => reserved 120% > 100%.
+
+    Result: equal 1/3 split across the fixed anchors; a WARNING is printed.
+    """
+    tickers = ["A", "B", "C"]
+    # All three anchors sit below the 0.40 floor pre-flooring.
+    pre = pd.Series([0.35, 0.30, 0.35], index=tickers, name="weight_cap_score")
+    is_anchor = pd.Series([True, True, True], index=tickers)
+    min_weight = 0.40  # 3 * 0.40 = 1.20 > 1.0
+
+    out = indices._apply_anchor_floor(pre, is_anchor, min_weight)
+
+    for t in tickers:
+        assert out[t] == pytest.approx(1.0 / 3.0, abs=1e-12)
+    assert out.sum() == pytest.approx(1.0, abs=1e-9)
+
+    captured = capsys.readouterr().out
+    assert "WARNING" in captured
+
+
 def test_anchor_floor_zero_is_backwards_compat(tmp_path: Path):
     """anchor_min_weight=0.0 gives identical results to the old behavior."""
     settings = replace(_settings_for(tmp_path), anchor_min_weight=0.0)

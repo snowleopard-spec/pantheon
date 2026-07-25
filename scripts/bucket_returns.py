@@ -166,10 +166,11 @@ def render_html(
 
     def _constituent_table(bucket_id: str) -> str:
         members = weights[weights["bucket_id"] == bucket_id].copy()
-        # Default sort: market cap descending, NaN last.
-        members["_mcap_sort"] = pd.to_numeric(members["market_cap"], errors="coerce")
+        # Default sort: weight_score descending, NaN last. Click column headers
+        # in the browser to re-sort by any other field.
+        members["_wt_sort"] = pd.to_numeric(members[weight_col], errors="coerce")
         members = members.sort_values(
-            "_mcap_sort", ascending=False, na_position="last"
+            "_wt_sort", ascending=False, na_position="last"
         )
         rows = []
         for _, m in members.iterrows():
@@ -211,9 +212,9 @@ def render_html(
             '<thead><tr>'
             '<th class="sortable" data-type="str">Ticker</th>'
             '<th class="sortable" data-type="str">Company</th>'
-            f'<th class="num sortable" data-type="num">{escape(weight_col)}</th>'
+            f'<th class="num sortable sorted-desc" data-type="num">{escape(weight_col)}</th>'
             '<th class="num sortable" data-type="num">Score</th>'
-            '<th class="num sortable sorted-desc" data-type="num">Market cap</th>'
+            '<th class="num sortable" data-type="num">Market cap</th>'
             '<th class="sortable" data-type="num">Conf</th>'
             f'{window_headers}'
             '</tr></thead>'

@@ -201,7 +201,7 @@ def render_html(
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Bucket returns — {escape(asof)}</title>
+<title>Pantheon — {escape(asof)}</title>
 <style>
   html {{ -webkit-text-size-adjust: 100%; }}
   body {{
@@ -358,9 +358,10 @@ def render_html(
 </head>
 <body>
 
-<h1>mini-dex bucket returns</h1>
+<h1>Pantheon</h1>
 <p class="subtitle">Trailing-window returns for each of the 22 thematic sub-indices,
-weighted by <code>{escape(weight_col)}</code>. Sorted by 1-year return.</p>
+weighted by <code>{escape(weight_col)}</code>. Sorted by 1-year return.
+Click any bucket to see its constituents.</p>
 
 <div class="metabar">
   <span><b>As of:</b> {escape(asof)}</span>

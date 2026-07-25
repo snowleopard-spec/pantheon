@@ -755,12 +755,23 @@
     <tr>
       <td><code>scripts/bucket_returns.py</code></td>
       <td>Reads the weights CSV and prices CSV, computes trailing
-      <strong>1w / 1m / 3m / 6m / 1y</strong> returns per bucket via
+      <strong>1y / 6m / 3m / 1m / 1w</strong> returns per bucket via
       <code>sum(weight_score &times; ticker_return)</code>, with per-window
-      renormalisation across members that priced. Writes a stylish standalone
-      HTML report next to the weights CSV (default
-      <code>outputs/&lt;asof&gt;/bucket_returns.html</code>), sorted by 1-year
-      return, with negatives in red and positives in green.</td>
+      renormalisation across members that priced. Windows are laid out
+      longest-first to match how performance readouts are usually scanned.
+      Writes a stylish standalone HTML report next to the weights CSV (default
+      <code>outputs/&lt;asof&gt;/bucket_returns.html</code>), titled
+      &ldquo;Pantheon,&rdquo; sorted by 1-year return, negatives in red and
+      positives in green. The report is <strong>interactive</strong>: each
+      bucket row is clickable and expands to reveal a constituent table
+      (ticker, full company name, weight, LLM score, market cap formatted as
+      $T/$B/$M, confidence) sorted by weight descending, with a chevron
+      indicator (&#9656;/&#9662;) that flips on expand. Company names are
+      looked up at render time from <code>data/minidex.db</code>
+      (<code>companies.name</code>); an optional <code>--db</code> flag
+      overrides the path, and the report falls back to ticker-only if the DB
+      is unavailable. Expand/collapse is pure inline JavaScript &mdash; no
+      external dependencies.</td>
     </tr>
   </tbody>
 </table>

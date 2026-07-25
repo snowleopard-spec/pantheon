@@ -313,3 +313,10 @@ Notable results (weight_score, 1Y):
 The quantum outsize was driven by RGTI/QBTS moving from sub-$1 to $20+ in the year; the AI-native software drawdown is worth investigating (thematic disappointment vs. hyperscaler-embedded AI capturing the value).
 
 `POLYGON_API_KEY` was added to `.env` (git-ignored) and `.env.example`.
+
+**Report enhancements (interactive, later on 2026-07-25).** The HTML report has since been made **interactive** and rebranded. Changes to `scripts/bucket_returns.py`:
+
+- **Title changed** from "mini-dex bucket returns" to **"Pantheon"** (both `<title>` and `<h1>`). Subtitle now prompts "Click any bucket to see its constituents."
+- **Column order reversed** to 1Y / 6M / 3M / 1M / 1W (longest window first). Matches how performance readouts are usually scanned.
+- **Bucket names are clickable.** Each bucket row expands to reveal an inner constituent table: ticker, full company name, `weight_score` %, LLM score, market cap (formatted as $T/$B/$M), confidence. Sorted by `weight_score` descending. A chevron (▸/▾) indicates expand state. Expand/collapse is pure inline JavaScript (~15 lines) — no external dependencies.
+- **Company names** are looked up at report-render time from `data/minidex.db` (`companies.name`). Optional `--db` flag overrides the path; the report falls back to ticker-only if the DB is unavailable.

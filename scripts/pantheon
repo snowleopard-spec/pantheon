@@ -1,0 +1,63 @@
+#!/bin/bash
+# pantheon - refresh the mini-dex bucket-returns report end-to-end and open it.
+#
+# 1. cd to the pantheon repo
+# 2. Pull fresh Polygon prices (falls back to cached prices if this fails)
+# 3. Recompute + regenerate the interactive HTML bucket-returns report
+# 4. Open the resulting HTML in the default browser
+#
+# Auto-detects the most recent outputs/<date>/minidex_weights.csv so future
+# runs are picked up without editing this script.
+
+set -u
+
+REPO="/Users/wessch/Projects/Stack/pantheon"
+
+# Ensure `uv` is on PATH even in shells that didn't source the user env.
+source "$HOME/.local/bin/env" 2>/dev/null || true
+
+cd "$REPO" || {
+    echo "error: cannot cd to $REPO" >&2
+    exit 1
+}
+
+# Find the newest outputs/<date>/minidex_weights.csv. `sort -r` on YYYY-MM-DD[-suffix]
+# gives us the lexicographically-greatest date, which matches most-recent.
+WEIGHTS=$(ls -1 outputs/*/minidex_weights.csv 2>/dev/null | sort -r | head -n 1)
+
+if [ -z "$WEIGHTS" ]; then
+    echo "error: no outputs/*/minidex_weights.csv found under $REPO" >&2
+    exit 1
+fi
+
+WEIGHTS_DIR=$(dirname "$WEIGHTS")
+HTML_OUT="$WEIGHTS_DIR/bucket_returns.html"
+
+echo "==> Using weights: $WEIGHTS"
+echo
+
+# Step 2: pull fresh prices. If this fails (rate limit, network, missing key),
+# fall through and still regenerate the report from the cached data/prices.csv.
+echo "==> Pulling fresh Polygon prices..."
+uv run python scripts/pull_prices.py --weights "$WEIGHTS" \
+    || echo "warn: price pull failed, proceeding with cached prices"
+echo
+
+# Step 3: regenerate the HTML report. This one we do want to fail loudly.
+echo "==> Regenerating bucket-returns HTML..."
+set -e
+uv run python scripts/bucket_returns.py --weights "$WEIGHTS"
+set +e
+echo
+
+# Step 4: open in default browser.
+if [ -f "$HTML_OUT" ]; then
+    echo "==> Opening $HTML_OUT"
+    open "$HTML_OUT"
+else
+    echo "error: expected report at $HTML_OUT but file is missing" >&2
+    exit 1
+fi
+
+echo
+echo "==> pantheon refresh complete."

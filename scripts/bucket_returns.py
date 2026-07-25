@@ -166,41 +166,55 @@ def render_html(
 
     def _constituent_table(bucket_id: str) -> str:
         members = weights[weights["bucket_id"] == bucket_id].copy()
-        members = members.sort_values(weight_col, ascending=False)
+        # Default sort: market cap descending, NaN last.
+        members["_mcap_sort"] = pd.to_numeric(members["market_cap"], errors="coerce")
+        members = members.sort_values(
+            "_mcap_sort", ascending=False, na_position="last"
+        )
         rows = []
         for _, m in members.iterrows():
             ticker = str(m["ticker"]).upper()
             full_name = company_names.get(ticker, "")
             weight_pct = float(m[weight_col]) * 100
             score = float(m["score"])
-            mcap = _fmt_mcap(m.get("market_cap"))
+            mcap_raw = m.get("market_cap")
+            mcap_num = "" if pd.isna(mcap_raw) else f"{float(mcap_raw):.0f}"
+            mcap = _fmt_mcap(mcap_raw)
             conf = escape(str(m.get("confidence", "")))
+            conf_rank = {"high": 3, "medium": 2, "low": 1}.get(str(m.get("confidence", "")).lower(), 0)
             rets = ticker_returns.get(ticker, {})
             ret_cells = "".join(
-                f'<td class="ct-ret">{_fmt_pct(rets.get(label))}</td>'
+                (
+                    f'<td class="ct-ret" data-sort="{rets[label]:.6f}">{_fmt_pct(rets.get(label))}</td>'
+                    if rets.get(label) is not None
+                    else f'<td class="ct-ret" data-sort="">{_fmt_pct(None)}</td>'
+                )
                 for label, _ in WINDOWS
             )
             rows.append(
                 f'<tr>'
-                f'<td class="ct-ticker"><code>{escape(ticker)}</code></td>'
-                f'<td class="ct-name">{escape(full_name) if full_name else "<em>—</em>"}</td>'
-                f'<td class="ct-wt">{weight_pct:.2f}%</td>'
-                f'<td class="ct-score">{score:.2f}</td>'
-                f'<td class="ct-mcap">{mcap}</td>'
-                f'<td class="ct-conf">{conf}</td>'
+                f'<td class="ct-ticker" data-sort="{escape(ticker)}"><code>{escape(ticker)}</code></td>'
+                f'<td class="ct-name" data-sort="{escape((full_name or ticker).lower())}">{escape(full_name) if full_name else "<em>—</em>"}</td>'
+                f'<td class="ct-wt" data-sort="{weight_pct:.6f}">{weight_pct:.2f}%</td>'
+                f'<td class="ct-score" data-sort="{score:.4f}">{score:.2f}</td>'
+                f'<td class="ct-mcap" data-sort="{mcap_num}">{mcap}</td>'
+                f'<td class="ct-conf" data-sort="{conf_rank}">{conf}</td>'
                 f'{ret_cells}'
                 f'</tr>'
             )
         window_headers = "".join(
-            f'<th class="num">{label.upper()}</th>' for label, _ in WINDOWS
+            f'<th class="num sortable" data-type="num">{label.upper()}</th>'
+            for label, _ in WINDOWS
         )
         return (
             '<table class="constituents">'
             '<thead><tr>'
-            '<th>Ticker</th><th>Company</th>'
-            f'<th class="num">{escape(weight_col)}</th>'
-            '<th class="num">Score</th><th class="num">Market cap</th>'
-            '<th>Conf</th>'
+            '<th class="sortable" data-type="str">Ticker</th>'
+            '<th class="sortable" data-type="str">Company</th>'
+            f'<th class="num sortable" data-type="num">{escape(weight_col)}</th>'
+            '<th class="num sortable" data-type="num">Score</th>'
+            '<th class="num sortable sorted-desc" data-type="num">Market cap</th>'
+            '<th class="sortable" data-type="num">Conf</th>'
             f'{window_headers}'
             '</tr></thead>'
             f'<tbody>{"".join(rows)}</tbody></table>'
@@ -357,6 +371,19 @@ def render_html(
   table.constituents .ct-mcap {{ text-align: right; }}
   table.constituents .ct-conf {{ text-align: center; color: #666; font-size: 0.78rem; }}
   table.constituents .ct-ret {{ text-align: right; font-size: 0.82rem; }}
+  table.constituents th.sortable {{
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+  }}
+  table.constituents th.sortable:hover {{ background: #e5e0d1; }}
+  table.constituents th.sortable::after {{
+    content: " \\2195";
+    color: #bbb;
+    font-size: 0.7rem;
+  }}
+  table.constituents th.sorted-asc::after {{ content: " \\25B2"; color: #146c2e; }}
+  table.constituents th.sorted-desc::after {{ content: " \\25BC"; color: #146c2e; }}
   td.n {{
     text-align: right;
     color: #666;
@@ -430,6 +457,7 @@ Click any bucket to see its constituents.</p>
 </footer>
 
 <script>
+  // Bucket expand/collapse
   document.querySelectorAll('td.name').forEach(function(cell) {{
     cell.addEventListener('click', function() {{
       var bucket = cell.dataset.bucket;
@@ -446,6 +474,50 @@ Click any bucket to see its constituents.</p>
         detail.setAttribute('hidden', '');
         row.classList.remove('expanded');
       }}
+    }});
+  }});
+
+  // Per-constituent-table sortable headers
+  document.querySelectorAll('table.constituents th.sortable').forEach(function(th) {{
+    th.addEventListener('click', function(evt) {{
+      evt.stopPropagation();  // don't collapse the parent bucket row
+      var table = th.closest('table.constituents');
+      var tbody = table.tBodies[0];
+      var headers = Array.from(table.tHead.rows[0].cells);
+      var colIdx = headers.indexOf(th);
+      var type = th.dataset.type || 'str';
+      var currentlyDesc = th.classList.contains('sorted-desc');
+      var currentlyAsc = th.classList.contains('sorted-asc');
+      // Toggle: if already sorted this way, flip; if not sorted, default desc for num / asc for str
+      var wantDesc;
+      if (currentlyDesc) wantDesc = false;
+      else if (currentlyAsc) wantDesc = true;
+      else wantDesc = (type === 'num');
+      // Clear all headers in this table
+      headers.forEach(function(h) {{
+        h.classList.remove('sorted-asc', 'sorted-desc');
+      }});
+      th.classList.add(wantDesc ? 'sorted-desc' : 'sorted-asc');
+      // Sort rows
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a, b) {{
+        var av = a.cells[colIdx].dataset.sort;
+        var bv = b.cells[colIdx].dataset.sort;
+        var aEmpty = (av === '' || av == null);
+        var bEmpty = (bv === '' || bv == null);
+        // Empty / NaN values always last
+        if (aEmpty && bEmpty) return 0;
+        if (aEmpty) return 1;
+        if (bEmpty) return -1;
+        var cmp;
+        if (type === 'num') {{
+          cmp = parseFloat(av) - parseFloat(bv);
+        }} else {{
+          cmp = av.localeCompare(bv);
+        }}
+        return wantDesc ? -cmp : cmp;
+      }});
+      rows.forEach(function(r) {{ tbody.appendChild(r); }});
     }});
   }});
 </script>

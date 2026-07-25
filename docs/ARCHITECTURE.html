@@ -735,10 +735,8 @@
 
 <h2>12. Downstream: prices and returns</h2>
 <p>
-  The pipeline stops at frozen weights. Two standalone scripts sit downstream to
-  close the loop from &ldquo;these are the members and their weights&rdquo; to
-  &ldquo;these are the returns.&rdquo; They&rsquo;re outside the SQLite pipeline &mdash;
-  no DB writes &mdash; and can be run independently against any historical
+  Two standalone scripts sit outside the SQLite pipeline and close the loop
+  from frozen weights to actual returns. Both run against any historical
   <code>minidex_weights.csv</code>.
 </p>
 <table>
@@ -746,46 +744,27 @@
   <tbody>
     <tr>
       <td><code>scripts/pull_prices.py</code></td>
-      <td>Reads a weights CSV, extracts the unique ticker list, and fetches
-      adjusted daily closes from Polygon.io with 8 concurrent HTTP workers.
-      Writes <code>data/prices.csv</code>. Handles 429 rate limits and 404
-      unknown-ticker responses gracefully. Requires <code>POLYGON_API_KEY</code>
-      in <code>.env</code>.</td>
+      <td>Fetches adjusted daily closes from Polygon.io for every ticker in a
+      weights CSV (8 concurrent workers, retries 429s, tolerates 404s). Writes
+      <code>data/prices.csv</code>. Requires <code>POLYGON_API_KEY</code>.</td>
     </tr>
     <tr>
       <td><code>scripts/bucket_returns.py</code></td>
-      <td>Reads the weights CSV and prices CSV, computes trailing
-      <strong>1y / 6m / 3m / 1m / 1w</strong> returns per bucket via
-      <code>sum(weight_score &times; ticker_return)</code>, with per-window
-      renormalisation across members that priced. Windows are laid out
-      longest-first to match how performance readouts are usually scanned.
-      Writes a stylish standalone HTML report next to the weights CSV (default
-      <code>outputs/&lt;asof&gt;/bucket_returns.html</code>), titled
-      &ldquo;Pantheon,&rdquo; sorted by 1-year return, negatives in red and
-      positives in green. The report is <strong>interactive</strong>: each
-      bucket row is clickable and expands to reveal a constituent table
-      (ticker, full company name, weight, LLM score, market cap formatted as
-      $T/$B/$M, confidence) sorted by weight descending, with a chevron
-      indicator (&#9656;/&#9662;) that flips on expand. Company names are
-      looked up at render time from <code>data/minidex.db</code>
-      (<code>companies.name</code>); an optional <code>--db</code> flag
-      overrides the path, and the report falls back to ticker-only if the DB
-      is unavailable. Expand/collapse is pure inline JavaScript &mdash; no
-      external dependencies.</td>
+      <td>Computes trailing <strong>1y / 6m / 3m / 1m / 1w</strong> returns per
+      bucket as <code>&Sigma;(weight &times; ticker_return)</code> with
+      per-window renormalisation. Writes an interactive HTML report titled
+      &ldquo;Pantheon,&rdquo; sorted by 1-year, red/green formatted. Click any
+      bucket to expand its constituent list (ticker, company name, weight,
+      score, market cap, confidence) &mdash; company names looked up from
+      <code>data/minidex.db</code>. Weight scheme selectable via
+      <code>--weight-col</code> (default <code>weight_score</code>).</td>
     </tr>
   </tbody>
 </table>
 <p>
-  Weight scheme is configurable via <code>--weight-col</code>
-  (<code>weight_score</code> default; also <code>weight_cap_score</code> or
-  <code>weight_equal</code>). Any of the three columns can be used to answer
-  &ldquo;how did this theme perform?&rdquo; from different angles.
-</p>
-<p>
-  This is where user iteration lives. The heavy lifting (SEC fetch, embedding
-  shortlist, LLM scoring) already produced the CSV; deriving custom weighting
-  schemes or return calculations from that CSV is a small pandas exercise
-  with no pipeline re-run required.
+  This is where iteration lives &mdash; the heavy lifting already produced
+  the CSV, so deriving new weighting schemes or return calculations is a
+  small pandas exercise with no pipeline re-run.
 </p>
 
 <footer>

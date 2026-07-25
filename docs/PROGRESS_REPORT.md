@@ -139,7 +139,7 @@ uv sync
 
 ## 11. Handoff notes for next session
 
-**State when this session ended:** pilot at v1.6, all 16 commits pushed to `origin/main`, no uncommitted local changes, all v1.6 scores persisted on both the local machine and the droplet. A dedicated 8 GB droplet at `139.59.127.139` is mid-way through the full-universe run: stages 1–2 done (via the transferred pilot DB), stage 3 fetch complete (1,298 filings), stage 4 shortlist complete (2,920 pairs), stage 3.5 LLM-segments batch submitted, and stages 5–7 running in a chained tmux script. See §13 for the numbers and current status. All tests green on both machines (117 pass excluding anchors; 71/79 anchor tests pass under v1.6).
+**State when this session ended:** full-universe run **complete**. Pilot at v1.6, 27+ commits pushed to `origin/main`, no uncommitted local changes. The `data/minidex.db` on local has 6,774 v1.6 scores across 810 companies × 22 buckets from the droplet run, plus all prior pilot versions (v1.0–v1.5). Full-universe outputs live at `outputs/2026-07-25/` (444 rows, all 22 buckets). Everything is local: raw filings (1,291 files), all 5 stage-boundary droplet snapshots, and the frozen weight CSV/parquet/manifest. The droplet at `139.59.127.139` can be destroyed at any time — nothing on it that isn't also here.
 
 **Lessons from this run to remember:**
 - **tmux + Python stdout buffering.** Python defaults to block-buffered stdout when not attached to a TTY. Inside `tmux capture-pane`, this manifests as "nothing appears to be happening" for tens of minutes even though the process is fine. Either set `PYTHONUNBUFFERED=1` in the environment, run with `python -u`, or (better) tee output to a log file and `tail -f` the log instead of scraping `capture-pane`.
@@ -154,11 +154,15 @@ uv sync
 
 **Do not re-run** stages 1–5 on the local machine. The pilot DB (`data/minidex.db`) and its `.bak` snapshots are the canonical source of pilot state. The full-universe run belongs on the droplet.
 
-**Reserved batch IDs** already used and terminated: `msgbatch_01JcDNRKExA9eRMHLCvzkHYP` (v1.0), `msgbatch_01KbLVcp7vtqBXqhsnk4a2A3` (v1.1), `msgbatch_01MFyzBKG2MgZFizFHEhjArU` (v1.2), `msgbatch_0134J39PCbSn2RWh5NA72Jxr` (v1.3), `msgbatch_014tkSUvD8iTJZZoThHJcKcq` (v1.4), `msgbatch_01G5aJwLnwTHLEqPR2S2ztgX` (Stage 3.5 llm_segments), `msgbatch_012oGwzFQTby3igNMiMiZ1vB` (v1.5), `msgbatch_011JstP5BUT5469tmiWigw6x` (v1.6). All ended; DB has all their rows keyed by `prompt_version`.
+**Reserved batch IDs** already used and terminated (all ended, DB has rows keyed by `prompt_version`):
+- Pilot v1.0–v1.6: `msgbatch_01JcDNRK...`, `01KbLVcp...`, `01MFyzBK...`, `0134J39P...`, `014tkSUv...`, `012oGwzF...`, `011JstP5...`
+- Pilot Stage 3.5 llm_segments: `msgbatch_01G5aJwLnwTHLEqPR2S2ztgX`
+- Droplet Stage 3.5 llm_segments: `msgbatch_01T3PJj6nfEQpuzdRfFPN3Yn`
+- Droplet Stage 5 scoring: `msgbatch_019YLgQibi3ijAnNfj95DB1z`
 
-**Pilot ticker list** for `--tickers` flags is cached at `/tmp/pilot_tickers.txt` locally but that path is ephemeral — regenerate on the droplet from the YAML anchors + AVGO,DELL,ETN,VST,ARW,IBM if needed for a pilot-scope re-run.
+**Pilot ticker list** for `--tickers` flags is cached at `/tmp/pilot_tickers.txt` locally but that path is ephemeral — regenerate from the YAML anchors + AVGO,DELL,ETN,VST,ARW,IBM if needed for a pilot-scope re-run.
 
-**Immediate next action** when the next session opens: the droplet is up and stage 3 is already running under `tmux` (see §12 for specs and bootstrap detail). Attach with `ssh root@139.59.127.139` then `tmux attach -t pantheon` to check progress; the local process is polling every ~5 min for the `fetch: done` marker. Once fetch completes, run stages 4-7 on the droplet, snapshot the DB, and copy `outputs/` back locally.
+**Immediate next action** for the next session: the pipeline has produced its first full-universe output. Downstream now belongs to the user — inspect `outputs/2026-07-25/minidex_weights.csv`, iterate on weighting schemes (custom cap, sqrt-cap, blended), wire it up to `scripts/performance.py` with a prices CSV for cumulative bucket returns. The droplet can be destroyed (`doctl compute droplet delete <id>` or via the DO console). Next full refresh is annual per spec — the runbook at `docs/DEPLOY_TO_DROPLET.md` walks through spinning up a fresh droplet from scratch.
 
 ## 12. Droplet spinup and bootstrap (2026-07-25)
 
@@ -240,15 +244,46 @@ Fix: one-line `sed` replacing `python3 -c` → `uv run python -c` throughout the
 ### DB snapshots on droplet
 - `data/minidex.db.fetch_full.bak` (4.3 MB) — after stage 3 fetch.
 - `data/minidex.db.shortlist_full.bak` (4.5 MB) — after stage 4 shortlist.
-- After the chain completes: `.llmseg_full.bak`, `.scored_full.bak`, `.built_full.bak`.
+- `data/minidex.db.llmseg_full.bak` — after stage 3.5 LLM segments.
+- `data/minidex.db.scored_full.bak` — after stage 5 scoring.
+- `data/minidex.db.built_full.bak` — after stage 7 build.
 
-### Current status
-Chain re-launched and in progress. Score submit + score poll + qc + build still to happen. This section will be updated with final counts once qc and build land.
+### Chain completion outcome
 
-### Anthropic cost so far
-| Phase | Spend |
+The re-launched chain finished cleanly. Final numbers per stage:
+
+| Stage | Result |
+|---|---|
+| llm_segments poll | 100 filings gained real splits, 701 correctly returned empty, 11 failures |
+| Score submit | 1,620 requests (810 companies × 2 runs), $11.95 est |
+| Score poll | **6,774 rows inserted, 0 failures** (100% first-try success) |
+| QC | 6 anchor fails, 3 skips, 13 run disagreements, 141 borderline, 22 low-confidence highs |
+| Build | **444 members across all 22 buckets** at `outputs/2026-07-25/` |
+
+Notable: only **6 anchor failures** on the full universe vs. 11 at pilot scale. Richer context (more comparison filings + full segment coverage from Stage 3.5) made calibration tighter.
+
+### Rsync-back to local Mac
+
+After the build landed, the following were rsynced from the droplet to the local repo:
+
+- `outputs/2026-07-25/{minidex_weights.csv, minidex_weights.parquet, manifest.json}`
+- `data/minidex.db` (7.1 MB) — full production DB
+- `data/*.bak` — all 5 stage-boundary snapshots
+
+Combined with the 1,214 raw filing files rsynced earlier and the code (always on GitHub), **every artefact of the full run is now local**. The droplet at `139.59.127.139` can be destroyed at any time without loss.
+
+### Anthropic cost — final
+
+| Phase | Actual spend |
 |---|---:|
 | Pilot (7 scoring passes + 1 llm_segments) | ~$8.32 |
-| Droplet llm_segments (submitted) | $3.39 |
-| Droplet full-universe scoring (expected) | ~$12 |
-| **Grand total when done** | **~$25–30** |
+| Droplet llm_segments (812 requests) | $3.39 |
+| Droplet full-universe scoring (1,620 requests) | $11.95 |
+| **Grand total** | **~$23.66** |
+
+### New docs added during and after the run
+
+- `docs/DEPLOY_TO_DROPLET.md` — 1,424-word operational runbook for deploying to a fresh DO droplet from scratch, incorporating every gotcha caught tonight.
+- `docs/OUTPUT_COLUMNS.md` — per-column reference for the output CSV (identifiers, scoring, financials, weights, rationale, provenance).
+- `docs/ARCHITECTURE.pdf` — compiled from `ARCHITECTURE.tex` via `tectonic` for offline reading.
+- Full-run outputs committed to git as canonical snapshot: `outputs/2026-07-25/*` (force-added despite the git-ignore on `outputs/`).

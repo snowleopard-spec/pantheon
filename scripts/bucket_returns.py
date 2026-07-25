@@ -298,7 +298,7 @@ def render_html(
   thead th {{
     background: #1c232c;
     padding: 0.65rem 0.7rem;
-    text-align: right;
+    text-align: center;
     font-weight: 600;
     font-size: 0.85rem;
     color: #b1bac4;
@@ -306,7 +306,7 @@ def render_html(
     letter-spacing: 0.02em;
     text-transform: uppercase;
   }}
-  thead th.left {{ text-align: left; }}
+  thead th.left {{ text-align: center; }}
   tbody td {{
     padding: 0.65rem 0.7rem;
     border-bottom: 1px solid #21262d;
@@ -356,20 +356,29 @@ def render_html(
   }}
   table.constituents thead th {{
     background: #1c232c;
+    text-align: center;
     text-transform: none;
     letter-spacing: 0;
     font-size: 0.75rem;
     padding: 0.35rem 0.55rem;
     color: #b1bac4;
   }}
-  table.constituents thead th.num {{ text-align: right; }}
+  table.constituents thead th.num {{ text-align: center; }}
   table.constituents tbody td {{
     padding: 0.3rem 0.55rem;
     border-bottom: 1px solid #21262d;
     vertical-align: middle;
   }}
-  table.constituents .ct-ticker {{ text-align: left; }}
-  table.constituents .ct-name {{ text-align: left; color: #b1bac4; }}
+  table.constituents .ct-ticker {{ text-align: left; white-space: nowrap; }}
+  table.constituents .ct-name {{
+    text-align: left;
+    color: #b1bac4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 18rem;
+  }}
+  table.constituents tbody tr {{ height: 1.8rem; }}
   table.constituents .ct-wt,
   table.constituents .ct-score,
   table.constituents .ct-mcap {{ text-align: right; }}

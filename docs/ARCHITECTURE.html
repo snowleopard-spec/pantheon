@@ -726,6 +726,87 @@
   </tbody>
 </table>
 
+<h2>11. Outputs</h2>
+<p>
+  Every pipeline run writes a self-contained set of files to
+  <code>outputs/&lt;asof-date&gt;/</code>:
+</p>
+<table>
+  <thead><tr><th style="width: 32%">File</th><th>What it is</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>minidex_weights.csv</code></td>
+      <td>Long-format table, one row per <code>(bucket_id, ticker)</code> member. Includes the LLM score, confidence, market cap, three weight columns (see below), both run rationales, and the prompt/model versions that produced it. This is the primary artefact for downstream back-testing.</td>
+    </tr>
+    <tr>
+      <td><code>minidex_weights.parquet</code></td>
+      <td>Byte-for-byte the same data as the CSV, in a columnar binary format. Loads faster in pandas / DuckDB / Spark and preserves numeric precision.</td>
+    </tr>
+    <tr>
+      <td><code>manifest.json</code></td>
+      <td>Provenance record: run date, as-of date, prompt version, model version, embedding model, similarity threshold, score floor, anchor min weight, and SHA-256 hashes of the two source artefacts (<code>minidex_definitions.yaml</code> and <code>scoring_prompt.md</code>). Reproducibility guarantee.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>The three weight columns</h3>
+<p>
+  Every row carries three parallel weight values, all normalised so each
+  bucket sums to 1.0. Downstream you can pick one, blend them, or run all
+  three through your back-test to see which weighting best captures the
+  theme.
+</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 22%">Column</th>
+      <th style="width: 32%">Formula (per bucket)</th>
+      <th>What it captures</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>weight_cap_score</code></td>
+      <td><code>(market_cap &times; score) / &Sigma;(market_cap &times; score)</code></td>
+      <td>
+        Finance-standard cap-weighted, adjusted for how much of a company's
+        revenue is in this theme. Mega-caps like NVDA and MSFT can dominate
+        their buckets under this scheme (e.g. NVDA at ~52&percnt; of
+        <em>fabless_chip_design</em> in the pilot). This is the only column
+        the anchor-weight floor is applied to.
+      </td>
+    </tr>
+    <tr>
+      <td><code>weight_score</code></td>
+      <td><code>score / &Sigma;(score)</code></td>
+      <td>
+        Ignores market cap. Weight is proportional to "how much of this
+        company's revenue is in this theme." AMD at score 1.0 and NVDA at
+        score 0.75 would rival each other in <em>fabless_chip_design</em>
+        regardless of their $300B vs $5T cap difference. Best for measuring
+        pure thematic exposure.
+      </td>
+    </tr>
+    <tr>
+      <td><code>weight_equal</code></td>
+      <td><code>1 / n</code>&nbsp; (n = members after floor)</td>
+      <td>
+        One share per member. Ignores both cap and score magnitude. Naive
+        but useful as a diversification benchmark and as the comparison
+        anchor for the other two schemes.
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>
+  From the CSV alone you can trivially derive further variants without
+  re-running the pipeline &mdash; a max-weight cap (no stock &gt; 20%),
+  square-root or log-transformed cap weighting, blended schemes, or
+  confidence-filtered subsets. The heavy work (SEC fetch, embedding,
+  scoring) is done once and lives in the CSV; iterating on weighting is a
+  small pandas script.
+</p>
+
 <footer>
   Generated for the mini-dex project. See <code>docs/MINIDEX_SPEC.md</code> for the full
   technical specification, <code>definitions/minidex_definitions.yaml</code> for the 22

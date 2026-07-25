@@ -342,12 +342,11 @@ def render_html(
   }}
   tr.detail-row td.detail-cell {{
     background: #0d1117;
-    padding: 0.5rem 1rem 1rem 2.2rem;
+    padding: 0.5rem 0 1rem 2.2rem;
     border-top: 1px dashed #30363d;
   }}
   table.constituents {{
     width: 100%;
-    max-width: 900px;
     margin: 0.4rem 0 0.4rem 0;
     background: #161b22;
     border: 1px solid #30363d;
@@ -374,8 +373,16 @@ def render_html(
   table.constituents .ct-wt,
   table.constituents .ct-score,
   table.constituents .ct-mcap {{ text-align: right; }}
-  table.constituents .ct-conf {{ text-align: center; color: #8b949e; font-size: 0.78rem; }}
-  table.constituents .ct-ret {{ text-align: right; font-size: 0.82rem; }}
+  table.constituents .ct-conf {{ text-align: center; color: #8b949e; font-size: 0.78rem; width: 3rem; }}
+  table.constituents .ct-ret {{
+    text-align: right;
+    font-size: 0.82rem;
+    width: 4.4rem;
+    min-width: 4.4rem;
+  }}
+  table.constituents .ct-wt,
+  table.constituents .ct-score,
+  table.constituents .ct-mcap {{ width: 4.4rem; }}
   table.constituents th.sortable {{
     cursor: pointer;
     user-select: none;
@@ -394,10 +401,13 @@ def render_html(
     color: #8b949e;
     font-size: 0.85rem;
     padding-top: 0.9rem;
+    width: 3.5rem;
   }}
-  td.ret {{
+  td.ret, th.ret-h {{
     text-align: right;
     font-size: 0.95rem;
+    width: 4.4rem;
+    min-width: 4.4rem;
   }}
   .pos {{ color: #56d364; font-weight: 600; }}
   .neg {{ color: #f85149; font-weight: 600; }}
@@ -452,7 +462,7 @@ Click any bucket to see its constituents.</p>
     <tr>
       <th class="left">Bucket</th>
       <th>n</th>
-      {"".join(f"<th>{label.upper()}</th>" for label, _ in WINDOWS)}
+      {"".join(f'<th class="ret-h">{label.upper()}</th>' for label, _ in WINDOWS)}
     </tr>
   </thead>
   <tbody>

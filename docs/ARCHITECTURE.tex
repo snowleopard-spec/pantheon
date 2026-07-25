@@ -69,7 +69,7 @@ Follow NVIDIA (ticker NVDA) through the seven-stop pipeline.
   node distance=0.55cm and 0.9cm,
   ext/.style={rectangle, rounded corners=2pt, draw=blue!45!black, fill=blue!8, minimum width=2.8cm, minimum height=0.95cm, align=center, text width=2.7cm, inner sep=3pt},
   stage/.style={rectangle, rounded corners=2pt, draw=black!55, fill=black!7, minimum width=6cm, minimum height=1.1cm, align=center, text width=6cm, inner sep=3pt},
-  out/.style={rectangle, rounded corners=2pt, draw=orange!55!black, fill=orange!15, minimum width=2.8cm, minimum height=0.95cm, align=center, text width=2.7cm, inner sep=3pt},
+  outbox/.style={rectangle, rounded corners=2pt, draw=orange!55!black, fill=orange!15, minimum width=2.8cm, minimum height=0.95cm, align=center, text width=2.7cm, inner sep=3pt},
   arr/.style={-{Latex[length=2mm]}, draw=blue!55!black, thick},
   ]
   % Pipeline stages (center column)
@@ -89,9 +89,9 @@ Follow NVIDIA (ticker NVDA) through the seven-stop pipeline.
   \node[ext, left=of s7] (e5) {yfinance\\{\scriptsize market cap prices}};
 
   % Outputs (right column)
-  \node[out, right=of s3] (o1) {\ttfamily data/minidex.db\\{\scriptsize SQLite, all stages}};
-  \node[out, below=of o1] (o2) {\ttfamily data/raw/\\{\scriptsize cached Item 1 text}};
-  \node[out, right=of s7] (o3) {\ttfamily outputs/<date>/\\{\scriptsize weights.csv/parquet + manifest.json}};
+  \node[outbox, right=of s3] (o1) {\ttfamily data/minidex.db\\{\scriptsize SQLite, all stages}};
+  \node[outbox, below=of o1] (o2) {\ttfamily data/raw/\\{\scriptsize cached Item 1 text}};
+  \node[outbox, right=of s7] (o3) {\ttfamily outputs/<date>/\\{\scriptsize weights.csv/parquet + manifest.json}};
 
   % Stage-to-stage arrows
   \draw[arr] (s1) -- (s2);

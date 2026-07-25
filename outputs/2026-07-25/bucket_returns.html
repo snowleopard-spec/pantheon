@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <title>Pantheon — 2026-07-25</title>
 <style>
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; background: #0d1117; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: #1c1c1c;
-    background: #f7f6f2;
+    color: #e6edf3;
+    background: #0d1117;
     max-width: 1100px;
     margin: 2rem auto;
     padding: 0 1.4rem 3rem;
@@ -19,16 +19,16 @@
     font-size: 1.7rem;
     letter-spacing: -0.01em;
     margin-bottom: 0.2rem;
-    color: #202020;
+    color: #f0f6fc;
   }
   .subtitle {
-    color: #6b6b6b;
+    color: #8b949e;
     margin: 0 0 1.6rem 0;
     font-size: 0.95rem;
   }
   .metabar {
-    background: #fff;
-    border: 1px solid #e2ded4;
+    background: #161b22;
+    border: 1px solid #30363d;
     border-radius: 6px;
     padding: 0.75rem 1rem;
     margin-bottom: 1.6rem;
@@ -36,111 +36,116 @@
     flex-wrap: wrap;
     gap: 1.5rem;
     font-size: 0.9rem;
-    color: #444;
+    color: #8b949e;
   }
-  .metabar b { color: #1c1c1c; }
+  .metabar b { color: #e6edf3; }
   table {
     width: 100%;
-    background: #fff;
+    background: #161b22;
     border-collapse: collapse;
-    border: 1px solid #e2ded4;
+    border: 1px solid #30363d;
     border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
     font-variant-numeric: tabular-nums;
   }
   thead th {
-    background: #f2efe6;
+    background: #1c232c;
     padding: 0.65rem 0.7rem;
     text-align: right;
     font-weight: 600;
     font-size: 0.85rem;
-    color: #444;
-    border-bottom: 1px solid #e2ded4;
+    color: #b1bac4;
+    border-bottom: 1px solid #30363d;
     letter-spacing: 0.02em;
     text-transform: uppercase;
   }
   thead th.left { text-align: left; }
   tbody td {
     padding: 0.65rem 0.7rem;
-    border-bottom: 1px solid #efece3;
+    border-bottom: 1px solid #21262d;
     vertical-align: top;
   }
   tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: #fafaf3; }
+  tbody tr:hover td { background: #1c232c; }
+  code {
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+  }
   td.name {
     text-align: left;
     line-height: 1.35;
     cursor: pointer;
     user-select: none;
   }
-  td.name:hover strong { color: #146c2e; }
+  td.name:hover strong { color: #56d364; }
   td.name code {
     font-family: "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.75rem;
-    color: #777;
+    color: #7d8590;
     background: transparent;
   }
   .chev {
     display: inline-block;
     width: 0.85rem;
-    color: #999;
+    color: #6e7681;
     transition: transform 0.15s ease;
   }
   tr.bucket-row.expanded td.name .chev {
     transform: rotate(90deg);
-    color: #146c2e;
+    color: #56d364;
   }
   tr.detail-row td.detail-cell {
-    background: #faf9f2;
+    background: #0d1117;
     padding: 0.5rem 1rem 1rem 2.2rem;
-    border-top: 1px dashed #d8d5cd;
+    border-top: 1px dashed #30363d;
   }
   table.constituents {
     width: 100%;
     max-width: 900px;
     margin: 0.4rem 0 0.4rem 0;
-    border: 1px solid #e2ded4;
+    background: #161b22;
+    border: 1px solid #30363d;
     border-radius: 4px;
     box-shadow: none;
     font-size: 0.85rem;
   }
   table.constituents thead th {
-    background: #efece3;
+    background: #1c232c;
     text-transform: none;
     letter-spacing: 0;
     font-size: 0.75rem;
     padding: 0.35rem 0.55rem;
+    color: #b1bac4;
   }
   table.constituents thead th.num { text-align: right; }
   table.constituents tbody td {
     padding: 0.3rem 0.55rem;
-    border-bottom: 1px solid #efece3;
+    border-bottom: 1px solid #21262d;
     vertical-align: middle;
   }
   table.constituents .ct-ticker { text-align: left; }
-  table.constituents .ct-name { text-align: left; color: #444; }
+  table.constituents .ct-name { text-align: left; color: #b1bac4; }
   table.constituents .ct-wt,
   table.constituents .ct-score,
   table.constituents .ct-mcap { text-align: right; }
-  table.constituents .ct-conf { text-align: center; color: #666; font-size: 0.78rem; }
+  table.constituents .ct-conf { text-align: center; color: #8b949e; font-size: 0.78rem; }
   table.constituents .ct-ret { text-align: right; font-size: 0.82rem; }
   table.constituents th.sortable {
     cursor: pointer;
     user-select: none;
     position: relative;
   }
-  table.constituents th.sortable:hover { background: #e5e0d1; }
+  table.constituents th.sortable:hover { background: #262d38; }
   table.constituents th.sortable::after {
     content: " \2195";
-    color: #bbb;
+    color: #4b5563;
     font-size: 0.7rem;
   }
-  table.constituents th.sorted-asc::after { content: " \25B2"; color: #146c2e; }
-  table.constituents th.sorted-desc::after { content: " \25BC"; color: #146c2e; }
+  table.constituents th.sorted-asc::after { content: " \25B2"; color: #56d364; }
+  table.constituents th.sorted-desc::after { content: " \25BC"; color: #56d364; }
   td.n {
     text-align: right;
-    color: #666;
+    color: #8b949e;
     font-size: 0.85rem;
     padding-top: 0.9rem;
   }
@@ -148,26 +153,37 @@
     text-align: right;
     font-size: 0.95rem;
   }
-  .pos { color: #146c2e; font-weight: 600; }
-  .neg { color: #b3261e; font-weight: 600; }
-  .flat { color: #666; }
-  .na { color: #bbb; }
+  .pos { color: #56d364; font-weight: 600; }
+  .neg { color: #f85149; font-weight: 600; }
+  .flat { color: #8b949e; }
+  .na { color: #4b5563; }
   .nsmall {
-    color: #999;
+    color: #6e7681;
     font-size: 0.72rem;
     font-variant-numeric: tabular-nums;
   }
   footer {
     margin-top: 2rem;
     padding-top: 0.9rem;
-    border-top: 1px solid #e2ded4;
-    color: #888;
+    border-top: 1px solid #30363d;
+    color: #6e7681;
     font-size: 0.8rem;
     line-height: 1.5;
   }
+  footer b { color: #8b949e; }
   @media print {
-    body { margin: 0; background: #fff; font-size: 10pt; }
-    table { box-shadow: none; }
+    html, body { background: #fff; color: #1c1c1c; }
+    body { margin: 0; font-size: 10pt; }
+    table, table.constituents {
+      background: #fff; box-shadow: none; border-color: #ccc;
+    }
+    thead th, table.constituents thead th { background: #f2efe6; color: #444; }
+    .metabar { background: #fff; border-color: #ccc; color: #444; }
+    .metabar b { color: #1c1c1c; }
+    .pos { color: #146c2e; } .neg { color: #b3261e; } .flat { color: #666; }
+    tr.detail-row td.detail-cell { background: #faf9f2; border-top-color: #ccc; }
+    tbody td, table.constituents tbody td { border-bottom-color: #eee; }
+    footer { color: #666; border-top-color: #ccc; }
   }
 </style>
 </head>

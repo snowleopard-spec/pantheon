@@ -139,7 +139,7 @@ uv sync
 
 ## 11. Handoff notes for next session
 
-**State when this session ended:** pilot at v1.6, all 16 commits pushed to `origin/main`, no uncommitted changes, no open background jobs, all tests green (117 pass excluding anchors; 71/79 anchor tests pass under v1.6).
+**State when this session ended:** pilot at v1.6, all 16 commits pushed to `origin/main`, no uncommitted local changes, all v1.6 scores persisted on both the local machine and the droplet. A dedicated 8 GB droplet is up at `139.59.127.139` with stages 1-2 already done (via the transferred pilot DB) and stage 3 (full-universe EDGAR fetch) running in a detached `tmux` session. All tests green on both machines (117 pass excluding anchors; 71/79 anchor tests pass under v1.6).
 
 **Key files to re-read at session start:**
 - `docs/PROGRESS_REPORT.md` (this file) — the timeline and current state.
@@ -154,4 +154,37 @@ uv sync
 
 **Pilot ticker list** for `--tickers` flags is cached at `/tmp/pilot_tickers.txt` locally but that path is ephemeral — regenerate on the droplet from the YAML anchors + AVGO,DELL,ETN,VST,ARW,IBM if needed for a pilot-scope re-run.
 
-**Immediate next action** when the next session opens: user is expected to have spun up the new 8 GB droplet. Confirm droplet IP, then walk through the bootstrap in §8 and monitor the full-universe run.
+**Immediate next action** when the next session opens: the droplet is up and stage 3 is already running under `tmux` (see §12 for specs and bootstrap detail). Attach with `ssh root@139.59.127.139` then `tmux attach -t pantheon` to check progress; the local process is polling every ~5 min for the `fetch: done` marker. Once fetch completes, run stages 4-7 on the droplet, snapshot the DB, and copy `outputs/` back locally.
+
+## 12. Droplet spinup and bootstrap (2026-07-25)
+
+### Droplet specs
+- Provider: DigitalOcean.
+- IP: `139.59.127.139`.
+- Size class: `s-2vcpu-8gb-160gb-intel-sgp1` (~2 vCPU, 8 GB RAM, 160 GB SSD, Intel, Singapore region).
+- OS: Ubuntu (Linux 6.8.0-124-generic x86_64).
+- Baseline usage when fresh: 456 MB RAM used, 7.3 GB available; 1.9 GB / 154 GB disk used.
+- No swap configured — the 8 GB RAM makes it unnecessary for this workload.
+
+### What was pre-installed vs what we added
+Pre-installed on the base image: git 2.43, Python 3, curl, ca-certificates, baseline Ubuntu.
+
+Added on the droplet:
+- `uv` 0.11.32 via the official installer (`curl -LsSf https://astral.sh/uv/install.sh | sh`).
+- `tmux` 3.4, for detached long-running sessions.
+- `sqlite3` CLI, for DB introspection — the Python `sqlite3` module is a stdlib but the CLI tool was not installed.
+- Repo cloned from `https://github.com/snowleopard-spec/pantheon.git` into `/root/pantheon`.
+- Python venv + all pip dependencies via `uv sync` (torch, sentence-transformers, edgartools, anthropic, pandas, pyyaml, yfinance, pytest, etc.).
+
+### What was transferred from the local Mac
+- `.env` (181 bytes) via `scp` to `/root/pantheon/.env`, `chmod 600`. Contains `ANTHROPIC_API_KEY` and `SEC_USER_AGENT`. The key has **not** been rotated yet — it is still the original one that was exposed in `API Keys.md` at project start (§1). Rotation remains outstanding.
+- `data/minidex.db.scored_v16.bak` (3.9 MB) via `scp` to `/root/pantheon/data/minidex.db`. This is the pilot database with all 77 filings, ~7,600 score rows across prompt_versions 1.0–1.6, and 543 shortlist pairs. Effect: stages 1–2 are already done on the droplet, and stage 3 resumes with 77/1,376 cached.
+
+### Verification
+- Test suite on the droplet: 117 tests pass (excluding anchors) via `uv run pytest -q --ignore=tests/test_anchors.py`.
+- DB state confirmed post-transfer: 7,992 companies, 1,376 candidates, 77 filings, 7,602 score rows across 7 prompt_versions.
+
+### Current run
+- `minidex fetch` is running inside a detached `tmux` session named `pantheon`. To attach: `ssh root@139.59.127.139` then `tmux attach -t pantheon`.
+- Expected wall time: ~6–8 hours (dominated by SEC EDGAR's 10 req/s rate limit for the ~1,299 non-pilot candidates).
+- The local process is polling every ~5 min via `ssh + tmux capture-pane | grep 'fetch: done'`.

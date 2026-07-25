@@ -517,6 +517,176 @@
   slot in the final index regardless.
 </p>
 
+<h2>9. The 22 buckets</h2>
+<p>
+  A reader-friendly overview of every bucket the pipeline scores against. Full definitions
+  (with inclusion/exclusion notes and keyword hints) live in
+  <code>definitions/minidex_definitions.yaml</code>; the summaries below are paraphrased for
+  quick scanning. Buckets are grouped into the four families used throughout the pipeline.
+</p>
+
+<h3>Silicon</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 22%">Bucket</th>
+      <th>Summary</th>
+      <th style="width: 22%">Anchor tickers</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Fabless chip design<br><code>fabless_chip_design</code></td>
+      <td>Companies that design their own logic chips (GPUs, CPUs, SoCs, ASICs, DPUs, basebands, RF front-ends) and sell them under their own brand while outsourcing wafer fabrication. Revenue is chip sales, not IP licences or fab services.</td>
+      <td><code>NVDA, AMD, QCOM, MRVL, AVGO</code></td>
+    </tr>
+    <tr>
+      <td>Foundry<br><code>foundry</code></td>
+      <td>Contract wafer manufacturers that fab chips other companies designed &mdash; process technology and advanced packaging sold as a service. The customer owns the design; the foundry sells fabrication capacity.</td>
+      <td><code>TSM, GFS, UMC</code></td>
+    </tr>
+    <tr>
+      <td>Semiconductor capital equipment<br><code>semicap_equipment</code></td>
+      <td>Sellers of the tools used to fabricate, inspect, test and package chips &mdash; deposition, etch, lithography, metrology, inspection, ion implant and test systems &mdash; plus the associated service and spares revenue.</td>
+      <td><code>AMAT, LRCX, KLAC</code></td>
+    </tr>
+    <tr>
+      <td>EDA &amp; semiconductor IP<br><code>eda_ip</code></td>
+      <td>Software for chip design (EDA suites) and licensable semiconductor IP such as processor cores, interface PHYs and verification tools. Revenue is licences, royalties and design services rather than physical chips.</td>
+      <td><code>SNPS, CDNS, ARM</code></td>
+    </tr>
+    <tr>
+      <td>Memory &amp; storage<br><code>memory_storage</code></td>
+      <td>Designers and/or manufacturers of memory and storage silicon and devices &mdash; DRAM, HBM, NAND flash, SSDs, hard drives, memory modules and controllers. Cloud storage services do not belong here.</td>
+      <td><code>MU, WDC, SNDK, STX</code></td>
+    </tr>
+    <tr>
+      <td>Microcontrollers &amp; embedded<br><code>microcontrollers_embedded</code></td>
+      <td>Vendors of MCUs, embedded processors, FPGAs and connectivity chips aimed at industrial, automotive, IoT and edge control workloads. This is general-purpose programmable silicon for embedded control, not data-centre compute.</td>
+      <td><code>MCHP, NXPI, STM</code></td>
+    </tr>
+    <tr>
+      <td>Power &amp; analog semis<br><code>analog_power</code></td>
+      <td>Analog, mixed-signal and power-management chips &mdash; amplifiers, data converters, voltage regulators and SiC/GaN power devices. Data-centre power delivery feeding high-wattage AI racks is a core in-scope activity.</td>
+      <td><code>TXN, ADI, MPWR, ON</code></td>
+    </tr>
+    <tr>
+      <td>Semiconductor materials &amp; consumables<br><code>semi_materials</code></td>
+      <td>Suppliers of the materials and chemistries consumed by fabs &mdash; specialty gases, CMP slurries, photoresists, filtration, wafer substrates, targets and related contamination-control kit. Distinct from the capital equipment used to apply them.</td>
+      <td><code>ENTG, MKSI, ACMR</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Interconnect &amp; hardware</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 22%">Bucket</th>
+      <th>Summary</th>
+      <th style="width: 22%">Anchor tickers</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Photonics &amp; optical interconnect<br><code>photonics_optical</code></td>
+      <td>Optical and photonic components and modules &mdash; lasers, transceivers, silicon photonics, co-packaged optics and related test &mdash; used to move data inside and between data centres and across telecom networks.</td>
+      <td><code>COHR, LITE, AAOI</code></td>
+    </tr>
+    <tr>
+      <td>Networking silicon &amp; systems<br><code>networking</code></td>
+      <td>Data-centre and carrier networking gear: Ethernet switches and routers, switch/PHY/retimer/SerDes silicon, AI-cluster interconnect fabrics, DPUs/NICs and network operating software sold with the systems.</td>
+      <td><code>ANET, CRDO, ALAB, CIEN</code></td>
+    </tr>
+    <tr>
+      <td>Data centre hardware &amp; servers<br><code>dc_hardware</code></td>
+      <td>Designers and integrators of servers, GPU systems, rack-scale solutions and enterprise storage sold under their own brand. This is the system-level layer between chips and the facility, not contract manufacturing.</td>
+      <td><code>SMCI, DELL, HPE</code></td>
+    </tr>
+    <tr>
+      <td>EMS / ODM manufacturing<br><code>ems_odm</code></td>
+      <td>Contract assembly of servers, switches, boards and modules for OEM and hyperscaler customers, including design-and-build ODM arrangements. Distinguished from <code>dc_hardware</code> by the absence of an own-brand product line.</td>
+      <td><code>CLS, FLEX, JBL</code></td>
+    </tr>
+    <tr>
+      <td>Connectors &amp; interconnect components<br><code>connectors</code></td>
+      <td>Electrical connectors, cable assemblies, sockets, backplanes, busbars and thermal interface parts used in servers, networking gear and high-power electronics. Optical modules and semiconductors belong elsewhere.</td>
+      <td><code>APH, TEL</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Infrastructure</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 22%">Bucket</th>
+      <th>Summary</th>
+      <th style="width: 22%">Anchor tickers</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Hyperscalers<br><code>hyperscalers</code></td>
+      <td>Operators of global, multi-region internet infrastructure. Qualifies via either public cloud (IaaS/PaaS sold to external customers) or self-operated hyperscale infrastructure powering the firm's own consumer/ad properties; a company can qualify on one leg or both.</td>
+      <td><code>MSFT, AMZN, GOOGL, ORCL, META</code></td>
+    </tr>
+    <tr>
+      <td>Neoclouds / GPU cloud<br><code>neoclouds</code></td>
+      <td>Specialised AI clouds renting GPU capacity for training and inference, typically under contracts with AI labs and enterprises. Includes former crypto miners that have repurposed power and facilities into GPU hosting.</td>
+      <td><code>CRWV, NBIS, IREN, APLD</code></td>
+    </tr>
+    <tr>
+      <td>Data centre power &amp; cooling equipment<br><code>dc_power_cooling</code></td>
+      <td>The electrical and thermal facility layer inside data centres &mdash; UPS, switchgear, transformers, generators, liquid and air cooling, CDUs and related services that power and cool IT loads.</td>
+      <td><code>VRT, ETN, GEV</code></td>
+    </tr>
+    <tr>
+      <td>Power generation for data centres<br><code>power_generation</code></td>
+      <td>Electricity producers where data-centre demand is a material and growing driver &mdash; independent power producers, nuclear operators and SMR developers with generation contracted to serve data-centre loads.</td>
+      <td><code>VST, CEG, TLN, OKLO, SMR</code></td>
+    </tr>
+    <tr>
+      <td>Colocation &amp; data centre REITs<br><code>colo_reits</code></td>
+      <td>Owners and lessors of data-centre real estate: space, power and interconnection sold to enterprises, hyperscalers and AI tenants, typically structured as REITs or wholesale facility operators.</td>
+      <td><code>EQIX, DLR</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Software &amp; frontier</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 22%">Bucket</th>
+      <th>Summary</th>
+      <th style="width: 22%">Anchor tickers</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AI-native software &amp; services<br><code>ai_native_software</code></td>
+      <td>Software or services where AI/ML models are the core product value &mdash; AI platforms, model-driven analytics, speech and vision products, AI-driven diagnostics. Traditional SaaS that merely bolts on AI features scores low.</td>
+      <td><code>PLTR, AI, SOUN, TEM</code></td>
+    </tr>
+    <tr>
+      <td>Data infrastructure software<br><code>data_infrastructure</code></td>
+      <td>The software layer that stores, moves, queries and monitors data at scale &mdash; cloud warehouses, lakehouses, operational databases, streaming, observability and pipeline tooling that underpins analytics and AI workloads.</td>
+      <td><code>SNOW, MDB, DDOG, CFLT</code></td>
+    </tr>
+    <tr>
+      <td>PQC &amp; quantum<br><code>pqc_quantum</code></td>
+      <td>Quantum computing hardware and cloud services, quantum networking, and post-quantum cryptography &mdash; quantum-resistant security chips, PQC software and migration services, QKD, and quantum processors offered via cloud access.</td>
+      <td><code>IONQ, RGTI, QBTS, LAES, ARQQ</code></td>
+    </tr>
+    <tr>
+      <td>Cybersecurity<br><code>cybersecurity</code></td>
+      <td>Security software and services protecting enterprise and infrastructure environments &mdash; endpoint/EDR, network and cloud security, identity, SIEM/SOC and managed security &mdash; increasingly including AI-workload security. PQC-focused vendors sit in their own bucket.</td>
+      <td><code>CRWD, PANW, ZS, S</code></td>
+    </tr>
+  </tbody>
+</table>
+
 <footer>
   Generated for the mini-dex project. See <code>docs/MINIDEX_SPEC.md</code> for the full
   technical specification, <code>definitions/minidex_definitions.yaml</code> for the 22

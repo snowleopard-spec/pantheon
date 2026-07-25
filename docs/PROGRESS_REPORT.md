@@ -139,7 +139,11 @@ uv sync
 
 ## 11. Handoff notes for next session
 
-**State when this session ended:** pilot at v1.6, all 16 commits pushed to `origin/main`, no uncommitted local changes, all v1.6 scores persisted on both the local machine and the droplet. A dedicated 8 GB droplet is up at `139.59.127.139` with stages 1-2 already done (via the transferred pilot DB) and stage 3 (full-universe EDGAR fetch) running in a detached `tmux` session. All tests green on both machines (117 pass excluding anchors; 71/79 anchor tests pass under v1.6).
+**State when this session ended:** pilot at v1.6, all 16 commits pushed to `origin/main`, no uncommitted local changes, all v1.6 scores persisted on both the local machine and the droplet. A dedicated 8 GB droplet at `139.59.127.139` is mid-way through the full-universe run: stages 1–2 done (via the transferred pilot DB), stage 3 fetch complete (1,298 filings), stage 4 shortlist complete (2,920 pairs), stage 3.5 LLM-segments batch submitted, and stages 5–7 running in a chained tmux script. See §13 for the numbers and current status. All tests green on both machines (117 pass excluding anchors; 71/79 anchor tests pass under v1.6).
+
+**Lessons from this run to remember:**
+- **tmux + Python stdout buffering.** Python defaults to block-buffered stdout when not attached to a TTY. Inside `tmux capture-pane`, this manifests as "nothing appears to be happening" for tens of minutes even though the process is fine. Either set `PYTHONUNBUFFERED=1` in the environment, run with `python -u`, or (better) tee output to a log file and `tail -f` the log instead of scraping `capture-pane`.
+- **Always `uv run python` inside chained scripts, never bare `python3`.** The system `python3` on the droplet does not have `anthropic` (or any project dep) installed; only the uv-managed venv does. A chained pipeline script that used `python3 -c "..."` for batch polling died with `ModuleNotFoundError: No module named 'anthropic'` on the first poll. Fix was a one-line `sed` across the script; prevention is to grep-check `python3` invocations before launching any long-running chain.
 
 **Key files to re-read at session start:**
 - `docs/PROGRESS_REPORT.md` (this file) — the timeline and current state.
@@ -188,3 +192,63 @@ Added on the droplet:
 - `minidex fetch` is running inside a detached `tmux` session named `pantheon`. To attach: `ssh root@139.59.127.139` then `tmux attach -t pantheon`.
 - Expected wall time: ~6–8 hours (dominated by SEC EDGAR's 10 req/s rate limit for the ~1,299 non-pilot candidates).
 - The local process is polling every ~5 min via `ssh + tmux capture-pane | grep 'fetch: done'`.
+
+## 13. Full-universe run (2026-07-25)
+
+### Stage 3 fetch outcome
+Ran ~3.5 hours wall time — faster than the 6–8 hr estimate, the 2 vCPU box outperformed the single-core assumption on the parallel-safe extraction work between EDGAR fetches.
+
+| Metric | Count | Rate |
+|---|---:|---:|
+| Filings in DB (pilot cached + newly fetched) | 77 + 1,221 = 1,298 | — |
+| Item-1 extraction (`item1_chars > 2,000`) | 1,291 / 1,298 | 99.5% |
+| Segment extraction (XBRL + single-segment fallback) | 1,167 / 1,298 | ~90% |
+| Market cap (`shares × yfinance close`) | 1,202 / 1,376 candidates | ~87% |
+| Item-1 fallback (couldn't cleanly parse section, took first 40k chars of body) | 117 candidates | — |
+
+### Rsync raw filings back to local Mac
+1,214 filing text files (~74 MB uncompressed, transferred with `-z`) merged into the local `data/raw/` alongside the 77 pilot files, giving 1,291 total files (~78 MB on disk) — an exact mirror of the droplet's raw corpus. Insurance: the droplet can be destroyed after the run without losing the raw filing text, which is the one artefact that costs wall time (not money) to re-produce.
+
+### Stage 4 shortlist outcome
+Ran ~15 min on the 2 vCPU box.
+
+| Metric | Value |
+|---|---:|
+| Total (ticker, bucket) pairs | 2,920 |
+| — via embedding similarity ≥ 0.60 | 2,844 |
+| — via anchor force-include | 76 |
+| Distinct companies with ≥1 bucket | 810 |
+| Median buckets per company | ~4.2 |
+| Min anchor similarity observed | 0.3627 |
+
+The interesting number is **566 SIC-included candidates that produced zero buckets** (1,376 candidates − 810 with a bucket = 566). They didn't clear the 0.60 similarity threshold on any of the 22 buckets — legitimately not thematic, even though their SIC code was on the include list. This is the shortlist filter doing what it's meant to do: SIC gets us near the neighbourhood, embedding similarity confirms actual thematic proximity.
+
+The 0.3627 min-anchor-similarity is below the 0.60 threshold; anchors are force-included regardless, so this is a calibration warning only (some anchor's Item-1 text is genuinely dissimilar to its bucket definition).
+
+### Stage 3.5 LLM segments submit
+812 requests submitted; estimated cost ~$3.39. Batch id: `msgbatch_01T3PJj6nfEQpuzdRfFPN3Yn`. Polled by the chained script (see below).
+
+### Chain-script bug and one-line fix
+A helper script `run_remaining.sh` was written to pipeline the remaining stages: llm_segments poll → score submit → score poll → qc → build. The batch-status-polling steps used bare `python3 -c "..."` instead of `uv run python -c "..."`. The system `python3` on the droplet does not have `anthropic` installed (only the uv-managed venv does). First poll iteration died with:
+
+```
+ModuleNotFoundError: No module named 'anthropic'
+```
+
+Fix: one-line `sed` replacing `python3 -c` → `uv run python -c` throughout the script, then re-launched. Lesson persisted in §11.
+
+### DB snapshots on droplet
+- `data/minidex.db.fetch_full.bak` (4.3 MB) — after stage 3 fetch.
+- `data/minidex.db.shortlist_full.bak` (4.5 MB) — after stage 4 shortlist.
+- After the chain completes: `.llmseg_full.bak`, `.scored_full.bak`, `.built_full.bak`.
+
+### Current status
+Chain re-launched and in progress. Score submit + score poll + qc + build still to happen. This section will be updated with final counts once qc and build land.
+
+### Anthropic cost so far
+| Phase | Spend |
+|---|---:|
+| Pilot (7 scoring passes + 1 llm_segments) | ~$8.32 |
+| Droplet llm_segments (submitted) | $3.39 |
+| Droplet full-universe scoring (expected) | ~$12 |
+| **Grand total when done** | **~$25–30** |

@@ -1,0 +1,20 @@
+{
+  "anchor_min_weight": 0.05,
+  "asof": "2026-07-25",
+  "definitions_sha256": "22cf524f76c171bdbf578dc5aae37f16fdbf5bc5f6347ab15d7cc09303b5a4a1",
+  "embedding_model": "BAAI/bge-large-en-v1.5",
+  "filing_fy_histogram": {
+    "2022": 1,
+    "2024": 2,
+    "2025": 248,
+    "2026": 58
+  },
+  "model_version": "claude-haiku-4-5-20251001",
+  "n_companies_scored": 309,
+  "n_pairs_scored": 444,
+  "prompt_sha256": "591859fb7f6f9f696c025d9f3b3fa4bbe41e0bb757af6bd90feefa4fca7ca623",
+  "prompt_version": "1.6",
+  "run_date": "2026-07-25",
+  "score_floor": 0.1,
+  "similarity_threshold": 0.6
+}

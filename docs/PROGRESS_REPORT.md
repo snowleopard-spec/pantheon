@@ -320,3 +320,32 @@ The quantum outsize was driven by RGTI/QBTS moving from sub-$1 to $20+ in the ye
 - **Column order reversed** to 1Y / 6M / 3M / 1M / 1W (longest window first). Matches how performance readouts are usually scanned.
 - **Bucket names are clickable.** Each bucket row expands to reveal an inner constituent table: ticker, full company name, `weight_score` %, LLM score, market cap (formatted as $T/$B/$M), confidence. Sorted by `weight_score` descending. A chevron (▸/▾) indicates expand state. Expand/collapse is pure inline JavaScript (~15 lines) — no external dependencies.
 - **Company names** are looked up at report-render time from `data/minidex.db` (`companies.name`). Optional `--db` flag overrides the path; the report falls back to ticker-only if the DB is unavailable.
+
+**Per-constituent returns.** Each expanded constituent row now shows its own 1Y / 6M / 3M / 1M / 1W return alongside ticker/name/weight/score/mcap/confidence — 2,220 per-ticker return cells across the 22 tables. Same red/green formatting as the bucket-level cells.
+
+**Penny-stock filter.** A `--min-start-price` flag (default $1.00) excludes any ticker from a given window if its starting price is below the threshold. Standard practice in equity return analysis; catches near-dead-recovery names whose percentage returns otherwise swamp aggregates. Motivating case: Zapata Quantum (ZPTA) went from $0.0001 → $0.90 over the year, a +899,900% "return" that single-handedly drove the PQC & quantum bucket to +5,520%. After the filter, PQC & quantum's true 1Y is **−11%** (thematic drawdown consistent with quantum stock volatility). Other bucket movements from the filter were small (single-digit %).
+
+**Sortable constituent columns.** Every column header in the constituent tables is clickable to re-sort by that column. First click on a numeric column defaults descending; text columns default ascending. Toggle direction on repeat click. Sort indicators (▲/▼) show on the active column, ↕ hint on the others. NaN / empty values always sort last regardless of direction. Underlying sort keys are stored in `data-sort` attributes so numeric sorts use the raw value (e.g. $5T > $500B, not lexicographic). Confidence sorts by ordinal rank (high=3, medium=2, low=1).
+
+**Column-width alignment.** Return columns in the main index table and the constituent tables now share fixed widths (4.4rem each), and the detail-cell right padding was zeroed so the constituent table extends to the same right edge as the main table. Result: the 1Y/6M/3M/1M/1W columns line up vertically between bucket-level rows and their expanded constituent rows.
+
+**Layout polish.** All column headers centered (was mixed right/left/center). Company names + tickers now nowrap with ellipsis at 18rem — every constituent row is a uniform 1.8rem tall. Title enlarged to 3rem and centered; subtitle and metabar removed for a cleaner opening.
+
+**Dark theme.** Switched to a GitHub-dark palette (`#0d1117` page, `#161b22` surfaces, `#e6edf3` text; positives `#56d364`, negatives `#f85149`). Print stylesheet inverts to light so hard copies stay readable on paper.
+
+**Constituent-table default sort** is now `weight_score` descending (was market cap descending briefly; before that, weight_score). Market cap remains one click away.
+
+### Smart price cache
+
+`scripts/pull_prices.py` used to refetch the full 400-day window for every ticker on every run. Now it's incremental:
+
+- Reads the existing `data/prices.csv` at start; computes the latest cached bar per ticker.
+- If the latest bar is within a 3-day grace period of today (covers weekends and short holidays), the ticker is treated as up-to-date — zero HTTP calls.
+- Otherwise, fetches only from `(latest_cached + 1)` to today; new tickers not in the cache get the full lookback.
+- Merges new + cached data with dedupe on `(ticker, date)`, last-write-wins (so any post-hoc adjusted-close revisions from Polygon supersede stale cached rows).
+- `--full` flag forces a complete refetch (useful after a suspected split-adjustment issue).
+- Verified: on the 2026-07-25 second run, 301 of 309 tickers up-to-date, 8 incremental (all returned empty for the weekend). 8 HTTP calls instead of 309. Subsequent runs today are 0 HTTP calls.
+
+### `pantheon` shell wrapper
+
+`scripts/pantheon` (executable) is a one-command refresh: auto-detects the newest `outputs/<date>/minidex_weights.csv`, runs `pull_prices.py` (with fallback if Polygon fails), regenerates the HTML via `bucket_returns.py`, and `open`s the result. Sources `~/.local/bin/env` so `uv` is on PATH from any shell. A `pantheon` alias is installed in `~/.zshrc` (outside the repo). Typing `pantheon` from any directory refreshes and opens the report — combined with the smart cache, an idle refresh during trading hours is a few HTTP calls; overnight it's zero.

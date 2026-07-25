@@ -262,29 +262,13 @@ def render_html(
     font-size: 15px;
   }}
   h1 {{
-    font-size: 1.7rem;
-    letter-spacing: -0.01em;
-    margin-bottom: 0.2rem;
+    font-size: 3rem;
+    letter-spacing: -0.02em;
+    margin: 0.6rem 0 1.6rem 0;
     color: #f0f6fc;
+    text-align: center;
+    font-weight: 700;
   }}
-  .subtitle {{
-    color: #8b949e;
-    margin: 0 0 1.6rem 0;
-    font-size: 0.95rem;
-  }}
-  .metabar {{
-    background: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 6px;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1.6rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-    font-size: 0.9rem;
-    color: #8b949e;
-  }}
-  .metabar b {{ color: #e6edf3; }}
   table {{
     width: 100%;
     background: #161b22;
@@ -443,8 +427,6 @@ def render_html(
       background: #fff; box-shadow: none; border-color: #ccc;
     }}
     thead th, table.constituents thead th {{ background: #f2efe6; color: #444; }}
-    .metabar {{ background: #fff; border-color: #ccc; color: #444; }}
-    .metabar b {{ color: #1c1c1c; }}
     .pos {{ color: #146c2e; }} .neg {{ color: #b3261e; }} .flat {{ color: #666; }}
     tr.detail-row td.detail-cell {{ background: #faf9f2; border-top-color: #ccc; }}
     tbody td, table.constituents tbody td {{ border-bottom-color: #eee; }}
@@ -455,16 +437,6 @@ def render_html(
 <body>
 
 <h1>Pantheon</h1>
-<p class="subtitle">Trailing-window returns for each of the 22 thematic sub-indices,
-weighted by <code>{escape(weight_col)}</code>. Sorted by 1-year return.
-Click any bucket to see its constituents.</p>
-
-<div class="metabar">
-  <span><b>As of:</b> {escape(asof)}</span>
-  <span><b>Weight scheme:</b> <code>{escape(weight_col)}</code></span>
-  <span><b>Buckets:</b> {len(returns)}</span>
-  <span><b>Windows:</b> 1w / 1m / 3m / 6m / 1y</span>
-</div>
 
 <table>
   <thead>

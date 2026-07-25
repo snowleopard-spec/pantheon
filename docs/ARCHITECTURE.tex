@@ -354,9 +354,26 @@ PQC \& quantum \newline \texttt{pqc\_quantum} & Quantum computing hardware and c
 Cybersecurity \newline \texttt{cybersecurity} & Security software and services protecting enterprise and infrastructure environments --- endpoint/EDR, network and cloud security, identity, SIEM/SOC and managed security --- increasingly including AI-workload security. PQC-focused vendors sit in their own bucket. & \texttt{CRWD, PANW, ZS, S} \\
 \end{longtable}
 
+\section{Downstream: prices and returns}
+
+The pipeline stops at frozen weights. Two standalone scripts sit downstream to close the loop from ``these are the members and their weights'' to ``these are the returns.'' They are outside the SQLite pipeline (no DB writes) and can be run independently against any historical \texttt{minidex\_weights.csv}.
+
+\begin{tabular}{@{}p{3.5cm}p{11.5cm}@{}}
+\toprule
+\textbf{Script} & \textbf{What it does} \\
+\midrule
+\texttt{scripts/pull\_prices.py} & Reads a weights CSV, extracts the unique ticker list, and fetches adjusted daily closes from Polygon.io with concurrent HTTP workers. Writes \texttt{data/prices.csv}. Handles rate limits and unknown-ticker responses. Requires \texttt{POLYGON\_API\_KEY} in \texttt{.env}. \\
+\addlinespace
+\texttt{scripts/bucket\_returns.py} & Reads the weights CSV and prices CSV, computes trailing \textbf{1w / 1m / 3m / 6m / 1y} returns per bucket via $\sum($weight\_score $\times$ ticker\_return$)$, with per-window renormalisation across members that priced. Writes a stylish standalone HTML report at \texttt{outputs/<asof>/bucket\_returns.html} sorted by 1-year return. \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.6em}
+Weight scheme is configurable via \texttt{-{}-weight-col} (\texttt{weight\_score} default; also \texttt{weight\_cap\_score} or \texttt{weight\_equal}). Any of the three columns can be used to answer ``how did this theme perform?'' from different angles. This is where user iteration lives --- the heavy lifting (SEC fetch, embedding shortlist, LLM scoring) already produced the CSV; deriving custom weighting schemes or return calculations is a small pandas exercise with no pipeline re-run required.
+
 \vspace{2em}
 \hrule
 \vspace{0.5em}
-\noindent{\small\itshape Generated for the mini-dex project. See \texttt{docs/MINIDEX\_SPEC.md} for the full technical specification, \texttt{definitions/minidex\_definitions.yaml} for the 22 bucket definitions, \texttt{prompts/scoring\_prompt.md} for the current scoring rules, and \texttt{README.md} for the run sequence.}
+\noindent{\small\itshape Generated for the mini-dex project. See \texttt{docs/MINIDEX\_SPEC.md} for the full technical specification, \texttt{definitions/minidex\_definitions.yaml} for the 22 bucket definitions, \texttt{prompts/scoring\_prompt.md} for the current scoring rules, \texttt{docs/OUTPUT\_COLUMNS.md} for the CSV column reference, and \texttt{README.md} for the run sequence.}
 
 \end{document}

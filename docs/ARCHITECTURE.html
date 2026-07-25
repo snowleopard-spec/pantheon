@@ -733,11 +733,56 @@
   </tbody>
 </table>
 
+<h2>12. Downstream: prices and returns</h2>
+<p>
+  The pipeline stops at frozen weights. Two standalone scripts sit downstream to
+  close the loop from &ldquo;these are the members and their weights&rdquo; to
+  &ldquo;these are the returns.&rdquo; They&rsquo;re outside the SQLite pipeline &mdash;
+  no DB writes &mdash; and can be run independently against any historical
+  <code>minidex_weights.csv</code>.
+</p>
+<table>
+  <thead><tr><th style="width: 30%">Script</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>scripts/pull_prices.py</code></td>
+      <td>Reads a weights CSV, extracts the unique ticker list, and fetches
+      adjusted daily closes from Polygon.io with 8 concurrent HTTP workers.
+      Writes <code>data/prices.csv</code>. Handles 429 rate limits and 404
+      unknown-ticker responses gracefully. Requires <code>POLYGON_API_KEY</code>
+      in <code>.env</code>.</td>
+    </tr>
+    <tr>
+      <td><code>scripts/bucket_returns.py</code></td>
+      <td>Reads the weights CSV and prices CSV, computes trailing
+      <strong>1w / 1m / 3m / 6m / 1y</strong> returns per bucket via
+      <code>sum(weight_score &times; ticker_return)</code>, with per-window
+      renormalisation across members that priced. Writes a stylish standalone
+      HTML report next to the weights CSV (default
+      <code>outputs/&lt;asof&gt;/bucket_returns.html</code>), sorted by 1-year
+      return, with negatives in red and positives in green.</td>
+    </tr>
+  </tbody>
+</table>
+<p>
+  Weight scheme is configurable via <code>--weight-col</code>
+  (<code>weight_score</code> default; also <code>weight_cap_score</code> or
+  <code>weight_equal</code>). Any of the three columns can be used to answer
+  &ldquo;how did this theme perform?&rdquo; from different angles.
+</p>
+<p>
+  This is where user iteration lives. The heavy lifting (SEC fetch, embedding
+  shortlist, LLM scoring) already produced the CSV; deriving custom weighting
+  schemes or return calculations from that CSV is a small pandas exercise
+  with no pipeline re-run required.
+</p>
+
 <footer>
   Generated for the mini-dex project. See <code>docs/MINIDEX_SPEC.md</code> for the full
   technical specification, <code>definitions/minidex_definitions.yaml</code> for the 22
   bucket definitions, <code>prompts/scoring_prompt.md</code> for the current scoring rules,
-  and <code>README.md</code> for the run sequence.
+  <code>docs/OUTPUT_COLUMNS.md</code> for the CSV column reference, and
+  <code>README.md</code> for the run sequence.
 </footer>
 
 </body>

@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bucket returns — 2026-07-25</title>
+<style>
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1c1c1c;
+    background: #f7f6f2;
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1.4rem 3rem;
+    line-height: 1.5;
+    font-size: 15px;
+  }
+  h1 {
+    font-size: 1.7rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.2rem;
+    color: #202020;
+  }
+  .subtitle {
+    color: #6b6b6b;
+    margin: 0 0 1.6rem 0;
+    font-size: 0.95rem;
+  }
+  .metabar {
+    background: #fff;
+    border: 1px solid #e2ded4;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.6rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    font-size: 0.9rem;
+    color: #444;
+  }
+  .metabar b { color: #1c1c1c; }
+  table {
+    width: 100%;
+    background: #fff;
+    border-collapse: collapse;
+    border: 1px solid #e2ded4;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    font-variant-numeric: tabular-nums;
+  }
+  thead th {
+    background: #f2efe6;
+    padding: 0.65rem 0.7rem;
+    text-align: right;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #444;
+    border-bottom: 1px solid #e2ded4;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  thead th.left { text-align: left; }
+  tbody td {
+    padding: 0.65rem 0.7rem;
+    border-bottom: 1px solid #efece3;
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #fafaf3; }
+  td.name {
+    text-align: left;
+    line-height: 1.35;
+  }
+  td.name code {
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+    color: #777;
+    background: transparent;
+  }
+  td.n {
+    text-align: right;
+    color: #666;
+    font-size: 0.85rem;
+    padding-top: 0.9rem;
+  }
+  td.ret {
+    text-align: right;
+    font-size: 0.95rem;
+  }
+  .pos { color: #146c2e; font-weight: 600; }
+  .neg { color: #b3261e; font-weight: 600; }
+  .flat { color: #666; }
+  .na { color: #bbb; }
+  .nsmall {
+    color: #999;
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+  }
+  footer {
+    margin-top: 2rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid #e2ded4;
+    color: #888;
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+  @media print {
+    body { margin: 0; background: #fff; font-size: 10pt; }
+    table { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<h1>mini-dex bucket returns</h1>
+<p class="subtitle">Trailing-window returns for each of the 22 thematic sub-indices,
+weighted by <code>weight_score</code>. Sorted by 1-year return.</p>
+
+<div class="metabar">
+  <span><b>As of:</b> 2026-07-25</span>
+  <span><b>Weight scheme:</b> <code>weight_score</code></span>
+  <span><b>Buckets:</b> 22</span>
+  <span><b>Windows:</b> 1w / 1m / 3m / 6m / 1y</span>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th class="left">Bucket</th>
+      <th>n</th>
+      <th>1W</th>
+      <th>1M</th>
+      <th>3M</th>
+      <th>6M</th>
+      <th>1Y</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="name"><strong>PQC &amp; quantum</strong><br><code>pqc_quantum</code></td><td class="n">11</td><td class="ret"><span class="neg">-6.63%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="neg">-28.60%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="neg">-3.42%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="neg">-28.06%</span><br><span class="nsmall">n=8</span></td><td class="ret"><span class="pos">+5519.68%</span><br><span class="nsmall">n=8</span></td></tr>
+<tr><td class="name"><strong>Memory &amp; storage</strong><br><code>memory_storage</code></td><td class="n">11</td><td class="ret"><span class="pos">+3.68%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="neg">-17.34%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="pos">+39.00%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="pos">+113.69%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="pos">+749.74%</span><br><span class="nsmall">n=11</span></td></tr>
+<tr><td class="name"><strong>Semiconductor materials &amp; consumables</strong><br><code>semi_materials</code></td><td class="n">8</td><td class="ret"><span class="pos">+0.66%</span><br><span class="nsmall">n=8</span></td><td class="ret"><span class="neg">-18.75%</span><br><span class="nsmall">n=8</span></td><td class="ret"><span class="neg">-14.52%</span><br><span class="nsmall">n=8</span></td><td class="ret"><span class="pos">+27.86%</span><br><span class="nsmall">n=8</span></td><td class="ret"><span class="pos">+429.14%</span><br><span class="nsmall">n=7</span></td></tr>
+<tr><td class="name"><strong>Data centre power &amp; cooling equipment</strong><br><code>dc_power_cooling</code></td><td class="n">11</td><td class="ret"><span class="neg">-2.69%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="neg">-15.07%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="neg">-1.60%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="pos">+39.35%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="pos">+224.32%</span><br><span class="nsmall">n=11</span></td></tr>
+<tr><td class="name"><strong>Data centre hardware &amp; servers</strong><br><code>dc_hardware</code></td><td class="n">10</td><td class="ret"><span class="pos">+6.64%</span><br><span class="nsmall">n=10</span></td><td class="ret"><span class="neg">-10.18%</span><br><span class="nsmall">n=10</span></td><td class="ret"><span class="pos">+36.76%</span><br><span class="nsmall">n=10</span></td><td class="ret"><span class="pos">+99.91%</span><br><span class="nsmall">n=9</span></td><td class="ret"><span class="pos">+219.33%</span><br><span class="nsmall">n=9</span></td></tr>
+<tr><td class="name"><strong>Photonics &amp; optical interconnect</strong><br><code>photonics_optical</code></td><td class="n">18</td><td class="ret"><span class="pos">+4.06%</span><br><span class="nsmall">n=18</span></td><td class="ret"><span class="neg">-19.43%</span><br><span class="nsmall">n=17</span></td><td class="ret"><span class="neg">-18.31%</span><br><span class="nsmall">n=17</span></td><td class="ret"><span class="pos">+58.90%</span><br><span class="nsmall">n=17</span></td><td class="ret"><span class="pos">+201.40%</span><br><span class="nsmall">n=17</span></td></tr>
+<tr><td class="name"><strong>Semiconductor capital equipment</strong><br><code>semicap_equipment</code></td><td class="n">17</td><td class="ret"><span class="pos">+0.47%</span><br><span class="nsmall">n=17</span></td><td class="ret"><span class="neg">-15.97%</span><br><span class="nsmall">n=17</span></td><td class="ret"><span class="pos">+4.29%</span><br><span class="nsmall">n=17</span></td><td class="ret"><span class="pos">+71.99%</span><br><span class="nsmall">n=17</span></td><td class="ret"><span class="pos">+198.93%</span><br><span class="nsmall">n=17</span></td></tr>
+<tr><td class="name"><strong>Foundry</strong><br><code>foundry</code></td><td class="n">7</td><td class="ret"><span class="neg">-2.95%</span><br><span class="nsmall">n=7</span></td><td class="ret"><span class="neg">-22.67%</span><br><span class="nsmall">n=7</span></td><td class="ret"><span class="pos">+13.68%</span><br><span class="nsmall">n=7</span></td><td class="ret"><span class="pos">+51.03%</span><br><span class="nsmall">n=7</span></td><td class="ret"><span class="pos">+161.55%</span><br><span class="nsmall">n=7</span></td></tr>
+<tr><td class="name"><strong>Power &amp; analog semis</strong><br><code>analog_power</code></td><td class="n">23</td><td class="ret"><span class="neg">-2.72%</span><br><span class="nsmall">n=23</span></td><td class="ret"><span class="neg">-18.50%</span><br><span class="nsmall">n=23</span></td><td class="ret"><span class="neg">-9.87%</span><br><span class="nsmall">n=23</span></td><td class="ret"><span class="pos">+33.62%</span><br><span class="nsmall">n=23</span></td><td class="ret"><span class="pos">+128.43%</span><br><span class="nsmall">n=23</span></td></tr>
+<tr><td class="name"><strong>Neoclouds / GPU cloud</strong><br><code>neoclouds</code></td><td class="n">6</td><td class="ret"><span class="pos">+3.79%</span><br><span class="nsmall">n=6</span></td><td class="ret"><span class="neg">-25.67%</span><br><span class="nsmall">n=6</span></td><td class="ret"><span class="pos">+9.15%</span><br><span class="nsmall">n=6</span></td><td class="ret"><span class="pos">+11.04%</span><br><span class="nsmall">n=6</span></td><td class="ret"><span class="pos">+127.46%</span><br><span class="nsmall">n=5</span></td></tr>
+<tr><td class="name"><strong>Networking silicon &amp; systems</strong><br><code>networking</code></td><td class="n">28</td><td class="ret"><span class="neg">-1.70%</span><br><span class="nsmall">n=28</span></td><td class="ret"><span class="neg">-10.80%</span><br><span class="nsmall">n=28</span></td><td class="ret"><span class="pos">+4.10%</span><br><span class="nsmall">n=28</span></td><td class="ret"><span class="pos">+38.00%</span><br><span class="nsmall">n=27</span></td><td class="ret"><span class="pos">+80.34%</span><br><span class="nsmall">n=26</span></td></tr>
+<tr><td class="name"><strong>Connectors &amp; interconnect components</strong><br><code>connectors</code></td><td class="n">9</td><td class="ret"><span class="pos">+0.55%</span><br><span class="nsmall">n=9</span></td><td class="ret"><span class="neg">-4.71%</span><br><span class="nsmall">n=9</span></td><td class="ret"><span class="pos">+3.64%</span><br><span class="nsmall">n=9</span></td><td class="ret"><span class="pos">+25.21%</span><br><span class="nsmall">n=9</span></td><td class="ret"><span class="pos">+79.27%</span><br><span class="nsmall">n=9</span></td></tr>
+<tr><td class="name"><strong>Power generation for data centres</strong><br><code>power_generation</code></td><td class="n">23</td><td class="ret"><span class="neg">-2.55%</span><br><span class="nsmall">n=23</span></td><td class="ret"><span class="neg">-13.76%</span><br><span class="nsmall">n=23</span></td><td class="ret"><span class="neg">-12.33%</span><br><span class="nsmall">n=22</span></td><td class="ret"><span class="pos">+12.12%</span><br><span class="nsmall">n=22</span></td><td class="ret"><span class="pos">+78.38%</span><br><span class="nsmall">n=22</span></td></tr>
+<tr><td class="name"><strong>EMS / ODM manufacturing</strong><br><code>ems_odm</code></td><td class="n">11</td><td class="ret"><span class="pos">+0.24%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="neg">-12.57%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="pos">+1.32%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="pos">+30.07%</span><br><span class="nsmall">n=11</span></td><td class="ret"><span class="pos">+73.22%</span><br><span class="nsmall">n=11</span></td></tr>
+<tr><td class="name"><strong>Microcontrollers &amp; embedded</strong><br><code>microcontrollers_embedded</code></td><td class="n">20</td><td class="ret"><span class="neg">-2.74%</span><br><span class="nsmall">n=20</span></td><td class="ret"><span class="neg">-11.36%</span><br><span class="nsmall">n=20</span></td><td class="ret"><span class="pos">+8.66%</span><br><span class="nsmall">n=20</span></td><td class="ret"><span class="pos">+39.23%</span><br><span class="nsmall">n=20</span></td><td class="ret"><span class="pos">+68.15%</span><br><span class="nsmall">n=19</span></td></tr>
+<tr><td class="name"><strong>Hyperscalers</strong><br><code>hyperscalers</code></td><td class="n">6</td><td class="ret"><span class="neg">-4.91%</span><br><span class="nsmall">n=6</span></td><td class="ret"><span class="neg">-6.03%</span><br><span class="nsmall">n=6</span></td><td class="ret"><span class="neg">-5.07%</span><br><span class="nsmall">n=6</span></td><td class="ret"><span class="pos">+15.66%</span><br><span class="nsmall">n=6</span></td><td class="ret"><span class="pos">+64.57%</span><br><span class="nsmall">n=6</span></td></tr>
+<tr><td class="name"><strong>Fabless chip design</strong><br><code>fabless_chip_design</code></td><td class="n">25</td><td class="ret"><span class="neg">-1.32%</span><br><span class="nsmall">n=25</span></td><td class="ret"><span class="neg">-13.01%</span><br><span class="nsmall">n=25</span></td><td class="ret"><span class="pos">+9.29%</span><br><span class="nsmall">n=25</span></td><td class="ret"><span class="pos">+39.51%</span><br><span class="nsmall">n=25</span></td><td class="ret"><span class="pos">+59.74%</span><br><span class="nsmall">n=24</span></td></tr>
+<tr><td class="name"><strong>Colocation &amp; data centre REITs</strong><br><code>colo_reits</code></td><td class="n">9</td><td class="ret"><span class="pos">+4.05%</span><br><span class="nsmall">n=9</span></td><td class="ret"><span class="neg">-6.81%</span><br><span class="nsmall">n=9</span></td><td class="ret"><span class="neg">-3.86%</span><br><span class="nsmall">n=9</span></td><td class="ret"><span class="pos">+53.45%</span><br><span class="nsmall">n=9</span></td><td class="ret"><span class="pos">+42.58%</span><br><span class="nsmall">n=9</span></td></tr>
+<tr><td class="name"><strong>EDA &amp; semiconductor IP</strong><br><code>eda_ip</code></td><td class="n">13</td><td class="ret"><span class="neg">-2.06%</span><br><span class="nsmall">n=13</span></td><td class="ret"><span class="neg">-18.18%</span><br><span class="nsmall">n=13</span></td><td class="ret"><span class="neg">-5.02%</span><br><span class="nsmall">n=13</span></td><td class="ret"><span class="pos">+30.43%</span><br><span class="nsmall">n=13</span></td><td class="ret"><span class="pos">+38.99%</span><br><span class="nsmall">n=13</span></td></tr>
+<tr><td class="name"><strong>Data infrastructure software</strong><br><code>data_infrastructure</code></td><td class="n">32</td><td class="ret"><span class="neg">-4.09%</span><br><span class="nsmall">n=32</span></td><td class="ret"><span class="pos">+1.77%</span><br><span class="nsmall">n=32</span></td><td class="ret"><span class="pos">+29.96%</span><br><span class="nsmall">n=32</span></td><td class="ret"><span class="pos">+12.81%</span><br><span class="nsmall">n=31</span></td><td class="ret"><span class="pos">+13.18%</span><br><span class="nsmall">n=31</span></td></tr>
+<tr><td class="name"><strong>Cybersecurity</strong><br><code>cybersecurity</code></td><td class="n">43</td><td class="ret"><span class="neg">-6.95%</span><br><span class="nsmall">n=43</span></td><td class="ret"><span class="pos">+8.39%</span><br><span class="nsmall">n=43</span></td><td class="ret"><span class="pos">+29.67%</span><br><span class="nsmall">n=43</span></td><td class="ret"><span class="pos">+20.30%</span><br><span class="nsmall">n=43</span></td><td class="ret"><span class="pos">+4.86%</span><br><span class="nsmall">n=42</span></td></tr>
+<tr><td class="name"><strong>AI-native software &amp; services</strong><br><code>ai_native_software</code></td><td class="n">103</td><td class="ret"><span class="neg">-7.72%</span><br><span class="nsmall">n=103</span></td><td class="ret"><span class="neg">-3.66%</span><br><span class="nsmall">n=103</span></td><td class="ret"><span class="neg">-9.73%</span><br><span class="nsmall">n=102</span></td><td class="ret"><span class="neg">-26.64%</span><br><span class="nsmall">n=101</span></td><td class="ret"><span class="neg">-23.74%</span><br><span class="nsmall">n=96</span></td></tr>
+  </tbody>
+</table>
+
+<footer>
+  <b>n</b> is the number of bucket members with a valid price for that window.
+  Weights are renormalised per window across members that priced.<br>
+  Prices: Polygon.io adjusted daily closes. Returns are simple total returns from adjusted close to adjusted close.<br>
+  Generated by <code>scripts/bucket_returns.py</code> · <code>scripts/pull_prices.py</code>
+</footer>
+
+</body>
+</html>

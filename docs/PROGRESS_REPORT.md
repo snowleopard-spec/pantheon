@@ -287,3 +287,29 @@ Combined with the 1,214 raw filing files rsynced earlier and the code (always on
 - `docs/OUTPUT_COLUMNS.md` — per-column reference for the output CSV (identifiers, scoring, financials, weights, rationale, provenance).
 - `docs/ARCHITECTURE.pdf` — compiled from `ARCHITECTURE.tex` via `tectonic` for offline reading.
 - Full-run outputs committed to git as canonical snapshot: `outputs/2026-07-25/*` (force-added despite the git-ignore on `outputs/`).
+
+### Post-run: Polygon price pull + bucket returns
+
+Two new standalone scripts were added after the full-universe run to close the loop from scores to actual returns:
+
+- **`scripts/pull_prices.py`** — pulls adjusted daily closes from Polygon.io for every ticker in a `minidex_weights.csv`. 8 concurrent HTTP workers, 400-day default lookback, handles 429 rate-limit and 404 (unknown ticker) gracefully. Writes to `data/prices.csv` (git-ignored).
+- **`scripts/bucket_returns.py`** — reads the weights CSV + prices CSV, computes trailing 1w/1m/3m/6m/1y returns per bucket using `weight_score` (per-window renormalisation across members that priced), and renders a stylish standalone HTML table sorted by 1-year return.
+
+Ran against `outputs/2026-07-25/minidex_weights.csv`: 309 unique tickers, 81,229 daily price rows, zero fetch failures. Output at `outputs/2026-07-25/bucket_returns.html`.
+
+Notable results (weight_score, 1Y):
+
+| Bucket | 1Y return |
+|---|---:|
+| PQC & quantum | +5,520% |
+| Memory & storage | +750% |
+| Semiconductor materials | +429% |
+| Data-centre power & cooling | +224% |
+| Data-centre hardware | +219% |
+| Photonics & optical interconnect | +201% |
+| Semicap equipment | +199% |
+| AI-native software | **−24%** |
+
+The quantum outsize was driven by RGTI/QBTS moving from sub-$1 to $20+ in the year; the AI-native software drawdown is worth investigating (thematic disappointment vs. hyperscaler-embedded AI capturing the value).
+
+`POLYGON_API_KEY` was added to `.env` (git-ignored) and `.env.example`.

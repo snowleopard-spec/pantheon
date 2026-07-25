@@ -107,79 +107,66 @@
 <h2>1. What this system does</h2>
 <p>
   mini-dex classifies US-listed technology and AI-adjacent companies into 22 thematic
-  sub-indices &mdash; things like &ldquo;fabless chip design,&rdquo; &ldquo;AI-native data-centre
-  power,&rdquo; and &ldquo;frontier model labs.&rdquo; For each theme it produces a weighted list
-  of member companies, so that basket can be back-tested against real prices. The buckets are
-  not mutually exclusive: a company like NVIDIA earns weight in several themes at once, in
-  proportion to how much of its revenue plausibly comes from each. Output is a set of frozen
-  CSV and Parquet files plus a manifest describing the run. It is a batch pipeline, refreshed
-  perhaps annually, not a live service.
+  sub-indices &mdash; &ldquo;fabless chip design,&rdquo; &ldquo;AI-native data-centre power,&rdquo;
+  &ldquo;frontier model labs,&rdquo; and so on &mdash; and produces a weighted member list per
+  theme that can be back-tested against real prices. Buckets are non-exclusive: NVIDIA earns
+  weight in several themes at once, in proportion to how much of its revenue plausibly comes
+  from each. The output is a set of frozen CSV/Parquet files plus a manifest. It is a batch
+  pipeline refreshed roughly annually, not a live service.
 </p>
 
 <h2>2. The end-to-end journey of one company</h2>
 <p>
-  The clearest way to see the pipeline is to follow a single name through it. Take NVIDIA
-  (ticker NVDA). Its trip through mini-dex has seven stops.
+  Follow NVIDIA (ticker NVDA) through the seven-stop pipeline.
 </p>
 
 <p>
-  <strong>Stop 1 &mdash; Universe pull.</strong> The pipeline downloads the SEC&rsquo;s master
-  list of every US-registered public filer &mdash; roughly 8,000 companies with their tickers,
-  names, and SIC industry codes. NVDA is in there, along with everything from banks to
-  biotech to oil producers.
+  <strong>1. Universe pull.</strong> Download the SEC&rsquo;s master list of every US public
+  filer &mdash; ~8,000 companies with tickers, names, and SIC industry codes. NVDA is one
+  entry among banks, biotechs, oil producers, and everything else.
 </p>
 
 <p>
-  <strong>Stop 2 &mdash; Industry filter.</strong> A hand-curated list of SIC code ranges
-  keeps only the tech-adjacent slice: semiconductors, computers, software, communications
-  equipment, electrical apparatus, measuring instruments, telecom, data-centre REITs, and
-  electric utilities. That trims the universe to about 1,376 candidates. NVDA (SIC 3674,
-  semiconductors) survives. JPMorgan and Pfizer do not.
+  <strong>2. Industry filter.</strong> A curated SIC range keeps only tech-adjacent names
+  (semis, computers, software, comms equipment, measuring instruments, telecom, data-centre
+  REITs, electric utilities) &mdash; ~1,376 candidates. NVDA (SIC 3674) survives; JPMorgan
+  and Pfizer do not.
 </p>
 
 <p>
-  <strong>Stop 3 &mdash; Filing fetch and reading.</strong> For each candidate the pipeline
-  pulls the most recent 10-K &mdash; the annual report every US public company is required
-  to file with the SEC. It extracts &ldquo;Item 1: Business,&rdquo; the plain-English section
-  where the company describes what it actually does and how it makes money. In parallel it
-  pulls any structured revenue-by-segment data from XBRL (the machine-readable tags in the
-  filing). For NVDA that gives the pipeline both the narrative (&ldquo;we design GPUs and
-  networking for AI training&hellip;&rdquo;) and the segment table (&ldquo;Data Center: $47.5B;
-  Gaming: $10.4B; &hellip;&rdquo;). When XBRL is thin or missing, an optional LLM step reads
-  the 10-K text and pulls out any dollar-quantified splits the company mentions in prose.
+  <strong>3. Filing fetch and reading.</strong> Pull each candidate&rsquo;s latest 10-K, the
+  annual filing every US public company files with the SEC. Extract &ldquo;Item 1: Business&rdquo;
+  &mdash; the plain-English section where the company describes what it sells &mdash; plus any
+  structured revenue-by-segment data from XBRL (machine-readable tags inside the filing). For
+  NVDA that gives both the narrative and a segment table (Data Center $47.5B, Gaming $10.4B,
+  ...). Where XBRL is thin, an optional LLM step pulls dollar-quantified splits from the prose.
 </p>
 
 <p>
-  <strong>Stop 4 &mdash; Embedding shortlist.</strong> Rather than ask an LLM to score NVDA
-  against all 22 buckets, the pipeline first uses embeddings &mdash; a technique that turns a
-  piece of text into a list of numbers so that texts about similar topics land near each
-  other in that number space. Cosine similarity then measures how close two of those number
-  lists are (0 = unrelated, 1 = identical topic). NVDA&rsquo;s Item 1 gets embedded, each
-  bucket&rsquo;s definition gets embedded, and only buckets above a similarity cut-off (0.60)
-  make NVDA&rsquo;s shortlist &mdash; typically 1 to 6 buckets. NVDA lands on
-  <em>fabless chip design</em>, <em>AI accelerators</em>, <em>data-centre networking</em>,
-  and a couple of neighbours. It does not land on <em>foundry</em> or
-  <em>frontier model labs</em>.
+  <strong>4. Embedding shortlist.</strong> Rather than score NVDA against all 22 buckets, the
+  pipeline first uses embeddings &mdash; a technique that turns text into a list of numbers so
+  similar topics land near each other &mdash; and cosine similarity, which measures how close
+  two of those number lists are (0 = unrelated, 1 = identical topic). Only buckets above the
+  0.60 cut-off make the shortlist, typically 1&ndash;6 per company. NVDA lands on
+  <em>fabless chip design</em>, <em>AI accelerators</em>, <em>data-centre networking</em>
+  and a couple of neighbours &mdash; not <em>foundry</em> or <em>frontier model labs</em>.
 </p>
 
 <p>
-  <strong>Stop 5 &mdash; LLM scoring.</strong> Only the shortlisted (company, bucket) pairs
-  are sent to the Anthropic Message Batches API. The prompt shows the model NVDA&rsquo;s
-  Item 1 text, its segment table, and the definitions of just the buckets on its shortlist.
-  The model returns, for each bucket, an estimated share of revenue (0 to 1), a confidence
-  label, and a one-line rationale. Every company is scored twice, independently, so the QC
-  step can see where the model disagrees with itself.
+  <strong>5. LLM scoring.</strong> Shortlisted (company, bucket) pairs go to the Anthropic
+  Message Batches API. The prompt gives the model NVDA&rsquo;s Item 1 text, segment table,
+  and just the shortlisted bucket definitions; it returns an estimated revenue share (0&ndash;1),
+  a confidence label, and a one-line rationale per bucket. Every company is scored twice
+  independently so QC can catch model disagreement.
 </p>
 
 <p>
-  <strong>Stops 6 and 7 &mdash; QC and weighting.</strong> The QC step runs sanity checks:
-  known anchor companies must score highly on their designated buckets (NVDA must land above
-  0.5 on <em>fabless chip design</em>); the two independent runs must roughly agree; borderline
-  scores get flagged. Then the build step converts scores into weights three ways &mdash; equal-weight,
-  score-weighted, and score &times; market-cap-weighted &mdash; normalised so each bucket sums
-  to 1. NVDA ends up as a heavy weight in several silicon buckets and a lighter weight in a
-  few software-adjacent ones, and the whole run is frozen to disk with a manifest recording
-  every input version.
+  <strong>6&ndash;7. QC and weighting.</strong> QC runs sanity checks &mdash; anchor
+  companies must score highly on their buckets (NVDA above 0.5 on <em>fabless chip design</em>),
+  the two runs must roughly agree, borderline scores get flagged. Build then converts scores
+  into three parallel weights per bucket (equal, score, cap&times;score), each normalised to
+  sum to 1. NVDA lands heavy in several silicon buckets and lighter in some software ones,
+  and the whole run is frozen with a manifest.
 </p>
 
 <h2>3. Data-flow diagram</h2>
@@ -345,53 +332,36 @@
 
 <h2>6. Hardware</h2>
 <p>
-  The pipeline runs on a <strong>DigitalOcean droplet</strong> &mdash; a cloud
-  Linux server &mdash; rather than a laptop. Not for compute speed, but for
-  <em>availability</em>: stage 3 alone takes 6&ndash;8 hours of continuous
-  work fetching filings from the SEC one by one at their rate limit, and a
-  laptop closing its lid or losing Wi-Fi mid-run would corrupt or delay it.
-  A cloud box just stays on.
+  The pipeline runs on a <strong>DigitalOcean droplet</strong> (cloud Linux
+  server), not for speed but for <em>availability</em>: stage 3 fetches SEC
+  filings for 6&ndash;8 hours at the SEC rate limit, and a laptop losing Wi-Fi
+  or closing its lid mid-run would corrupt or delay it.
 </p>
 <p>
-  The RAM is the constraining resource, driven almost entirely by
-  <strong>stage 4 (embedding shortlist)</strong>. The default embedding
-  model, <code>BAAI/bge-large-en-v1.5</code>, is a 335&nbsp;million-parameter
-  neural network that loads about <strong>1.3&nbsp;GB into memory</strong>. Add
-  the PyTorch runtime it needs (~500 MB), OS and shell overhead (~500&nbsp;MB),
-  and the working set of 1,376 documents flowing through the encoder in
-  batches, and stage 4 peaks around <strong>2.5&ndash;3&nbsp;GB</strong>. The
-  4&nbsp;GB tier is the minimum that runs comfortably; the current 8&nbsp;GB
-  droplet has generous headroom.
+  RAM is the constraining resource, driven almost entirely by
+  <strong>stage 4 (embedding shortlist)</strong>. The default model
+  <code>BAAI/bge-large-en-v1.5</code> loads ~1.3&nbsp;GB; PyTorch adds
+  ~500&nbsp;MB, OS overhead another ~500&nbsp;MB, and encoder batches push
+  the peak to <strong>2.5&ndash;3&nbsp;GB</strong>. 4&nbsp;GB is the minimum
+  that runs comfortably; the current 8&nbsp;GB droplet has headroom.
 </p>
 <p>
-  CPU and disk are secondary. Two vCPUs cut stage 4 wall time roughly in half
-  vs. one core; more than that doesn&rsquo;t help much (the model isn&rsquo;t
-  massively parallel). Disk usage is modest: about 4&nbsp;GB for the Python
-  virtual environment (PyTorch dominates), 1.3&nbsp;GB for the cached embedding
-  model, 500&nbsp;MB for downloaded 10-K text, and 200&nbsp;MB for the SQLite
-  database. Roughly 6&nbsp;GB total; the 160&nbsp;GB the droplet comes with is
-  vast overkill.
-</p>
-<p>
-  If RAM is tight, the <code>embedding_model</code> setting in
-  <code>config.json</code> can be swapped to <code>BAAI/bge-small-en-v1.5</code>
-  &mdash; about 10&times; less RAM (~130 MB) at the cost of slightly weaker
-  semantic matching (lower the <code>similarity_threshold</code> to ~0.45 to
-  compensate). Everything else in the pipeline &mdash; the LLM scoring, the
-  SEC fetch, the QC and weighting &mdash; is I/O- or network-bound and runs
-  in a few hundred MB.
+  CPU and disk are secondary. Two vCPUs roughly halve stage 4 wall time vs.
+  one; more doesn&rsquo;t help much. Disk usage totals ~6&nbsp;GB (venv,
+  cached model, filings, DB) &mdash; the 160&nbsp;GB the droplet ships with
+  is vast overkill. If RAM is tight, swap <code>embedding_model</code> in
+  <code>config.json</code> to <code>BAAI/bge-small-en-v1.5</code> (~130&nbsp;MB;
+  lower <code>similarity_threshold</code> to ~0.45 to compensate). Every
+  other stage is I/O- or network-bound and runs in a few hundred MB.
 </p>
 
 <h2>7. Configuration knobs (<code>config.json</code>)</h2>
 <p>
-  Six tuning parameters live in a plain JSON file at the repo root
-  (<code>config.json</code>) so they can be hand-edited without touching code
-  or environment variables. Secrets (<code>ANTHROPIC_API_KEY</code>,
-  <code>SEC_USER_AGENT</code>) stay in <code>.env</code>; only these tuning
-  knobs live in the JSON. An environment variable
-  (<code>MINIDEX_&lt;NAME_IN_CAPS&gt;</code>) beats the JSON value if set, and the
-  JSON value beats the hardcoded default &mdash; so you get file-based
-  defaults with per-run overrides for free.
+  Six tuning parameters live in <code>config.json</code> at the repo root, hand-
+  editable without touching code. Secrets (<code>ANTHROPIC_API_KEY</code>,
+  <code>SEC_USER_AGENT</code>) stay in <code>.env</code>. Precedence:
+  environment variable (<code>MINIDEX_&lt;NAME&gt;</code>) beats JSON beats
+  hardcoded default &mdash; file-based defaults with per-run overrides.
 </p>
 <table>
   <thead>
@@ -406,24 +376,20 @@
       <td><code>embedding_model</code></td>
       <td><code>BAAI/bge-large-en-v1.5</code></td>
       <td>
-        Which HuggingFace sentence-transformer to use for the stage 4
-        shortlist. The default is a 335 M-parameter model that loads to
-        ~1.3&nbsp;GB of RAM &mdash; excellent semantic matching. Swap to
-        <code>BAAI/bge-small-en-v1.5</code> (~130 MB) for RAM-constrained
-        hosts; you'll typically want to lower
-        <code>similarity_threshold</code> too since the smaller model
-        produces slightly lower cosine scores.
+        HuggingFace sentence-transformer for the stage 4 shortlist. Default
+        is 335&nbsp;M parameters (~1.3&nbsp;GB RAM). Swap to
+        <code>BAAI/bge-small-en-v1.5</code> (~130&nbsp;MB) for tight hosts
+        &mdash; lower <code>similarity_threshold</code> too since small
+        models produce lower cosine scores.
       </td>
     </tr>
     <tr>
       <td><code>similarity_threshold</code></td>
       <td><code>0.60</code></td>
       <td>
-        The cosine-similarity cutoff for stage 4. Any (company, bucket)
-        pair whose Item-1 vs. bucket-definition similarity exceeds this
-        value goes into the shortlist to be scored by the LLM. Anchors
-        are always included regardless. Lower values &rarr; more pairs
-        scored &rarr; higher stage&nbsp;5 cost but broader recall.
+        Cosine-similarity cutoff for stage 4. Pairs above go into the
+        shortlist; anchors are always included regardless. Lower &rarr;
+        more pairs scored &rarr; higher stage&nbsp;5 cost, broader recall.
       </td>
     </tr>
     <tr>
@@ -440,32 +406,28 @@
       <td><code>batch_model</code></td>
       <td><code>claude-haiku-4-5</code></td>
       <td>
-        Which Anthropic model powers stage&nbsp;5 scoring (and the
-        optional stage&nbsp;3.5 segment fallback). Haiku is fast and
-        cheap; you can swap to Sonnet if you want higher-quality scoring
-        at ~4&times; the cost.
+        Anthropic model powering stage&nbsp;5 scoring and the optional
+        stage&nbsp;3.5 segment fallback. Haiku is fast and cheap; swap to
+        Sonnet for higher-quality scoring at ~4&times; the cost.
       </td>
     </tr>
     <tr>
       <td><code>max_item1_chars</code></td>
       <td><code>12000</code></td>
       <td>
-        Truncation length applied to each 10-K Item 1 text before it's
-        sent to the LLM. ~12k characters is roughly 3k tokens, small
-        enough to keep batch prompts cheap but large enough for most
-        business descriptions. Raise for more context, lower for cheaper
-        prompts.
+        Truncation length for the 10-K Item 1 text sent to the LLM. ~12k
+        chars is roughly 3k tokens &mdash; enough for most business
+        descriptions, cheap enough for batch prompts.
       </td>
     </tr>
     <tr>
       <td><code>anchor_min_weight</code></td>
       <td><code>0.05</code></td>
       <td>
-        Minimum <code>weight_cap_score</code> that any anchor ticker
-        receives in its bucket at stage&nbsp;7. Below-floor anchors are
-        force-included and hard-fixed at this weight; above-floor members
-        scale down proportionally. Set to <code>0.0</code> to disable the
-        floor entirely and use pure market-cap&times;score weighting.
+        Minimum <code>weight_cap_score</code> for any anchor ticker in its
+        bucket at stage&nbsp;7. Below-floor anchors are force-included at
+        exactly this weight; above-floor members scale down proportionally.
+        Set <code>0.0</code> to disable and use pure cap&times;score.
       </td>
     </tr>
   </tbody>
@@ -478,72 +440,56 @@
   way, and the biggest reason is cost.
 </p>
 <p>
-  With ~1,376 candidate companies and 22 buckets, that naive approach means roughly 30,000
-  (company, bucket) pairs to score &mdash; and each pair needs the full bucket definition
-  injected into the prompt. The embedding shortlist collapses that: typical companies match
-  only 1&ndash;6 buckets closely, so the LLM is asked about roughly 22&times; fewer pairs. A
-  full pilot run scores something like 77 companies for around $25&ndash;$35 total. Without the
-  shortlist, the same run would cost hundreds. Embeddings are essentially free to run locally,
-  so pushing as much filtering as possible into that stage is the single biggest lever on
-  budget.
+  1,376 candidates &times; 22 buckets would be ~30,000 LLM calls, each carrying a
+  full bucket definition. The embedding shortlist collapses that: companies typically
+  match 1&ndash;6 buckets, so the LLM sees ~22&times; fewer pairs. A full run scores
+  ~1,376 companies for $25&ndash;$35; without the shortlist it would cost hundreds.
+  Embeddings run locally for free &mdash; pushing as much filtering as possible into
+  that stage is the biggest lever on budget.
 </p>
 <p>
-  Segment extraction is the second big lever, on accuracy rather than cost. If the LLM can
-  see &ldquo;Data Center: $47.5B, Gaming: $10.4B&rdquo; alongside the narrative, its revenue
-  fractions are anchored in filed numbers rather than adjectives. When XBRL is silent, the
-  optional LLM segment step recovers what it can from the prose without fabricating.
+  Segment extraction is the second lever, on accuracy rather than cost. Showing the
+  LLM &ldquo;Data Center $47.5B, Gaming $10.4B&rdquo; alongside the narrative anchors
+  its revenue fractions in filed numbers rather than adjectives. When XBRL is silent,
+  the optional LLM segment step recovers what it can from the prose without fabricating.
 </p>
 <p>
-  The final reason is iteration. Because every stage writes its output to SQLite or disk,
-  we can re-run the cheap stages &mdash; tweak the SIC filter, adjust the similarity
-  threshold, re-embed with a different model &mdash; without paying to re-score everything.
-  Only stage 5 costs money, and it is deliberately gated behind a confirmation prompt and a
-  printed cost estimate. QC and build are pure recomputation; freezing a new index from an
-  existing set of scores takes seconds.
+  Third reason is iteration. Every stage persists its output, so cheap stages can be
+  re-run (tweak SIC filter, similarity threshold, embedding model) without re-paying
+  for scoring. Only stage 5 costs money, and it is gated behind a confirmation prompt
+  with a cost estimate. QC and build are pure recomputation &mdash; freezing a new
+  index from existing scores takes seconds.
 </p>
 
 <h2>9. Exception rules and overrides</h2>
 <p>
-  Two calibration overrides sit on top of the base scoring and weighting logic. Both
-  exist so that the pipeline handles corner cases the naive "score = revenue fraction"
-  rule cannot capture on its own.
+  Two overrides sit on top of the base &ldquo;score = revenue fraction&rdquo; rule
+  to handle corner cases it cannot capture on its own.
 </p>
 
 <h3>Pre-revenue exception (Rule 5 of the scoring prompt)</h3>
 <p>
-  A company that has no material revenue but whose <em>principal business purpose</em>
-  is exactly the bucket's defined activity should not score zero. Small modular
-  reactor (SMR) developers like Oklo and NuScale, quantum computing pure-plays like
-  IonQ and D-Wave, and early-stage GPU cloud providers like Nebius fall into this
-  category — they are the exact thematic exposure an index like this exists to
-  capture.
-</p>
-<p>
-  Rule 5 of the scoring prompt explicitly supersedes the "score = revenue fraction"
-  rule for these cases. The LLM is instructed to score pure-plays at 0.8–1.0, partial
-  matches at 0.3–0.7, and to leave aspirational-only names (established revenue base
-  with talk of future entry) at 0.0. Every pre-revenue score is flagged
-  <code>pre_revenue: true</code> in the output and forced to confidence
-  <code>"low"</code> so downstream QC can review them.
+  A company with no material revenue but whose <em>principal business purpose</em>
+  is the bucket's defined activity should not score zero. SMR developers like Oklo
+  and NuScale, quantum pure-plays like IonQ and D-Wave, early GPU cloud providers
+  like Nebius &mdash; exactly the thematic exposure an index like this exists to
+  capture. Rule 5 supersedes the revenue-fraction rule for these cases: pure-plays
+  score 0.8&ndash;1.0, partial matches 0.3&ndash;0.7, aspirational-only names
+  (established revenue base talking about future entry) stay at 0.0. Every
+  pre-revenue score is flagged <code>pre_revenue: true</code> with confidence
+  <code>"low"</code> for QC review.
 </p>
 
 <h3>Anchor weight floor (Stage 7 index construction)</h3>
 <p>
-  Even with the pre-revenue exception, some legitimate thematic anchors will
-  score below the 0.10 <code>score_floor</code> that keeps immaterial exposures
-  out of the index. To make sure the canonical examples of each bucket are always
-  represented, Stage 7 applies an anchor-weight floor: any anchor ticker declared
-  in the YAML gets at least <code>anchor_min_weight</code> (default 5%) of its
-  bucket's <code>weight_cap_score</code>, even if the LLM scored it at zero.
-</p>
-<p>
-  The mechanics are: below-floor anchors are hard-fixed at exactly the floor;
-  above-floor members (whether anchor or not) scale proportionally into the
-  remaining pool so each bucket still sums to 1.0. In the over-constrained case
-  where the sum of floors would exceed 100%, the floored anchors split 1.0 equally
-  and everyone else drops to 0 with a warning. Set <code>anchor_min_weight</code>
-  to 0 in <code>config.json</code> to disable this override and get pure
-  market-cap&times;score weighting.
+  Some legitimate anchors still score below the 0.10 <code>score_floor</code> that
+  excludes immaterial exposures. Stage 7 guarantees representation via an anchor-weight
+  floor: any anchor gets at least <code>anchor_min_weight</code> (default 5%) of its
+  bucket's <code>weight_cap_score</code>, even at score zero. Below-floor anchors
+  are hard-fixed at the floor; above-floor members scale down proportionally so the
+  bucket still sums to 1.0. If floors overrun 100%, they split 1.0 equally and
+  everyone else drops to 0. Set <code>anchor_min_weight</code> to 0 in
+  <code>config.json</code> to disable and use pure cap&times;score weighting.
 </p>
 <p>
   These two overrides work in tandem. The pre-revenue exception fixes the
@@ -556,12 +502,73 @@
   slot in the final index regardless.
 </p>
 
-<h2>10. The 22 buckets</h2>
+<h2>10. Outputs</h2>
 <p>
-  A reader-friendly overview of every bucket the pipeline scores against. Full definitions
-  (with inclusion/exclusion notes and keyword hints) live in
-  <code>definitions/minidex_definitions.yaml</code>; the summaries below are paraphrased for
-  quick scanning. Buckets are grouped into the four families used throughout the pipeline.
+  Every pipeline run writes a self-contained set of files to
+  <code>outputs/&lt;asof-date&gt;/</code>:
+</p>
+<table>
+  <thead><tr><th style="width: 32%">File</th><th>What it is</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>minidex_weights.csv</code></td>
+      <td>Long-format table, one row per <code>(bucket_id, ticker)</code> member. Includes the LLM score, confidence, market cap, three weight columns (see below), both run rationales, and the prompt/model versions that produced it. The primary artefact for downstream back-testing.</td>
+    </tr>
+    <tr>
+      <td><code>minidex_weights.parquet</code></td>
+      <td>The same data as the CSV in a columnar binary format. Loads faster in pandas / DuckDB / Spark and preserves numeric precision.</td>
+    </tr>
+    <tr>
+      <td><code>manifest.json</code></td>
+      <td>Provenance: run date, as-of date, prompt version, model version, embedding model, thresholds, and SHA-256 hashes of the two source artefacts. Reproducibility guarantee.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>The three weight columns</h3>
+<p>
+  Every row carries three parallel weight values, all normalised so each
+  bucket sums to 1.0. Pick one, blend them, or run all three through your
+  back-test.
+</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 22%">Column</th>
+      <th style="width: 32%">Formula (per bucket)</th>
+      <th>What it captures</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>weight_cap_score</code></td>
+      <td><code>(market_cap &times; score) / &Sigma;(market_cap &times; score)</code></td>
+      <td>Finance-standard cap-weighting, adjusted for thematic exposure. Mega-caps can dominate (NVDA hit ~52&percnt; of <em>fabless_chip_design</em> in the pilot). The only column the anchor-weight floor applies to.</td>
+    </tr>
+    <tr>
+      <td><code>weight_score</code></td>
+      <td><code>score / &Sigma;(score)</code></td>
+      <td>Ignores market cap. Weight is proportional to how much of the company's revenue is in the theme &mdash; AMD at score 1.0 and NVDA at 0.75 rival each other regardless of cap. Best for pure thematic exposure.</td>
+    </tr>
+    <tr>
+      <td><code>weight_equal</code></td>
+      <td><code>1 / n</code>&nbsp; (n = members after floor)</td>
+      <td>One share per member. Ignores cap and score magnitude. Naive but a useful diversification benchmark.</td>
+    </tr>
+  </tbody>
+</table>
+<p>
+  From the CSV alone you can derive further variants without re-running the
+  pipeline &mdash; a max-weight cap, square-root or log cap-weighting, blended
+  schemes, or confidence-filtered subsets. The heavy work is already done;
+  iterating on weighting is a small pandas script.
+</p>
+
+<h2>11. The 22 buckets</h2>
+<p>
+  Reader-friendly summaries of every bucket the pipeline scores against. Full
+  definitions live in <code>definitions/minidex_definitions.yaml</code>.
+  Grouped into the four families used throughout the pipeline.
 </p>
 
 <h3>Silicon</h3>
@@ -725,87 +732,6 @@
     </tr>
   </tbody>
 </table>
-
-<h2>11. Outputs</h2>
-<p>
-  Every pipeline run writes a self-contained set of files to
-  <code>outputs/&lt;asof-date&gt;/</code>:
-</p>
-<table>
-  <thead><tr><th style="width: 32%">File</th><th>What it is</th></tr></thead>
-  <tbody>
-    <tr>
-      <td><code>minidex_weights.csv</code></td>
-      <td>Long-format table, one row per <code>(bucket_id, ticker)</code> member. Includes the LLM score, confidence, market cap, three weight columns (see below), both run rationales, and the prompt/model versions that produced it. This is the primary artefact for downstream back-testing.</td>
-    </tr>
-    <tr>
-      <td><code>minidex_weights.parquet</code></td>
-      <td>Byte-for-byte the same data as the CSV, in a columnar binary format. Loads faster in pandas / DuckDB / Spark and preserves numeric precision.</td>
-    </tr>
-    <tr>
-      <td><code>manifest.json</code></td>
-      <td>Provenance record: run date, as-of date, prompt version, model version, embedding model, similarity threshold, score floor, anchor min weight, and SHA-256 hashes of the two source artefacts (<code>minidex_definitions.yaml</code> and <code>scoring_prompt.md</code>). Reproducibility guarantee.</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3>The three weight columns</h3>
-<p>
-  Every row carries three parallel weight values, all normalised so each
-  bucket sums to 1.0. Downstream you can pick one, blend them, or run all
-  three through your back-test to see which weighting best captures the
-  theme.
-</p>
-<table>
-  <thead>
-    <tr>
-      <th style="width: 22%">Column</th>
-      <th style="width: 32%">Formula (per bucket)</th>
-      <th>What it captures</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>weight_cap_score</code></td>
-      <td><code>(market_cap &times; score) / &Sigma;(market_cap &times; score)</code></td>
-      <td>
-        Finance-standard cap-weighted, adjusted for how much of a company's
-        revenue is in this theme. Mega-caps like NVDA and MSFT can dominate
-        their buckets under this scheme (e.g. NVDA at ~52&percnt; of
-        <em>fabless_chip_design</em> in the pilot). This is the only column
-        the anchor-weight floor is applied to.
-      </td>
-    </tr>
-    <tr>
-      <td><code>weight_score</code></td>
-      <td><code>score / &Sigma;(score)</code></td>
-      <td>
-        Ignores market cap. Weight is proportional to "how much of this
-        company's revenue is in this theme." AMD at score 1.0 and NVDA at
-        score 0.75 would rival each other in <em>fabless_chip_design</em>
-        regardless of their $300B vs $5T cap difference. Best for measuring
-        pure thematic exposure.
-      </td>
-    </tr>
-    <tr>
-      <td><code>weight_equal</code></td>
-      <td><code>1 / n</code>&nbsp; (n = members after floor)</td>
-      <td>
-        One share per member. Ignores both cap and score magnitude. Naive
-        but useful as a diversification benchmark and as the comparison
-        anchor for the other two schemes.
-      </td>
-    </tr>
-  </tbody>
-</table>
-<p>
-  From the CSV alone you can trivially derive further variants without
-  re-running the pipeline &mdash; a max-weight cap (no stock &gt; 20%),
-  square-root or log-transformed cap weighting, blended schemes, or
-  confidence-filtered subsets. The heavy work (SEC fetch, embedding,
-  scoring) is done once and lives in the CSV; iterating on weighting is a
-  small pandas script.
-</p>
 
 <footer>
   Generated for the mini-dex project. See <code>docs/MINIDEX_SPEC.md</code> for the full

@@ -15,6 +15,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import sqlite3
 from datetime import date, timedelta
 from html import escape
 from pathlib import Path
@@ -24,13 +25,27 @@ import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+# Display order: longest window first
 WINDOWS = [
-    ("1w", 7),
-    ("1m", 30),
-    ("3m", 90),
-    ("6m", 180),
     ("1y", 365),
+    ("6m", 180),
+    ("3m", 90),
+    ("1m", 30),
+    ("1w", 7),
 ]
+
+
+def _load_company_names(db_path: Path) -> dict[str, str]:
+    """ticker.upper() -> company name. Empty dict if DB unavailable."""
+    if not db_path.exists():
+        return {}
+    try:
+        conn = sqlite3.connect(db_path)
+        rows = conn.execute("SELECT UPPER(ticker), name FROM companies").fetchall()
+        conn.close()
+    except sqlite3.Error:
+        return {}
+    return {t: n for t, n in rows if t and n}
 
 
 def _price_at_or_before(prices: pd.DataFrame, ticker: str, target: date) -> float | None:
@@ -102,22 +117,85 @@ def _fmt_pct(x: float | None) -> str:
     return f'<span class="{cls}">{sign}{pct:.2f}%</span>'
 
 
-def render_html(returns: pd.DataFrame, weight_col: str, asof: str) -> str:
-    """Stylish standalone HTML."""
+def render_html(
+    returns: pd.DataFrame,
+    weights: pd.DataFrame,
+    weight_col: str,
+    asof: str,
+    company_names: dict[str, str],
+) -> str:
+    """Stylish standalone HTML with expandable per-bucket constituent tables."""
     # Sort by 1y descending, NaN last
     returns = returns.sort_values("1y", ascending=False, na_position="last").reset_index(drop=True)
 
+    def _fmt_mcap(v) -> str:
+        if pd.isna(v):
+            return "—"
+        v = float(v)
+        if v >= 1e12:
+            return f"${v/1e12:.2f}T"
+        if v >= 1e9:
+            return f"${v/1e9:.2f}B"
+        if v >= 1e6:
+            return f"${v/1e6:.1f}M"
+        return f"${v:,.0f}"
+
+    def _constituent_table(bucket_id: str) -> str:
+        members = weights[weights["bucket_id"] == bucket_id].copy()
+        # Sort by weight_score descending
+        members = members.sort_values(weight_col, ascending=False)
+        rows = []
+        for _, m in members.iterrows():
+            ticker = str(m["ticker"]).upper()
+            full_name = company_names.get(ticker, "")
+            weight_pct = float(m[weight_col]) * 100
+            score = float(m["score"])
+            mcap = _fmt_mcap(m.get("market_cap"))
+            conf = escape(str(m.get("confidence", "")))
+            rows.append(
+                f'<tr>'
+                f'<td class="ct-ticker"><code>{escape(ticker)}</code></td>'
+                f'<td class="ct-name">{escape(full_name) if full_name else "<em>—</em>"}</td>'
+                f'<td class="ct-wt">{weight_pct:.2f}%</td>'
+                f'<td class="ct-score">{score:.2f}</td>'
+                f'<td class="ct-mcap">{mcap}</td>'
+                f'<td class="ct-conf">{conf}</td>'
+                f'</tr>'
+            )
+        return (
+            '<table class="constituents">'
+            '<thead><tr>'
+            '<th>Ticker</th><th>Company</th>'
+            f'<th class="num">{escape(weight_col)}</th>'
+            '<th class="num">Score</th><th class="num">Market cap</th>'
+            '<th>Conf</th>'
+            '</tr></thead>'
+            f'<tbody>{"".join(rows)}</tbody></table>'
+        )
+
     rows_html = []
+    n_cols = 2 + len(WINDOWS)  # bucket + n + windows
     for _, r in returns.iterrows():
+        bucket_id = r["bucket_id"]
         cells = [
-            f'<td class="name"><strong>{escape(r["bucket_name"])}</strong>'
-            f'<br><code>{escape(r["bucket_id"])}</code></td>',
+            f'<td class="name" data-bucket="{escape(bucket_id)}">'
+            f'<span class="chev">▸</span> '
+            f'<strong>{escape(r["bucket_name"])}</strong>'
+            f'<br><code>{escape(bucket_id)}</code></td>',
             f'<td class="n">{int(r["n_members"])}</td>',
         ]
         for label, _ in WINDOWS:
             cells.append(f'<td class="ret">{_fmt_pct(r[label])}<br>'
                          f'<span class="nsmall">n={int(r[f"{label}_n"])}</span></td>')
-        rows_html.append("<tr>" + "".join(cells) + "</tr>")
+        rows_html.append(
+            f'<tr class="bucket-row" data-bucket="{escape(bucket_id)}">'
+            + "".join(cells) + "</tr>"
+        )
+        rows_html.append(
+            f'<tr class="detail-row" data-bucket="{escape(bucket_id)}" hidden>'
+            f'<td colspan="{n_cols}" class="detail-cell">{_constituent_table(bucket_id)}</td>'
+            f'</tr>'
+        )
 
     return f"""<!doctype html>
 <html lang="en">
@@ -192,13 +270,59 @@ def render_html(returns: pd.DataFrame, weight_col: str, asof: str) -> str:
   td.name {{
     text-align: left;
     line-height: 1.35;
+    cursor: pointer;
+    user-select: none;
   }}
+  td.name:hover strong {{ color: #146c2e; }}
   td.name code {{
     font-family: "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.75rem;
     color: #777;
     background: transparent;
   }}
+  .chev {{
+    display: inline-block;
+    width: 0.85rem;
+    color: #999;
+    transition: transform 0.15s ease;
+  }}
+  tr.bucket-row.expanded td.name .chev {{
+    transform: rotate(90deg);
+    color: #146c2e;
+  }}
+  tr.detail-row td.detail-cell {{
+    background: #faf9f2;
+    padding: 0.5rem 1rem 1rem 2.2rem;
+    border-top: 1px dashed #d8d5cd;
+  }}
+  table.constituents {{
+    width: 100%;
+    max-width: 900px;
+    margin: 0.4rem 0 0.4rem 0;
+    border: 1px solid #e2ded4;
+    border-radius: 4px;
+    box-shadow: none;
+    font-size: 0.85rem;
+  }}
+  table.constituents thead th {{
+    background: #efece3;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.55rem;
+  }}
+  table.constituents thead th.num {{ text-align: right; }}
+  table.constituents tbody td {{
+    padding: 0.3rem 0.55rem;
+    border-bottom: 1px solid #efece3;
+    vertical-align: middle;
+  }}
+  table.constituents .ct-ticker {{ text-align: left; }}
+  table.constituents .ct-name {{ text-align: left; color: #444; }}
+  table.constituents .ct-wt,
+  table.constituents .ct-score,
+  table.constituents .ct-mcap {{ text-align: right; }}
+  table.constituents .ct-conf {{ text-align: center; color: #666; font-size: 0.78rem; }}
   td.n {{
     text-align: right;
     color: #666;
@@ -250,11 +374,7 @@ weighted by <code>{escape(weight_col)}</code>. Sorted by 1-year return.</p>
     <tr>
       <th class="left">Bucket</th>
       <th>n</th>
-      <th>1W</th>
-      <th>1M</th>
-      <th>3M</th>
-      <th>6M</th>
-      <th>1Y</th>
+      {"".join(f"<th>{label.upper()}</th>" for label, _ in WINDOWS)}
     </tr>
   </thead>
   <tbody>
@@ -263,11 +383,33 @@ weighted by <code>{escape(weight_col)}</code>. Sorted by 1-year return.</p>
 </table>
 
 <footer>
+  <b>Click any bucket name</b> to expand its constituent list (ticker, company, weight, score, market cap, confidence).<br>
   <b>n</b> is the number of bucket members with a valid price for that window.
   Weights are renormalised per window across members that priced.<br>
   Prices: Polygon.io adjusted daily closes. Returns are simple total returns from adjusted close to adjusted close.<br>
   Generated by <code>scripts/bucket_returns.py</code> · <code>scripts/pull_prices.py</code>
 </footer>
+
+<script>
+  document.querySelectorAll('td.name').forEach(function(cell) {{
+    cell.addEventListener('click', function() {{
+      var bucket = cell.dataset.bucket;
+      var row = cell.closest('tr.bucket-row');
+      var detail = document.querySelector(
+        'tr.detail-row[data-bucket="' + bucket + '"]'
+      );
+      if (!detail) return;
+      var isHidden = detail.hasAttribute('hidden');
+      if (isHidden) {{
+        detail.removeAttribute('hidden');
+        row.classList.add('expanded');
+      }} else {{
+        detail.setAttribute('hidden', '');
+        row.classList.remove('expanded');
+      }}
+    }});
+  }});
+</script>
 
 </body>
 </html>
@@ -278,6 +420,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--weights", default="outputs/2026-07-25/minidex_weights.csv")
     parser.add_argument("--prices", default="data/prices.csv")
+    parser.add_argument("--db", default="data/minidex.db",
+                        help="SQLite DB path for enriching constituents with company names")
     parser.add_argument("--weight-col", default="weight_score",
                         choices=["weight_score", "weight_cap_score", "weight_equal"])
     parser.add_argument("--out", default=None,
@@ -286,19 +430,21 @@ def main() -> None:
 
     weights_path = REPO_ROOT / args.weights if not Path(args.weights).is_absolute() else Path(args.weights)
     prices_path = REPO_ROOT / args.prices if not Path(args.prices).is_absolute() else Path(args.prices)
+    db_path = REPO_ROOT / args.db if not Path(args.db).is_absolute() else Path(args.db)
     out_path = (REPO_ROOT / args.out) if args.out else (weights_path.parent / "bucket_returns.html")
 
     weights = pd.read_csv(weights_path)
     weights["ticker"] = weights["ticker"].astype(str).str.upper()
     prices = pd.read_csv(prices_path)
     prices["ticker"] = prices["ticker"].astype(str).str.upper()
+    company_names = _load_company_names(db_path)
 
     print(f"bucket_returns: {len(weights):,} weight rows, {len(prices):,} price rows, "
-          f"weight_col={args.weight_col}")
+          f"{len(company_names):,} company names, weight_col={args.weight_col}")
 
     returns = compute_bucket_returns(weights, prices, args.weight_col)
     asof = weights_path.parent.name
-    html = render_html(returns, args.weight_col, asof)
+    html = render_html(returns, weights, args.weight_col, asof, company_names)
     out_path.write_text(html, encoding="utf-8")
     print(f"bucket_returns: wrote {out_path} ({len(returns)} buckets)")
 

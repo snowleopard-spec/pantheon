@@ -343,7 +343,46 @@
   </tbody>
 </table>
 
-<h2>6. Configuration knobs (<code>config.json</code>)</h2>
+<h2>6. Hardware</h2>
+<p>
+  The pipeline runs on a <strong>DigitalOcean droplet</strong> &mdash; a cloud
+  Linux server &mdash; rather than a laptop. Not for compute speed, but for
+  <em>availability</em>: stage 3 alone takes 6&ndash;8 hours of continuous
+  work fetching filings from the SEC one by one at their rate limit, and a
+  laptop closing its lid or losing Wi-Fi mid-run would corrupt or delay it.
+  A cloud box just stays on.
+</p>
+<p>
+  The RAM is the constraining resource, driven almost entirely by
+  <strong>stage 4 (embedding shortlist)</strong>. The default embedding
+  model, <code>BAAI/bge-large-en-v1.5</code>, is a 335&nbsp;million-parameter
+  neural network that loads about <strong>1.3&nbsp;GB into memory</strong>. Add
+  the PyTorch runtime it needs (~500 MB), OS and shell overhead (~500&nbsp;MB),
+  and the working set of 1,376 documents flowing through the encoder in
+  batches, and stage 4 peaks around <strong>2.5&ndash;3&nbsp;GB</strong>. The
+  4&nbsp;GB tier is the minimum that runs comfortably; the current 8&nbsp;GB
+  droplet has generous headroom.
+</p>
+<p>
+  CPU and disk are secondary. Two vCPUs cut stage 4 wall time roughly in half
+  vs. one core; more than that doesn&rsquo;t help much (the model isn&rsquo;t
+  massively parallel). Disk usage is modest: about 4&nbsp;GB for the Python
+  virtual environment (PyTorch dominates), 1.3&nbsp;GB for the cached embedding
+  model, 500&nbsp;MB for downloaded 10-K text, and 200&nbsp;MB for the SQLite
+  database. Roughly 6&nbsp;GB total; the 160&nbsp;GB the droplet comes with is
+  vast overkill.
+</p>
+<p>
+  If RAM is tight, the <code>embedding_model</code> setting in
+  <code>config.json</code> can be swapped to <code>BAAI/bge-small-en-v1.5</code>
+  &mdash; about 10&times; less RAM (~130 MB) at the cost of slightly weaker
+  semantic matching (lower the <code>similarity_threshold</code> to ~0.45 to
+  compensate). Everything else in the pipeline &mdash; the LLM scoring, the
+  SEC fetch, the QC and weighting &mdash; is I/O- or network-bound and runs
+  in a few hundred MB.
+</p>
+
+<h2>7. Configuration knobs (<code>config.json</code>)</h2>
 <p>
   Six tuning parameters live in a plain JSON file at the repo root
   (<code>config.json</code>) so they can be hand-edited without touching code
@@ -432,7 +471,7 @@
   </tbody>
 </table>
 
-<h2>7. Why the multi-stage design</h2>
+<h2>8. Why the multi-stage design</h2>
 <p>
   A tempting shortcut would be to hand each company&rsquo;s 10-K to an LLM once and ask
   &ldquo;score this against all 22 buckets.&rdquo; The pipeline is deliberately not built that
@@ -463,7 +502,7 @@
   existing set of scores takes seconds.
 </p>
 
-<h2>8. Exception rules and overrides</h2>
+<h2>9. Exception rules and overrides</h2>
 <p>
   Two calibration overrides sit on top of the base scoring and weighting logic. Both
   exist so that the pipeline handles corner cases the naive "score = revenue fraction"
@@ -517,7 +556,7 @@
   slot in the final index regardless.
 </p>
 
-<h2>9. The 22 buckets</h2>
+<h2>10. The 22 buckets</h2>
 <p>
   A reader-friendly overview of every bucket the pipeline scores against. Full definitions
   (with inclusion/exclusion notes and keyword hints) live in

@@ -55,40 +55,53 @@ def _price_at_or_before(prices: pd.DataFrame, ticker: str, target: date) -> floa
     return float(sub.iloc[-1]["close"])
 
 
-def compute_bucket_returns(
-    weights: pd.DataFrame, prices: pd.DataFrame, weight_col: str
-) -> pd.DataFrame:
-    """Per bucket, per window: sum(w_i × return_i) with per-window renormalisation."""
+def compute_ticker_returns(
+    tickers: list[str], prices: pd.DataFrame
+) -> dict[str, dict[str, float | None]]:
+    """Per-ticker trailing returns keyed by window label. Empty dict if no data."""
     prices = prices.copy()
     prices["date"] = pd.to_datetime(prices["date"])
     prices = prices.sort_values(["ticker", "date"]).reset_index(drop=True)
 
-    # Latest close per ticker (asof today or most recent trading day)
-    latest = prices.groupby("ticker").tail(1).set_index("ticker")["close"].to_dict()
+    ref = pd.Timestamp(date.today())
+    end_date = min(ref, prices["date"].max()).date()
+    end_prices = {t: _price_at_or_before(prices, t, end_date) for t in tickers}
 
-    today = date.today()
-    ref = pd.Timestamp(today)
-    # Snap 'end' to the latest observed price date so weekends/holidays don't NaN-out.
-    end_date = min(ref, prices["date"].max())
-    end_prices = {t: _price_at_or_before(prices, t, end_date.date()) for t in weights["ticker"].unique()}
+    out: dict[str, dict[str, float | None]] = {}
+    for t in tickers:
+        p_end = end_prices.get(t)
+        rets: dict[str, float | None] = {}
+        for label, days in WINDOWS:
+            target = end_date - timedelta(days=days)
+            p_start = _price_at_or_before(prices, t, target)
+            if p_end is None or p_start is None or p_start == 0:
+                rets[label] = None
+            else:
+                rets[label] = (p_end / p_start) - 1.0
+        out[t] = rets
+    return out
 
+
+def compute_bucket_returns(
+    weights: pd.DataFrame,
+    ticker_returns: dict[str, dict[str, float | None]],
+    weight_col: str,
+) -> pd.DataFrame:
+    """Per bucket, per window: sum(w_i × return_i) with per-window renormalisation."""
     out_rows = []
     for bucket_id, g in weights.groupby("bucket_id", sort=False):
         bucket_name = g["bucket_name"].iloc[0]
         n_members = len(g)
         row = {"bucket_id": bucket_id, "bucket_name": bucket_name, "n_members": n_members}
-        for label, days in WINDOWS:
-            target = end_date.date() - timedelta(days=days)
+        for label, _days in WINDOWS:
             member_returns = []
             member_weights = []
             for _, m in g.iterrows():
                 t = m["ticker"]
                 w = float(m[weight_col])
-                p_end = end_prices.get(t)
-                p_start = _price_at_or_before(prices, t, target)
-                if p_end is None or p_start is None or p_start == 0:
+                r = ticker_returns.get(t, {}).get(label)
+                if r is None:
                     continue
-                r = (p_end / p_start) - 1.0
                 member_returns.append(r)
                 member_weights.append(w)
             if not member_weights:
@@ -123,6 +136,7 @@ def render_html(
     weight_col: str,
     asof: str,
     company_names: dict[str, str],
+    ticker_returns: dict[str, dict[str, float | None]],
 ) -> str:
     """Stylish standalone HTML with expandable per-bucket constituent tables."""
     # Sort by 1y descending, NaN last
@@ -142,7 +156,6 @@ def render_html(
 
     def _constituent_table(bucket_id: str) -> str:
         members = weights[weights["bucket_id"] == bucket_id].copy()
-        # Sort by weight_score descending
         members = members.sort_values(weight_col, ascending=False)
         rows = []
         for _, m in members.iterrows():
@@ -152,6 +165,11 @@ def render_html(
             score = float(m["score"])
             mcap = _fmt_mcap(m.get("market_cap"))
             conf = escape(str(m.get("confidence", "")))
+            rets = ticker_returns.get(ticker, {})
+            ret_cells = "".join(
+                f'<td class="ct-ret">{_fmt_pct(rets.get(label))}</td>'
+                for label, _ in WINDOWS
+            )
             rows.append(
                 f'<tr>'
                 f'<td class="ct-ticker"><code>{escape(ticker)}</code></td>'
@@ -160,8 +178,12 @@ def render_html(
                 f'<td class="ct-score">{score:.2f}</td>'
                 f'<td class="ct-mcap">{mcap}</td>'
                 f'<td class="ct-conf">{conf}</td>'
+                f'{ret_cells}'
                 f'</tr>'
             )
+        window_headers = "".join(
+            f'<th class="num">{label.upper()}</th>' for label, _ in WINDOWS
+        )
         return (
             '<table class="constituents">'
             '<thead><tr>'
@@ -169,6 +191,7 @@ def render_html(
             f'<th class="num">{escape(weight_col)}</th>'
             '<th class="num">Score</th><th class="num">Market cap</th>'
             '<th>Conf</th>'
+            f'{window_headers}'
             '</tr></thead>'
             f'<tbody>{"".join(rows)}</tbody></table>'
         )
@@ -323,6 +346,7 @@ def render_html(
   table.constituents .ct-score,
   table.constituents .ct-mcap {{ text-align: right; }}
   table.constituents .ct-conf {{ text-align: center; color: #666; font-size: 0.78rem; }}
+  table.constituents .ct-ret {{ text-align: right; font-size: 0.82rem; }}
   td.n {{
     text-align: right;
     color: #666;
@@ -443,9 +467,11 @@ def main() -> None:
     print(f"bucket_returns: {len(weights):,} weight rows, {len(prices):,} price rows, "
           f"{len(company_names):,} company names, weight_col={args.weight_col}")
 
-    returns = compute_bucket_returns(weights, prices, args.weight_col)
+    tickers = sorted(set(weights["ticker"]))
+    ticker_returns = compute_ticker_returns(tickers, prices)
+    returns = compute_bucket_returns(weights, ticker_returns, args.weight_col)
     asof = weights_path.parent.name
-    html = render_html(returns, weights, args.weight_col, asof, company_names)
+    html = render_html(returns, weights, args.weight_col, asof, company_names, ticker_returns)
     out_path.write_text(html, encoding="utf-8")
     print(f"bucket_returns: wrote {out_path} ({len(returns)} buckets)")
 

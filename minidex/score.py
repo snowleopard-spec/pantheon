@@ -352,7 +352,7 @@ def estimate_cost(requests: list[dict[str, Any]], max_tokens: int) -> dict[str, 
 
 
 def _default_client_factory() -> Any:
-    import anthropic
+    anthropic = config.require_scoring("anthropic")
 
     return anthropic.Anthropic(api_key=config.get_settings().anthropic_api_key)
 

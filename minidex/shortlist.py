@@ -91,9 +91,9 @@ def _truncate_by_tokens(model: Any, text: str) -> str:
 
 
 def _load_model(name: str) -> Any:
-    from sentence_transformers import SentenceTransformer  # local import for testability
+    st = config.require_scoring("sentence_transformers")  # local import for testability
 
-    return SentenceTransformer(name)
+    return st.SentenceTransformer(name)
 
 
 def compute_pairs(

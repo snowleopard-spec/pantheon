@@ -199,7 +199,7 @@ def submit(
                 return
 
         if client_factory is None:
-            import anthropic
+            anthropic = config.require_scoring("anthropic")
 
             client = anthropic.Anthropic()
         else:
@@ -248,7 +248,7 @@ def poll(
             return
 
         if client_factory is None:
-            import anthropic
+            anthropic = config.require_scoring("anthropic")
 
             client = anthropic.Anthropic()
         else:

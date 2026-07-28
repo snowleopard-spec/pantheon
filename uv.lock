@@ -815,16 +815,21 @@ name = "minidex"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "anthropic" },
-    { name = "edgartools" },
     { name = "numpy" },
     { name = "pandas" },
-    { name = "pyarrow" },
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
-    { name = "sentence-transformers" },
+    { name = "requests" },
     { name = "typer" },
+]
+
+[package.optional-dependencies]
+scoring = [
+    { name = "anthropic" },
+    { name = "edgartools" },
+    { name = "pyarrow" },
+    { name = "sentence-transformers" },
     { name = "yfinance" },
 ]
 
@@ -836,18 +841,20 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "anthropic", specifier = ">=0.40" },
-    { name = "edgartools", specifier = ">=4.0" },
+    { name = "anthropic", marker = "extra == 'scoring'", specifier = ">=0.40" },
+    { name = "edgartools", marker = "extra == 'scoring'", specifier = ">=4.0" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "pandas", specifier = ">=2.0" },
-    { name = "pyarrow", specifier = ">=15.0" },
+    { name = "pyarrow", marker = "extra == 'scoring'", specifier = ">=15.0" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "python-dotenv", specifier = ">=1.0" },
     { name = "pyyaml", specifier = ">=6.0" },
-    { name = "sentence-transformers", specifier = ">=3.0" },
+    { name = "requests", specifier = ">=2.31" },
+    { name = "sentence-transformers", marker = "extra == 'scoring'", specifier = ">=3.0" },
     { name = "typer", specifier = ">=0.12" },
-    { name = "yfinance", specifier = ">=0.2" },
+    { name = "yfinance", marker = "extra == 'scoring'", specifier = ">=0.2" },
 ]
+provides-extras = ["scoring"]
 
 [package.metadata.requires-dev]
 dev = [

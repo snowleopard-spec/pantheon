@@ -15,6 +15,23 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_JSON_PATH = REPO_ROOT / "config.json"
 
 
+def require_scoring(package: str) -> Any:
+    """Import a scoring-extra dependency (edgar, sentence_transformers, anthropic).
+
+    The lean base install (droplet) deliberately omits these; fail with the
+    install hint instead of a bare ModuleNotFoundError.
+    """
+    import importlib
+
+    try:
+        return importlib.import_module(package)
+    except ImportError as exc:
+        raise SystemExit(
+            f"'{package}' is not installed — this stage requires the scoring extras.\n"
+            "Install with: uv sync --extra scoring"
+        ) from exc
+
+
 @dataclass(frozen=True)
 class Settings:
     anthropic_api_key: str

@@ -84,14 +84,14 @@ def _dedupe_by_cik(rows: list[dict]) -> list[dict]:
 
 
 def _set_identity() -> None:
-    import edgar
+    edgar = config.require_scoring("edgar")
 
     edgar.set_identity(config.get_settings().sec_user_agent)
 
 
 def run() -> None:
     """Stage 1: pull SEC company_tickers and enrich SIC from EDGAR submissions."""
-    import edgar
+    edgar = config.require_scoring("edgar")
 
     s = config.get_settings()
     _set_identity()

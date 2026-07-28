@@ -25,13 +25,13 @@ FALLBACK_SUFFIX = "_fallback"
 # ---------------------------------------------------------------------------
 def _ensure_identity(user_agent: str) -> None:
     """Set the SEC user agent for edgartools before any network call."""
-    import edgar
+    edgar = config.require_scoring("edgar")
 
     edgar.set_identity(user_agent)
 
 
 def _get_company(cik: str) -> Any:
-    import edgar
+    edgar = config.require_scoring("edgar")
 
     return edgar.Company(cik)
 

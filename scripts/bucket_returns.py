@@ -567,7 +567,7 @@ def main() -> None:
     tickers = sorted(set(weights["ticker"]))
     ticker_returns = compute_ticker_returns(tickers, prices, min_start_price=args.min_start_price)
     returns = compute_bucket_returns(weights, ticker_returns, args.weight_col)
-    asof = weights_path.parent.name
+    asof = str(prices["date"].max())  # latest price bar = the report's true as-of date
     html = render_html(returns, weights, args.weight_col, asof, company_names, ticker_returns)
     out_path.write_text(html, encoding="utf-8")
     print(f"bucket_returns: wrote {out_path} ({len(returns)} buckets)")

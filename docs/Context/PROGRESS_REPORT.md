@@ -368,3 +368,15 @@ Final split — base: `pydantic, typer, pandas, numpy, pyyaml, python-dotenv, re
 **Mac gotcha:** the local sync command is now `uv sync --extra scoring` — plain `uv sync` strips torch from the Mac env.
 
 **Deviation from spec D7:** merge to `main` deferred by user decision; the droplet tracks the `droplet-deploy` branch for now and switches to `main` after the merge.
+
+### M1 — deploy to droplet (done)
+
+Target is the existing `unicorn-hunt` box (`161.35.122.12`, 1 vCPU / 1.9 GiB + 2 GiB swap), not a new droplet — the lean profile makes that viable where the RED verdict in §8 (written for the full scoring stack) did not.
+
+- Installed `uv` 0.11.33 via the official installer (was absent).
+- Cloned `https://github.com/snowleopard-spec/pantheon.git` → `/root/pantheon` on the **`droplet-deploy` branch** (`238f380`); plain `uv sync`, no extras.
+- **D4 sanity check passed:** torch / sentence-transformers / edgartools / anthropic / yfinance / pyarrow all absent; venv is **122 MB** (Linux wheels run larger than the Mac's 82 MB); disk 41 GB free, RAM untouched.
+- `.env` created at `/root/pantheon/.env` (`chmod 600`) containing **only** `POLYGON_API_KEY` — no Anthropic/SEC keys on this box. Key copied from the Mac's `.env` (H4).
+- H5 resolved as scp from Mac: `data/prices.csv` (1.7 MB warm cache) + `data/minidex.db` (7 MB, company names for the report).
+- `logs/` created for the future cron log.
+- **Verify:** both scripts respond to `--help` from `.venv/bin/python`; frozen weights present at `outputs/2026-07-25/` (they are committed to git, so the clone carries them — no separate weights transfer needed).

@@ -391,3 +391,12 @@ Ran both stages by hand on the droplet under `/usr/bin/time -v`, logs at `logs/m
 | `bucket_returns` (full render, 360 KB HTML) | 0 | 30.4 s | **84 MB** |
 
 Peak memory is ~7% of the box's ~1.4 GiB available — no swap-thrash risk (the M2 abort threshold never came close). The render takes 30 s on the 1 vCPU box vs ~2 s on the Mac; irrelevant for a nightly cron. Latest bar in cache confirmed `2026-07-27`; report regenerated 13:18 UTC 2026-07-28. Noted for later: the HTML has no visible "as of" date — worth adding so staleness is self-evident from the phone.
+
+### Interlude — weights moved to `definitions/` (2026-07-28)
+
+User call: the frozen weights CSV is an *input* to the returns pipeline, not an output, so it moved to the tracked `definitions/` folder. Commits `c6e8c49` + `ae05d14`:
+
+- `git mv outputs/2026-07-25/minidex_weights.csv definitions/minidex_weights.csv` — now the canonical copy; `outputs/<asof>/` keeps dated run archives (parquet + manifest + the CSV of future runs). Promoting a new `minidex build` = copying its CSV over the definitions copy (documented in README).
+- Both scripts' `--weights` default → `definitions/minidex_weights.csv`; `bucket_returns` `--out` default → `outputs/bucket_returns.html` (was `<weights-dir>/bucket_returns.html`, which would have dropped HTML into definitions/ — and which previously dirtied the *tracked* dated snapshot on every render; the droplet's M2 run did exactly that, restored via `git checkout` before pulling).
+- `scripts/pantheon` wrapper reads the fixed canonical path instead of globbing `outputs/*/`; `logs/` added to `.gitignore` so droplet cron logs never dirty the tree.
+- Verified on both machines: Mac (both scripts on defaults + 117 tests pass) and droplet (bare `scripts/bucket_returns.py` renders to `outputs/bucket_returns.html`, `git status` clean).

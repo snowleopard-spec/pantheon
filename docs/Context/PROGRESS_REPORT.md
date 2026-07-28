@@ -408,3 +408,14 @@ User call: the frozen weights CSV is an *input* to the returns pipeline, not an 
 - `/srv/pantheon/` created; first real publish landed `index.html` (360 KB, root-owned, 644).
 - **Smoke test:** `python3 -m http.server --bind 127.0.0.1` in `/srv/pantheon` returned HTTP 200 with the full page; server killed and port confirmed closed afterwards. (Gotcha: `pkill -f`/`pgrep -f` self-matching the ssh command string produced phantom "still running" hits and one self-killed ssh session; ground truth was `ss -tln`.)
 - **Title fix that fell out of the smoke test (`ab92a20`):** the page title derived its date from the weights *parent directory* name, so the restructure produced "Pantheon — definitions". Now uses the latest price bar (`prices["date"].max()`) — the report's true as-of, which also resolves the M2 "no visible staleness indicator" note. Republished: `<title>Pantheon — 2026-07-28</title>`.
+
+### M4 — cron (done)
+
+Added to root's crontab in the existing entry style (comment line + `cd` into project + per-project log), in the 22:00 UTC slot — clear of Unicorn 21:00, Birthday 22:30, Dilithium 23:00:
+
+```
+# Pantheon — daily price refresh + bucket-returns report re-render at 22:00 UTC
+0 22 * * * cd /root/pantheon && bash scripts/droplet_refresh.sh >> /root/pantheon/logs/cron.log 2>&1
+```
+
+The interpreter is invoked explicitly inside `droplet_refresh.sh` (absolute `.venv/bin/python`, `$REPO` derived from the script's own path), and `pull_prices` finds `.env` because cron `cd`s into the repo first. **Verify:** ran the exact cron command string by hand — exit 0, clean `logs/cron.log` entry, `/srv/pantheon/index.html` republished 14:15 UTC. No cron-environment PATH dependencies beyond `bash`.

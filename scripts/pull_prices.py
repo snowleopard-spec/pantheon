@@ -6,7 +6,7 @@ bars newer than the latest cached date per ticker (and full lookback for
 tickers not yet in the cache). Pass --full to force a complete refetch.
 
 Usage:
-    uv run python scripts/pull_prices.py [--weights outputs/<asof>/minidex_weights.csv]
+    uv run python scripts/pull_prices.py [--weights definitions/minidex_weights.csv]
                                          [--out data/prices.csv]
                                          [--days 400]
                                          [--workers 8]
@@ -130,7 +130,7 @@ def main() -> None:
         sys.exit("POLYGON_API_KEY missing from environment / .env")
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--weights", default="outputs/2026-07-25/minidex_weights.csv")
+    parser.add_argument("--weights", default="definitions/minidex_weights.csv")
     parser.add_argument("--out", default="data/prices.csv")
     parser.add_argument("--days", type=int, default=400,
                         help="Calendar-day lookback for tickers not yet in the cache (default 400)")

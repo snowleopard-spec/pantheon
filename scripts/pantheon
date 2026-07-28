@@ -6,8 +6,9 @@
 # 3. Recompute + regenerate the interactive HTML bucket-returns report
 # 4. Open the resulting HTML in the default browser
 #
-# Auto-detects the most recent outputs/<date>/minidex_weights.csv so future
-# runs are picked up without editing this script.
+# Reads the canonical frozen weights at definitions/minidex_weights.csv.
+# (A new frozen run is promoted by copying its outputs/<asof>/minidex_weights.csv
+# over the definitions copy.)
 
 set -u
 
@@ -21,17 +22,14 @@ cd "$REPO" || {
     exit 1
 }
 
-# Find the newest outputs/<date>/minidex_weights.csv. `sort -r` on YYYY-MM-DD[-suffix]
-# gives us the lexicographically-greatest date, which matches most-recent.
-WEIGHTS=$(ls -1 outputs/*/minidex_weights.csv 2>/dev/null | sort -r | head -n 1)
+WEIGHTS="definitions/minidex_weights.csv"
 
-if [ -z "$WEIGHTS" ]; then
-    echo "error: no outputs/*/minidex_weights.csv found under $REPO" >&2
+if [ ! -f "$WEIGHTS" ]; then
+    echo "error: $WEIGHTS not found under $REPO" >&2
     exit 1
 fi
 
-WEIGHTS_DIR=$(dirname "$WEIGHTS")
-HTML_OUT="$WEIGHTS_DIR/bucket_returns.html"
+HTML_OUT="outputs/bucket_returns.html"
 
 echo "==> Using weights: $WEIGHTS"
 echo

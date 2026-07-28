@@ -39,8 +39,12 @@ uv run minidex qc                                    # stage 6
 uv run minidex build --asof 2025-01-15               # stage 7
 ```
 
-Outputs land in `outputs/<asof>/` as `minidex_weights.{csv,parquet}` +
-`manifest.json`. Both `data/` and `outputs/` are git-ignored.
+A `minidex build` run writes its dated archive to `outputs/<asof>/` as
+`minidex_weights.{csv,parquet}` + `manifest.json`. The canonical frozen weights
+live at `definitions/minidex_weights.csv` (tracked in git; this is what
+`scripts/pull_prices.py` and `scripts/bucket_returns.py` read by default) —
+promote a new run by copying its CSV over the definitions copy. Both `data/`
+and `outputs/` are git-ignored.
 
 ## Tests
 

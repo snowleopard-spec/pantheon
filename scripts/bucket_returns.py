@@ -7,10 +7,10 @@ prior trading day per ticker). Bucket return = sum over members of
 that have valid prices for that window.
 
 Usage:
-    uv run python scripts/bucket_returns.py [--weights outputs/<asof>/minidex_weights.csv]
+    uv run python scripts/bucket_returns.py [--weights definitions/minidex_weights.csv]
                                             [--prices data/prices.csv]
                                             [--weight-col weight_score]
-                                            [--out outputs/<asof>/bucket_returns.html]
+                                            [--out outputs/bucket_returns.html]
 """
 from __future__ import annotations
 
@@ -537,7 +537,7 @@ def render_html(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--weights", default="outputs/2026-07-25/minidex_weights.csv")
+    parser.add_argument("--weights", default="definitions/minidex_weights.csv")
     parser.add_argument("--prices", default="data/prices.csv")
     parser.add_argument("--db", default="data/minidex.db",
                         help="SQLite DB path for enriching constituents with company names")
@@ -547,13 +547,13 @@ def main() -> None:
                         help="Exclude tickers with per-window starting price below this "
                              "(default $1.00, filters penny-stock recovery distortions)")
     parser.add_argument("--out", default=None,
-                        help="Output HTML path (defaults to <weights-dir>/bucket_returns.html)")
+                        help="Output HTML path (defaults to outputs/bucket_returns.html)")
     args = parser.parse_args()
 
     weights_path = REPO_ROOT / args.weights if not Path(args.weights).is_absolute() else Path(args.weights)
     prices_path = REPO_ROOT / args.prices if not Path(args.prices).is_absolute() else Path(args.prices)
     db_path = REPO_ROOT / args.db if not Path(args.db).is_absolute() else Path(args.db)
-    out_path = (REPO_ROOT / args.out) if args.out else (weights_path.parent / "bucket_returns.html")
+    out_path = (REPO_ROOT / args.out) if args.out else (REPO_ROOT / "outputs" / "bucket_returns.html")
 
     weights = pd.read_csv(weights_path)
     weights["ticker"] = weights["ticker"].astype(str).str.upper()

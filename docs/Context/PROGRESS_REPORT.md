@@ -400,3 +400,11 @@ User call: the frozen weights CSV is an *input* to the returns pipeline, not an 
 - Both scripts' `--weights` default → `definitions/minidex_weights.csv`; `bucket_returns` `--out` default → `outputs/bucket_returns.html` (was `<weights-dir>/bucket_returns.html`, which would have dropped HTML into definitions/ — and which previously dirtied the *tracked* dated snapshot on every render; the droplet's M2 run did exactly that, restored via `git checkout` before pulling).
 - `scripts/pantheon` wrapper reads the fixed canonical path instead of globbing `outputs/*/`; `logs/` added to `.gitignore` so droplet cron logs never dirty the tree.
 - Verified on both machines: Mac (both scripts on defaults + 117 tests pass) and droplet (bare `scripts/bucket_returns.py` renders to `outputs/bucket_returns.html`, `git status` clean).
+
+### M3 — static output location (done)
+
+- Confirmed the report HTML is fully self-contained: zero `src=`/`href=`/`url()` references of any kind — publish is a single file.
+- New `scripts/droplet_refresh.sh` (`c7b57d7`) is the cron entry point: incremental price pull (a Polygon failure warns loudly but still re-renders from cache per D6), render, then **atomic publish** — write `/srv/pantheon/index.html.tmp`, `mv` over the target — so a reader mid-refresh never sees a half-written page. A failed render exits 1 and keeps the previous page.
+- `/srv/pantheon/` created; first real publish landed `index.html` (360 KB, root-owned, 644).
+- **Smoke test:** `python3 -m http.server --bind 127.0.0.1` in `/srv/pantheon` returned HTTP 200 with the full page; server killed and port confirmed closed afterwards. (Gotcha: `pkill -f`/`pgrep -f` self-matching the ssh command string produced phantom "still running" hits and one self-killed ssh session; ground truth was `ss -tln`.)
+- **Title fix that fell out of the smoke test (`ab92a20`):** the page title derived its date from the weights *parent directory* name, so the restructure produced "Pantheon — definitions". Now uses the latest price bar (`prices["date"].max()`) — the report's true as-of, which also resolves the M2 "no visible staleness indicator" note. Republished: `<title>Pantheon — 2026-07-28</title>`.

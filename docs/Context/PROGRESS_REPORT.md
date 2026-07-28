@@ -380,3 +380,14 @@ Target is the existing `unicorn-hunt` box (`161.35.122.12`, 1 vCPU / 1.9 GiB + 2
 - H5 resolved as scp from Mac: `data/prices.csv` (1.7 MB warm cache) + `data/minidex.db` (7 MB, company names for the report).
 - `logs/` created for the future cron log.
 - **Verify:** both scripts respond to `--help` from `.venv/bin/python`; frozen weights present at `outputs/2026-07-25/` (they are committed to git, so the clone carries them — no separate weights transfer needed).
+
+### M2 — manual returns refresh end-to-end (done)
+
+Ran both stages by hand on the droplet under `/usr/bin/time -v`, logs at `logs/m2_*.log`:
+
+| Stage | Exit | Wall | Peak RSS |
+|---|---|---|---|
+| `pull_prices` (incremental, +299 rows — Monday's bars) | 0 | 2.8 s | **102 MB** |
+| `bucket_returns` (full render, 360 KB HTML) | 0 | 30.4 s | **84 MB** |
+
+Peak memory is ~7% of the box's ~1.4 GiB available — no swap-thrash risk (the M2 abort threshold never came close). The render takes 30 s on the 1 vCPU box vs ~2 s on the Mac; irrelevant for a nightly cron. Latest bar in cache confirmed `2026-07-27`; report regenerated 13:18 UTC 2026-07-28. Noted for later: the HTML has no visible "as of" date — worth adding so staleness is self-evident from the phone.

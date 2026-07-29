@@ -294,7 +294,47 @@
 </svg>
 </div>
 
-<h2>4. The role of each Python file</h2>
+<h2>4. Why the multi-stage design</h2>
+<p>
+  A tempting shortcut would be to hand each company&rsquo;s 10-K to an LLM once and ask
+  &ldquo;score this against all 22 buckets.&rdquo; The pipeline is deliberately not built that
+  way, and the biggest reason is cost.
+</p>
+<p>
+  1,376 candidates &times; 22 buckets would be ~30,000 LLM calls, each carrying a
+  full bucket definition. The embedding shortlist collapses that: companies typically
+  match 1&ndash;6 buckets, so the LLM sees ~22&times; fewer pairs. A full run scores
+  ~1,376 companies for $25&ndash;$35; without the shortlist it would cost hundreds.
+  Embeddings run locally for free &mdash; pushing as much filtering as possible into
+  that stage is the biggest lever on budget.
+</p>
+<p>
+  Segment extraction is the second lever, on accuracy rather than cost. Showing the
+  LLM &ldquo;Data Center $47.5B, Gaming $10.4B&rdquo; alongside the narrative anchors
+  its revenue fractions in filed numbers rather than adjectives. When XBRL is silent,
+  the optional LLM segment step recovers what it can from the prose without fabricating.
+</p>
+<p>
+  Third reason is iteration. Every stage persists its output, so cheap stages can be
+  re-run (tweak SIC filter, similarity threshold, embedding model) without re-paying
+  for scoring. Only stage 5 costs money, and it is gated behind a confirmation prompt
+  with a cost estimate. QC and build are pure recomputation &mdash; freezing a new
+  index from existing scores takes seconds.
+</p>
+
+<h2>5. Major external dependencies</h2>
+<table>
+  <thead><tr><th style="width: 30%">Service or library</th><th>What it&rsquo;s used for</th></tr></thead>
+  <tbody>
+    <tr><td>SEC EDGAR (via <code>edgartools</code>)</td><td>The master list of US public filers, each company&rsquo;s SIC industry code, the latest 10-K annual report, and the machine-readable XBRL tags inside it that give segment revenue.</td></tr>
+    <tr><td>Anthropic Message Batches API</td><td>The only paid input. Powers stage 5 scoring (revenue-fraction estimation per bucket) and the optional stage 3.5 segment extraction. Batches let us submit tens of thousands of prompts as one job at a discount.</td></tr>
+    <tr><td>HuggingFace <code>BAAI/bge-large-en-v1.5</code></td><td>Runs locally to turn text into embeddings for the stage 4 shortlist. Free, offline, deterministic. A smaller variant is available for faster iteration.</td></tr>
+    <tr><td>Yahoo Finance (via <code>yfinance</code>)</td><td>Recent share prices for computing market cap in stage 3, and optional price history for the stand-alone back-test script.</td></tr>
+    <tr><td>SQLite (stdlib)</td><td>A single local database file that stores everything each stage produces so the next stage can pick it up without re-running the previous one.</td></tr>
+  </tbody>
+</table>
+
+<h2>6. The role of each Python file</h2>
 <p>
   Each module owns one job and talks to the others only through the database or the file
   cache. That is the whole reason the pipeline can be resumed, retried, and re-run stage by
@@ -318,44 +358,41 @@
   </tbody>
 </table>
 
-<h2>5. Major external dependencies</h2>
+<h2>7. Downstream: prices and returns</h2>
+<p>
+  Two standalone scripts sit outside the SQLite pipeline and close the loop
+  from frozen weights to actual returns. Both run against any historical
+  <code>minidex_weights.csv</code>.
+</p>
 <table>
-  <thead><tr><th style="width: 30%">Service or library</th><th>What it&rsquo;s used for</th></tr></thead>
+  <thead><tr><th style="width: 30%">Script</th><th>What it does</th></tr></thead>
   <tbody>
-    <tr><td>SEC EDGAR (via <code>edgartools</code>)</td><td>The master list of US public filers, each company&rsquo;s SIC industry code, the latest 10-K annual report, and the machine-readable XBRL tags inside it that give segment revenue.</td></tr>
-    <tr><td>Anthropic Message Batches API</td><td>The only paid input. Powers stage 5 scoring (revenue-fraction estimation per bucket) and the optional stage 3.5 segment extraction. Batches let us submit tens of thousands of prompts as one job at a discount.</td></tr>
-    <tr><td>HuggingFace <code>BAAI/bge-large-en-v1.5</code></td><td>Runs locally to turn text into embeddings for the stage 4 shortlist. Free, offline, deterministic. A smaller variant is available for faster iteration.</td></tr>
-    <tr><td>Yahoo Finance (via <code>yfinance</code>)</td><td>Recent share prices for computing market cap in stage 3, and optional price history for the stand-alone back-test script.</td></tr>
-    <tr><td>SQLite (stdlib)</td><td>A single local database file that stores everything each stage produces so the next stage can pick it up without re-running the previous one.</td></tr>
+    <tr>
+      <td><code>scripts/pull_prices.py</code></td>
+      <td>Fetches adjusted daily closes from Polygon.io for every ticker in a
+      weights CSV (8 concurrent workers, retries 429s, tolerates 404s). Writes
+      <code>data/prices.csv</code>. Requires <code>POLYGON_API_KEY</code>.</td>
+    </tr>
+    <tr>
+      <td><code>scripts/bucket_returns.py</code></td>
+      <td>Computes trailing <strong>1y / 6m / 3m / 1m / 1w</strong> returns per
+      bucket as <code>&Sigma;(weight &times; ticker_return)</code> with
+      per-window renormalisation. Writes an interactive HTML report titled
+      &ldquo;Pantheon,&rdquo; sorted by 1-year, red/green formatted. Click any
+      bucket to expand its constituent list (ticker, company name, weight,
+      score, market cap, confidence) &mdash; company names looked up from
+      <code>data/minidex.db</code>. Weight scheme selectable via
+      <code>--weight-col</code> (default <code>weight_score</code>).</td>
+    </tr>
   </tbody>
 </table>
-
-<h2>6. Hardware</h2>
 <p>
-  The pipeline runs on a <strong>DigitalOcean droplet</strong> (cloud Linux
-  server), not for speed but for <em>availability</em>: stage 3 fetches SEC
-  filings for 6&ndash;8 hours at the SEC rate limit, and a laptop losing Wi-Fi
-  or closing its lid mid-run would corrupt or delay it.
-</p>
-<p>
-  RAM is the constraining resource, driven almost entirely by
-  <strong>stage 4 (embedding shortlist)</strong>. The default model
-  <code>BAAI/bge-large-en-v1.5</code> loads ~1.3&nbsp;GB; PyTorch adds
-  ~500&nbsp;MB, OS overhead another ~500&nbsp;MB, and encoder batches push
-  the peak to <strong>2.5&ndash;3&nbsp;GB</strong>. 4&nbsp;GB is the minimum
-  that runs comfortably; the current 8&nbsp;GB droplet has headroom.
-</p>
-<p>
-  CPU and disk are secondary. Two vCPUs roughly halve stage 4 wall time vs.
-  one; more doesn&rsquo;t help much. Disk usage totals ~6&nbsp;GB (venv,
-  cached model, filings, DB) &mdash; the 160&nbsp;GB the droplet ships with
-  is vast overkill. If RAM is tight, swap <code>embedding_model</code> in
-  <code>config.json</code> to <code>BAAI/bge-small-en-v1.5</code> (~130&nbsp;MB;
-  lower <code>similarity_threshold</code> to ~0.45 to compensate). Every
-  other stage is I/O- or network-bound and runs in a few hundred MB.
+  This is where iteration lives &mdash; the heavy lifting already produced
+  the CSV, so deriving new weighting schemes or return calculations is a
+  small pandas exercise with no pipeline re-run.
 </p>
 
-<h2>7. Configuration knobs (<code>config.json</code>)</h2>
+<h2>8. Configuration knobs (<code>config.json</code>)</h2>
 <p>
   Six tuning parameters live in <code>config.json</code> at the repo root, hand-
   editable without touching code. Secrets (<code>ANTHROPIC_API_KEY</code>,
@@ -433,76 +470,7 @@
   </tbody>
 </table>
 
-<h2>8. Why the multi-stage design</h2>
-<p>
-  A tempting shortcut would be to hand each company&rsquo;s 10-K to an LLM once and ask
-  &ldquo;score this against all 22 buckets.&rdquo; The pipeline is deliberately not built that
-  way, and the biggest reason is cost.
-</p>
-<p>
-  1,376 candidates &times; 22 buckets would be ~30,000 LLM calls, each carrying a
-  full bucket definition. The embedding shortlist collapses that: companies typically
-  match 1&ndash;6 buckets, so the LLM sees ~22&times; fewer pairs. A full run scores
-  ~1,376 companies for $25&ndash;$35; without the shortlist it would cost hundreds.
-  Embeddings run locally for free &mdash; pushing as much filtering as possible into
-  that stage is the biggest lever on budget.
-</p>
-<p>
-  Segment extraction is the second lever, on accuracy rather than cost. Showing the
-  LLM &ldquo;Data Center $47.5B, Gaming $10.4B&rdquo; alongside the narrative anchors
-  its revenue fractions in filed numbers rather than adjectives. When XBRL is silent,
-  the optional LLM segment step recovers what it can from the prose without fabricating.
-</p>
-<p>
-  Third reason is iteration. Every stage persists its output, so cheap stages can be
-  re-run (tweak SIC filter, similarity threshold, embedding model) without re-paying
-  for scoring. Only stage 5 costs money, and it is gated behind a confirmation prompt
-  with a cost estimate. QC and build are pure recomputation &mdash; freezing a new
-  index from existing scores takes seconds.
-</p>
-
-<h2>9. Exception rules and overrides</h2>
-<p>
-  Two overrides sit on top of the base &ldquo;score = revenue fraction&rdquo; rule
-  to handle corner cases it cannot capture on its own.
-</p>
-
-<h3>Pre-revenue exception (Rule 5 of the scoring prompt)</h3>
-<p>
-  A company with no material revenue but whose <em>principal business purpose</em>
-  is the bucket's defined activity should not score zero. SMR developers like Oklo
-  and NuScale, quantum pure-plays like IonQ and D-Wave, early GPU cloud providers
-  like Nebius &mdash; exactly the thematic exposure an index like this exists to
-  capture. Rule 5 supersedes the revenue-fraction rule for these cases: pure-plays
-  score 0.8&ndash;1.0, partial matches 0.3&ndash;0.7, aspirational-only names
-  (established revenue base talking about future entry) stay at 0.0. Every
-  pre-revenue score is flagged <code>pre_revenue: true</code> with confidence
-  <code>"low"</code> for QC review.
-</p>
-
-<h3>Anchor weight floor (Stage 7 index construction)</h3>
-<p>
-  Some legitimate anchors still score below the 0.10 <code>score_floor</code> that
-  excludes immaterial exposures. Stage 7 guarantees representation via an anchor-weight
-  floor: any anchor gets at least <code>anchor_min_weight</code> (default 5%) of its
-  bucket's <code>weight_cap_score</code>, even at score zero. Below-floor anchors
-  are hard-fixed at the floor; above-floor members scale down proportionally so the
-  bucket still sums to 1.0. If floors overrun 100%, they split 1.0 equally and
-  everyone else drops to 0. Set <code>anchor_min_weight</code> to 0 in
-  <code>config.json</code> to disable and use pure cap&times;score weighting.
-</p>
-<p>
-  These two overrides work in tandem. The pre-revenue exception fixes the
-  scoring stage so that pure thematic plays get a real score. The anchor floor
-  is the safety net at the weighting stage — if the LLM still misses a
-  canonical name for any reason (definition ambiguity, run-to-run noise, or a
-  genuinely borderline case), the anchor floor guarantees representation. In
-  the pilot's <code>power_generation</code> bucket, the exception moved Oklo
-  and NuScale from 0.00 to 0.90, and the floor still guarantees them a 5%
-  slot in the final index regardless.
-</p>
-
-<h2>10. Outputs</h2>
+<h2>9. Outputs</h2>
 <p>
   Every pipeline run writes a self-contained set of files to
   <code>outputs/&lt;asof-date&gt;/</code>:
@@ -564,7 +532,150 @@
   iterating on weighting is a small pandas script.
 </p>
 
-<h2>11. The 22 buckets</h2>
+<h2>10. Hardware</h2>
+<p>
+  The pipeline runs on a <strong>DigitalOcean droplet</strong> (cloud Linux
+  server), not for speed but for <em>availability</em>: stage 3 fetches SEC
+  filings for 6&ndash;8 hours at the SEC rate limit, and a laptop losing Wi-Fi
+  or closing its lid mid-run would corrupt or delay it.
+</p>
+<p>
+  RAM is the constraining resource, driven almost entirely by
+  <strong>stage 4 (embedding shortlist)</strong>. The default model
+  <code>BAAI/bge-large-en-v1.5</code> loads ~1.3&nbsp;GB; PyTorch adds
+  ~500&nbsp;MB, OS overhead another ~500&nbsp;MB, and encoder batches push
+  the peak to <strong>2.5&ndash;3&nbsp;GB</strong>. 4&nbsp;GB is the minimum
+  that runs comfortably; the current 8&nbsp;GB droplet has headroom.
+</p>
+<p>
+  CPU and disk are secondary. Two vCPUs roughly halve stage 4 wall time vs.
+  one; more doesn&rsquo;t help much. Disk usage totals ~6&nbsp;GB (venv,
+  cached model, filings, DB) &mdash; the 160&nbsp;GB the droplet ships with
+  is vast overkill. If RAM is tight, swap <code>embedding_model</code> in
+  <code>config.json</code> to <code>BAAI/bge-small-en-v1.5</code> (~130&nbsp;MB;
+  lower <code>similarity_threshold</code> to ~0.45 to compensate). Every
+  other stage is I/O- or network-bound and runs in a few hundred MB.
+</p>
+
+<h2>11. Daily updates: the droplet and the private network</h2>
+<p>
+  The returns report no longer waits for someone to run a script. Every day at
+  <strong>22:00 UTC</strong> &mdash; just after the US market closes &mdash; a scheduled
+  job on the existing DigitalOcean droplet (<code>unicorn-hunt</code>) pulls the day&rsquo;s
+  closing prices from Polygon and re-renders the bucket-returns page. By evening the
+  report is simply <em>current</em>, with no laptop involved.
+</p>
+<p>
+  The droplet runs a deliberately slim install: only what it needs to pull prices and
+  render the page. None of the heavy scoring machinery &mdash; embeddings, the LLM
+  pipeline, the SQLite stages &mdash; lives there; all of that stays on the Mac. The
+  weights are frozen in <code>definitions/minidex_weights.csv</code>, and the droplet
+  never re-scores anything. It just re-prices the same baskets each day.
+</p>
+<p>
+  The rendered page is published to a fixed spot (<code>/srv/pantheon/index.html</code>)
+  and served <em>only</em> over the owner&rsquo;s private Tailscale network (a
+  &ldquo;tailnet&rdquo; &mdash; a personal VPN that links your own devices) at
+  <code>https://unicorn-hunt.macaw-dominant.ts.net/</code>. It is real HTTPS with a
+  real certificate, but the address is invisible and unreachable from the public
+  internet. On the iPhone, with the Tailscale app signed in, it opens like any
+  website &mdash; and it&rsquo;s pinned to the home screen like an app.
+</p>
+<div class="callout">
+  Nothing public changed on the droplet: no new open ports, and the existing public
+  services running there are untouched. The report is reachable only from the
+  owner&rsquo;s own devices.
+</div>
+<p>
+  When the index is rebuilt (roughly annually), the flow is: re-run the pipeline on
+  the Mac &rarr; commit the new weights CSV &rarr; <code>git pull</code> on the
+  droplet. The daily job picks up the new baskets automatically from then on.
+</p>
+
+<div class="diagram">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 150" role="img" aria-label="Daily serving flow: Mac to git to droplet to tailnet to iPhone">
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a6a8a"/>
+    </marker>
+  </defs>
+
+  <rect class="box" x="10" y="35" width="140" height="60" rx="4"/>
+  <text x="80" y="58" class="lbl" text-anchor="middle">Mac</text>
+  <text x="80" y="74" class="sub" text-anchor="middle">scores &amp; freezes</text>
+  <text x="80" y="87" class="sub" text-anchor="middle">weights (annually)</text>
+
+  <rect class="ext" x="190" y="35" width="120" height="60" rx="4"/>
+  <text x="250" y="58" class="lbl" text-anchor="middle">git repo</text>
+  <text x="250" y="74" class="sub" text-anchor="middle">carries the</text>
+  <text x="250" y="87" class="sub" text-anchor="middle">weights CSV</text>
+
+  <rect class="box" x="350" y="35" width="170" height="60" rx="4"/>
+  <text x="435" y="58" class="lbl" text-anchor="middle">Droplet</text>
+  <text x="435" y="74" class="sub" text-anchor="middle">22:00 UTC: pull prices,</text>
+  <text x="435" y="87" class="sub" text-anchor="middle">re-render report</text>
+
+  <rect class="ext" x="560" y="35" width="140" height="60" rx="4"/>
+  <text x="630" y="58" class="lbl" text-anchor="middle">Tailnet</text>
+  <text x="630" y="74" class="sub" text-anchor="middle">private HTTPS,</text>
+  <text x="630" y="87" class="sub" text-anchor="middle">no public exposure</text>
+
+  <rect class="out" x="740" y="35" width="110" height="60" rx="4"/>
+  <text x="795" y="58" class="lbl" text-anchor="middle">iPhone</text>
+  <text x="795" y="74" class="sub" text-anchor="middle">home-screen</text>
+  <text x="795" y="87" class="sub" text-anchor="middle">bookmark</text>
+
+  <path class="arrow" d="M150,65 L190,65" marker-end="url(#arr2)"/>
+  <path class="arrow" d="M310,65 L350,65" marker-end="url(#arr2)"/>
+  <path class="arrow" d="M520,65 L560,65" marker-end="url(#arr2)"/>
+  <path class="arrow" d="M700,65 L740,65" marker-end="url(#arr2)"/>
+
+  <text x="430" y="130" class="sub" text-anchor="middle">Heavy scoring stays on the Mac; the droplet only re-prices frozen baskets and serves the page privately.</text>
+</svg>
+</div>
+
+<h2>12. Exception rules and overrides</h2>
+<p>
+  Two overrides sit on top of the base &ldquo;score = revenue fraction&rdquo; rule
+  to handle corner cases it cannot capture on its own.
+</p>
+
+<h3>Pre-revenue exception (Rule 5 of the scoring prompt)</h3>
+<p>
+  A company with no material revenue but whose <em>principal business purpose</em>
+  is the bucket's defined activity should not score zero. SMR developers like Oklo
+  and NuScale, quantum pure-plays like IonQ and D-Wave, early GPU cloud providers
+  like Nebius &mdash; exactly the thematic exposure an index like this exists to
+  capture. Rule 5 supersedes the revenue-fraction rule for these cases: pure-plays
+  score 0.8&ndash;1.0, partial matches 0.3&ndash;0.7, aspirational-only names
+  (established revenue base talking about future entry) stay at 0.0. Every
+  pre-revenue score is flagged <code>pre_revenue: true</code> with confidence
+  <code>"low"</code> for QC review.
+</p>
+
+<h3>Anchor weight floor (Stage 7 index construction)</h3>
+<p>
+  Some legitimate anchors still score below the 0.10 <code>score_floor</code> that
+  excludes immaterial exposures. Stage 7 guarantees representation via an anchor-weight
+  floor: any anchor gets at least <code>anchor_min_weight</code> (default 5%) of its
+  bucket's <code>weight_cap_score</code>, even at score zero. Below-floor anchors
+  are hard-fixed at the floor; above-floor members scale down proportionally so the
+  bucket still sums to 1.0. If floors overrun 100%, they split 1.0 equally and
+  everyone else drops to 0. Set <code>anchor_min_weight</code> to 0 in
+  <code>config.json</code> to disable and use pure cap&times;score weighting.
+</p>
+<p>
+  These two overrides work in tandem. The pre-revenue exception fixes the
+  scoring stage so that pure thematic plays get a real score. The anchor floor
+  is the safety net at the weighting stage — if the LLM still misses a
+  canonical name for any reason (definition ambiguity, run-to-run noise, or a
+  genuinely borderline case), the anchor floor guarantees representation. In
+  the pilot's <code>power_generation</code> bucket, the exception moved Oklo
+  and NuScale from 0.00 to 0.90, and the floor still guarantees them a 5%
+  slot in the final index regardless.
+</p>
+
+<h2>13. The 22 buckets</h2>
 <p>
   Reader-friendly summaries of every bucket the pipeline scores against. Full
   definitions live in <code>definitions/minidex_definitions.yaml</code>.
@@ -732,117 +843,6 @@
     </tr>
   </tbody>
 </table>
-
-<h2>12. Downstream: prices and returns</h2>
-<p>
-  Two standalone scripts sit outside the SQLite pipeline and close the loop
-  from frozen weights to actual returns. Both run against any historical
-  <code>minidex_weights.csv</code>.
-</p>
-<table>
-  <thead><tr><th style="width: 30%">Script</th><th>What it does</th></tr></thead>
-  <tbody>
-    <tr>
-      <td><code>scripts/pull_prices.py</code></td>
-      <td>Fetches adjusted daily closes from Polygon.io for every ticker in a
-      weights CSV (8 concurrent workers, retries 429s, tolerates 404s). Writes
-      <code>data/prices.csv</code>. Requires <code>POLYGON_API_KEY</code>.</td>
-    </tr>
-    <tr>
-      <td><code>scripts/bucket_returns.py</code></td>
-      <td>Computes trailing <strong>1y / 6m / 3m / 1m / 1w</strong> returns per
-      bucket as <code>&Sigma;(weight &times; ticker_return)</code> with
-      per-window renormalisation. Writes an interactive HTML report titled
-      &ldquo;Pantheon,&rdquo; sorted by 1-year, red/green formatted. Click any
-      bucket to expand its constituent list (ticker, company name, weight,
-      score, market cap, confidence) &mdash; company names looked up from
-      <code>data/minidex.db</code>. Weight scheme selectable via
-      <code>--weight-col</code> (default <code>weight_score</code>).</td>
-    </tr>
-  </tbody>
-</table>
-<p>
-  This is where iteration lives &mdash; the heavy lifting already produced
-  the CSV, so deriving new weighting schemes or return calculations is a
-  small pandas exercise with no pipeline re-run.
-</p>
-
-<h2>13. Daily updates: the droplet and the private network</h2>
-<p>
-  The returns report no longer waits for someone to run a script. Every day at
-  <strong>22:00 UTC</strong> &mdash; just after the US market closes &mdash; a scheduled
-  job on the existing DigitalOcean droplet (<code>unicorn-hunt</code>) pulls the day&rsquo;s
-  closing prices from Polygon and re-renders the bucket-returns page. By evening the
-  report is simply <em>current</em>, with no laptop involved.
-</p>
-<p>
-  The droplet runs a deliberately slim install: only what it needs to pull prices and
-  render the page. None of the heavy scoring machinery &mdash; embeddings, the LLM
-  pipeline, the SQLite stages &mdash; lives there; all of that stays on the Mac. The
-  weights are frozen in <code>definitions/minidex_weights.csv</code>, and the droplet
-  never re-scores anything. It just re-prices the same baskets each day.
-</p>
-<p>
-  The rendered page is published to a fixed spot (<code>/srv/pantheon/index.html</code>)
-  and served <em>only</em> over the owner&rsquo;s private Tailscale network (a
-  &ldquo;tailnet&rdquo; &mdash; a personal VPN that links your own devices) at
-  <code>https://unicorn-hunt.macaw-dominant.ts.net/</code>. It is real HTTPS with a
-  real certificate, but the address is invisible and unreachable from the public
-  internet. On the iPhone, with the Tailscale app signed in, it opens like any
-  website &mdash; and it&rsquo;s pinned to the home screen like an app.
-</p>
-<div class="callout">
-  Nothing public changed on the droplet: no new open ports, and the existing public
-  services running there are untouched. The report is reachable only from the
-  owner&rsquo;s own devices.
-</div>
-<p>
-  When the index is rebuilt (roughly annually), the flow is: re-run the pipeline on
-  the Mac &rarr; commit the new weights CSV &rarr; <code>git pull</code> on the
-  droplet. The daily job picks up the new baskets automatically from then on.
-</p>
-
-<div class="diagram">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 150" role="img" aria-label="Daily serving flow: Mac to git to droplet to tailnet to iPhone">
-  <defs>
-    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="#4a6a8a"/>
-    </marker>
-  </defs>
-
-  <rect class="box" x="10" y="35" width="140" height="60" rx="4"/>
-  <text x="80" y="58" class="lbl" text-anchor="middle">Mac</text>
-  <text x="80" y="74" class="sub" text-anchor="middle">scores &amp; freezes</text>
-  <text x="80" y="87" class="sub" text-anchor="middle">weights (annually)</text>
-
-  <rect class="ext" x="190" y="35" width="120" height="60" rx="4"/>
-  <text x="250" y="58" class="lbl" text-anchor="middle">git repo</text>
-  <text x="250" y="74" class="sub" text-anchor="middle">carries the</text>
-  <text x="250" y="87" class="sub" text-anchor="middle">weights CSV</text>
-
-  <rect class="box" x="350" y="35" width="170" height="60" rx="4"/>
-  <text x="435" y="58" class="lbl" text-anchor="middle">Droplet</text>
-  <text x="435" y="74" class="sub" text-anchor="middle">22:00 UTC: pull prices,</text>
-  <text x="435" y="87" class="sub" text-anchor="middle">re-render report</text>
-
-  <rect class="ext" x="560" y="35" width="140" height="60" rx="4"/>
-  <text x="630" y="58" class="lbl" text-anchor="middle">Tailnet</text>
-  <text x="630" y="74" class="sub" text-anchor="middle">private HTTPS,</text>
-  <text x="630" y="87" class="sub" text-anchor="middle">no public exposure</text>
-
-  <rect class="out" x="740" y="35" width="110" height="60" rx="4"/>
-  <text x="795" y="58" class="lbl" text-anchor="middle">iPhone</text>
-  <text x="795" y="74" class="sub" text-anchor="middle">home-screen</text>
-  <text x="795" y="87" class="sub" text-anchor="middle">bookmark</text>
-
-  <path class="arrow" d="M150,65 L190,65" marker-end="url(#arr2)"/>
-  <path class="arrow" d="M310,65 L350,65" marker-end="url(#arr2)"/>
-  <path class="arrow" d="M520,65 L560,65" marker-end="url(#arr2)"/>
-  <path class="arrow" d="M700,65 L740,65" marker-end="url(#arr2)"/>
-
-  <text x="430" y="130" class="sub" text-anchor="middle">Heavy scoring stays on the Mac; the droplet only re-prices frozen baskets and serves the page privately.</text>
-</svg>
-</div>
 
 <footer>
   Generated for the mini-dex project. See <code>docs/MINIDEX_SPEC.md</code> for the full

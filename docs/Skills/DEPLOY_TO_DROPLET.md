@@ -241,7 +241,7 @@ Droplet itself: an 8 GB DO box is ~$0.09/hr, so a full run round trip
 
 - **Deploying to a fresh droplet** → this doc.
 - **Understanding the architecture** → `docs/ARCHITECTURE.html`.
-- **Reviewing what's been done historically** → `docs/PROGRESS_REPORT.md`.
+- **Reviewing what's been done historically** → `docs/Context/PROGRESS_REPORT.md`.
 - **Non-technical narrative of the bootstrap** →
-  `docs/DROPLET_BOOTSTRAP_EXPLAINED.md`.
-- **Full pipeline spec** → `docs/MINIDEX_SPEC.md`.
+  `docs/Explainers/DROPLET_BOOTSTRAP_EXPLAINED.md`.
+- **Full pipeline spec** → `docs/Context/PANTHEON_SPEC.md`.

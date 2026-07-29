@@ -4,7 +4,7 @@ Classifies US-listed tech/AI companies into 22 non-mutually-exclusive thematic
 sub-indices, producing frozen weighted compositions as flat files. Batch
 pipeline, not a service.
 
-Full spec: [`docs/MINIDEX_SPEC.md`](docs/MINIDEX_SPEC.md).
+Full spec: [`docs/Context/PANTHEON_SPEC.md`](docs/Context/PANTHEON_SPEC.md).
 
 ## Setup
 

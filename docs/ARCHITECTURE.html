@@ -767,6 +767,83 @@
   small pandas exercise with no pipeline re-run.
 </p>
 
+<h2>13. Daily updates: the droplet and the private network</h2>
+<p>
+  The returns report no longer waits for someone to run a script. Every day at
+  <strong>22:00 UTC</strong> &mdash; just after the US market closes &mdash; a scheduled
+  job on the existing DigitalOcean droplet (<code>unicorn-hunt</code>) pulls the day&rsquo;s
+  closing prices from Polygon and re-renders the bucket-returns page. By evening the
+  report is simply <em>current</em>, with no laptop involved.
+</p>
+<p>
+  The droplet runs a deliberately slim install: only what it needs to pull prices and
+  render the page. None of the heavy scoring machinery &mdash; embeddings, the LLM
+  pipeline, the SQLite stages &mdash; lives there; all of that stays on the Mac. The
+  weights are frozen in <code>definitions/minidex_weights.csv</code>, and the droplet
+  never re-scores anything. It just re-prices the same baskets each day.
+</p>
+<p>
+  The rendered page is published to a fixed spot (<code>/srv/pantheon/index.html</code>)
+  and served <em>only</em> over the owner&rsquo;s private Tailscale network (a
+  &ldquo;tailnet&rdquo; &mdash; a personal VPN that links your own devices) at
+  <code>https://unicorn-hunt.macaw-dominant.ts.net/</code>. It is real HTTPS with a
+  real certificate, but the address is invisible and unreachable from the public
+  internet. On the iPhone, with the Tailscale app signed in, it opens like any
+  website &mdash; and it&rsquo;s pinned to the home screen like an app.
+</p>
+<div class="callout">
+  Nothing public changed on the droplet: no new open ports, and the existing public
+  services running there are untouched. The report is reachable only from the
+  owner&rsquo;s own devices.
+</div>
+<p>
+  When the index is rebuilt (roughly annually), the flow is: re-run the pipeline on
+  the Mac &rarr; commit the new weights CSV &rarr; <code>git pull</code> on the
+  droplet. The daily job picks up the new baskets automatically from then on.
+</p>
+
+<div class="diagram">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 150" role="img" aria-label="Daily serving flow: Mac to git to droplet to tailnet to iPhone">
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a6a8a"/>
+    </marker>
+  </defs>
+
+  <rect class="box" x="10" y="35" width="140" height="60" rx="4"/>
+  <text x="80" y="58" class="lbl" text-anchor="middle">Mac</text>
+  <text x="80" y="74" class="sub" text-anchor="middle">scores &amp; freezes</text>
+  <text x="80" y="87" class="sub" text-anchor="middle">weights (annually)</text>
+
+  <rect class="ext" x="190" y="35" width="120" height="60" rx="4"/>
+  <text x="250" y="58" class="lbl" text-anchor="middle">git repo</text>
+  <text x="250" y="74" class="sub" text-anchor="middle">carries the</text>
+  <text x="250" y="87" class="sub" text-anchor="middle">weights CSV</text>
+
+  <rect class="box" x="350" y="35" width="170" height="60" rx="4"/>
+  <text x="435" y="58" class="lbl" text-anchor="middle">Droplet</text>
+  <text x="435" y="74" class="sub" text-anchor="middle">22:00 UTC: pull prices,</text>
+  <text x="435" y="87" class="sub" text-anchor="middle">re-render report</text>
+
+  <rect class="ext" x="560" y="35" width="140" height="60" rx="4"/>
+  <text x="630" y="58" class="lbl" text-anchor="middle">Tailnet</text>
+  <text x="630" y="74" class="sub" text-anchor="middle">private HTTPS,</text>
+  <text x="630" y="87" class="sub" text-anchor="middle">no public exposure</text>
+
+  <rect class="out" x="740" y="35" width="110" height="60" rx="4"/>
+  <text x="795" y="58" class="lbl" text-anchor="middle">iPhone</text>
+  <text x="795" y="74" class="sub" text-anchor="middle">home-screen</text>
+  <text x="795" y="87" class="sub" text-anchor="middle">bookmark</text>
+
+  <path class="arrow" d="M150,65 L190,65" marker-end="url(#arr2)"/>
+  <path class="arrow" d="M310,65 L350,65" marker-end="url(#arr2)"/>
+  <path class="arrow" d="M520,65 L560,65" marker-end="url(#arr2)"/>
+  <path class="arrow" d="M700,65 L740,65" marker-end="url(#arr2)"/>
+
+  <text x="430" y="130" class="sub" text-anchor="middle">Heavy scoring stays on the Mac; the droplet only re-prices frozen baskets and serves the page privately.</text>
+</svg>
+</div>
+
 <footer>
   Generated for the mini-dex project. See <code>docs/MINIDEX_SPEC.md</code> for the full
   technical specification, <code>definitions/minidex_definitions.yaml</code> for the 22

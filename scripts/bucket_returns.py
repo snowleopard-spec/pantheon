@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import argparse
 import sqlite3
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from html import escape
 from pathlib import Path
 
@@ -152,6 +152,20 @@ def render_html(
     # Sort by 1y descending, NaN last
     returns = returns.sort_values("1y", ascending=False, na_position="last").reset_index(drop=True)
 
+    def _fmt_day(ts: pd.Timestamp) -> str:
+        return f"{ts.day} {ts.strftime('%b %Y')}"  # e.g. "29 Jul 2026" (no zero-pad)
+
+    now_utc = datetime.now(timezone.utc)
+    generated_str = f"{_fmt_day(pd.Timestamp(now_utc))} {now_utc.strftime('%H:%M')} UTC"
+    try:
+        asof_str = _fmt_day(pd.Timestamp(asof))
+    except (ValueError, TypeError):
+        asof_str = asof  # fall back to the raw value if unparseable
+    updated_line = (
+        f'<p class="updated">Updated {escape(generated_str)}'
+        f' · prices through {escape(asof_str)}</p>'
+    )
+
     def _fmt_mcap(v) -> str:
         if pd.isna(v):
             return "—"
@@ -269,6 +283,13 @@ def render_html(
     color: #f0f6fc;
     text-align: center;
     font-weight: 700;
+  }}
+  .updated {{
+    text-align: center;
+    color: #8b949e;
+    font-size: 0.85rem;
+    margin: -1.2rem 0 1.6rem 0;
+    letter-spacing: 0.01em;
   }}
   table {{
     width: 100%;
@@ -432,12 +453,14 @@ def render_html(
     tr.detail-row td.detail-cell {{ background: #faf9f2; border-top-color: #ccc; }}
     tbody td, table.constituents tbody td {{ border-bottom-color: #eee; }}
     footer {{ color: #666; border-top-color: #ccc; }}
+    .updated {{ color: #666; }}
   }}
 </style>
 </head>
 <body>
 
 <h1>Pantheon</h1>
+{updated_line}
 
 <table>
   <thead>

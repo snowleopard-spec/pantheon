@@ -431,7 +431,7 @@ The interpreter is invoked explicitly inside `droplet_refresh.sh` (absolute `.ve
 
 ### M6 — phone verification + wrap-up (2026-07-29) — BUILD COMPLETE
 
-User confirmed the report renders on the iPhone over the tailnet URL (H8). `DEPLOY_NOTES.md` written at the repo root (`2852da6`) so it lives at `/root/pantheon/DEPLOY_NOTES.md` via git — covers what was installed, serve config, cron, the git-based weights-update flow (no scp — a restructure dividend), teardown, and the "extending the tailnet" section (add a device / path-based & port-based / serve on new machines, Tailscale SSH as a future project).
+User confirmed the report renders on the iPhone over the tailnet URL (H8). `DEPLOY_NOTES.md` written (`2852da6`, later moved to `docs/Explainers/DEPLOY_NOTES.md`) — covers what was installed, serve config, cron, the git-based weights-update flow (no scp — a restructure dividend), teardown, and the "extending the tailnet" section (add a device / path-based & port-based / serve on new machines, Tailscale SSH as a future project).
 
 **Acceptance criteria (spec §6) — all verified:**
 
@@ -445,3 +445,9 @@ User confirmed the report renders on the iPhone over the tailnet URL (H8). `DEPL
 | Existing services undisturbed | `caddy` / `unicornhunt` / `sonar` / `cron` / `tailscaled` all active; public API vhost responding |
 
 **Outstanding (user-side / future):** H9 VPN-on-demand toggle on the phone (optional); merge `droplet-deploy` → `main` and switch the droplet clone to `main` (`git checkout main && git pull`); Tailscale SSH + Mac-on-tailnet as a follow-up project.
+
+### Post-build polish (2026-07-29, parallel-agent batch)
+
+- `DEPLOY_NOTES.md` moved to `docs/Explainers/DEPLOY_NOTES.md`.
+- `docs/ARCHITECTURE.html` gained section 13 "Daily updates: the droplet and the private network" — concise non-technical account of the nightly refresh, the slim droplet install, tailnet-only serving, and the annual weights flow, with a Mac → git → droplet → tailnet → iPhone SVG diagram reusing the doc's existing styles.
+- The report now shows a freshness banner directly under the title: `Updated 29 Jul 2026 14:27 UTC · prices through 27 Jul 2026` (generation time UTC + latest price bar; muted `#8b949e`, print-safe). Daily-confidence check: on any given day the banner should read ~22:00 UTC of the previous evening.

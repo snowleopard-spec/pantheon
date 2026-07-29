@@ -444,7 +444,9 @@ User confirmed the report renders on the iPhone over the tailnet URL (H8). `DEPL
 | No secrets in repo/crontab | crontab clean; `.env` gitignored, mode 600, Polygon key only |
 | Existing services undisturbed | `caddy` / `unicornhunt` / `sonar` / `cron` / `tailscaled` all active; public API vhost responding |
 
-**Outstanding (user-side / future):** H9 VPN-on-demand toggle on the phone (optional); merge `droplet-deploy` → `main` and switch the droplet clone to `main` (`git checkout main && git pull`); Tailscale SSH + Mac-on-tailnet as a follow-up project.
+**Outstanding (user-side / future):** H9 VPN-on-demand toggle on the phone (optional); Tailscale SSH + Mac-on-tailnet as a follow-up project.
+
+**Merge complete (2026-07-29):** `droplet-deploy` fast-forwarded into `main` (`51dad6e..1459e85`, 20 files) and the branch deleted; the droplet now tracks `main` per D7, verified with a clean refresh + serve intact after the switch.
 
 ### Post-build polish (2026-07-29, parallel-agent batch)
 

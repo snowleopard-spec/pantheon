@@ -419,3 +419,11 @@ Added to root's crontab in the existing entry style (comment line + `cd` into pr
 ```
 
 The interpreter is invoked explicitly inside `droplet_refresh.sh` (absolute `.venv/bin/python`, `$REPO` derived from the script's own path), and `pull_prices` finds `.env` because cron `cd`s into the repo first. **Verify:** ran the exact cron command string by hand — exit 0, clean `logs/cron.log` entry, `/srv/pantheon/index.html` republished 14:15 UTC. No cron-environment PATH dependencies beyond `bash`.
+
+### M5 — Tailscale install + serve (2026-07-29)
+
+- Tailscale **1.98.10** installed via the official script; `tailscale up` auth URL approved by user (H6). Tailnet: **`macaw-dominant.ts.net`**; devices `unicorn-hunt` (100.79.67.34) and `iphone182` both visible (H7). Key expiry **disabled** for the droplet in the admin console (was set to 2027-01-25 — headless servers shouldn't silently drop off after 180 days).
+- Serve configured with the current CLI syntax: `tailscale serve --bg /srv/pantheon` → `https://unicorn-hunt.macaw-dominant.ts.net/` (**tailnet only** — funnel status confirms nothing funneled). Config persists in tailscaled state, survives reboots.
+- Let's Encrypt cert provisioned on first request via Tailscale's DNS-01 flow (`got cert` in journal); stored in `/var/lib/tailscale/certs/`.
+- **Gotcha worth remembering — the spec's self-curl verification is impossible on this box.** `curl https://unicorn-hunt.macaw-dominant.ts.net/` *from the droplet* fails TLS ("alert internal error"): locally-originated traffic to the node's own tailscale IP short-circuits through the host stack and lands on **Caddy's `*:443` wildcard listener**, which has no cert for the ts.net SNI. Proven by connecting to `100.79.67.34:443` with SNI `api.unicornpunk.org` — Caddy answered (HTTP 404 from that vhost). Traffic from *other* tailnet devices arrives over WireGuard and tailscaled diverts serve ports into its netstack before the host stack — Caddy never sees it. Verification therefore moved to the iPhone (H8).
+- **Exposure audit clean:** `ss -tlnp` shows the identical listener set to the pre-build baseline (caddy 80/443/2019-local, sshd 22, uvicorn 8000, resolved 53) plus tailscaled's own ports bound only to tailnet IPs; ufw rules untouched; no funnel; Caddy config untouched.

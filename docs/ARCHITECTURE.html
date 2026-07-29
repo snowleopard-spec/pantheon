@@ -534,27 +534,37 @@
 
 <h2>10. Hardware</h2>
 <p>
-  The pipeline runs on a <strong>DigitalOcean droplet</strong> (cloud Linux
-  server), not for speed but for <em>availability</em>: stage 3 fetches SEC
-  filings for 6&ndash;8 hours at the SEC rate limit, and a laptop losing Wi-Fi
-  or closing its lid mid-run would corrupt or delay it.
+  The project has used two very different machines for two very different
+  jobs, and the distinction is deliberate.
 </p>
 <p>
-  RAM is the constraining resource, driven almost entirely by
-  <strong>stage 4 (embedding shortlist)</strong>. The default model
-  <code>BAAI/bge-large-en-v1.5</code> loads ~1.3&nbsp;GB; PyTorch adds
-  ~500&nbsp;MB, OS overhead another ~500&nbsp;MB, and encoder batches push
-  the peak to <strong>2.5&ndash;3&nbsp;GB</strong>. 4&nbsp;GB is the minimum
-  that runs comfortably; the current 8&nbsp;GB droplet has headroom.
+  <strong>Phase one &mdash; the heavy run (rare, roughly annual).</strong>
+  Computing the weights from scratch &mdash; the long filing download plus
+  embedding and scoring &mdash; ran on a <strong>temporarily rented
+  8&nbsp;GB / 2&nbsp;vCPU DigitalOcean droplet</strong>, chosen for two
+  reasons. <em>Availability:</em> stage 3 fetches SEC filings for hours at
+  the SEC rate limit, and a laptop losing Wi-Fi or closing its lid mid-run
+  would corrupt or delay it. <em>RAM:</em> stage 4&rsquo;s embedding model
+  (<code>BAAI/bge-large-en-v1.5</code>) loads ~1.3&nbsp;GB, PyTorch adds
+  ~500&nbsp;MB, and encoder batches push the peak to
+  <strong>2.5&ndash;3&nbsp;GB</strong> &mdash; beyond what the always-on
+  server could spare. That box existed only for the run: every artefact was
+  copied back, and the droplet was destroyed. (If RAM is ever tight on a
+  future run, swap <code>embedding_model</code> to
+  <code>bge-small-en-v1.5</code> and lower <code>similarity_threshold</code>
+  to ~0.45 to compensate.)
 </p>
 <p>
-  CPU and disk are secondary. Two vCPUs roughly halve stage 4 wall time vs.
-  one; more doesn&rsquo;t help much. Disk usage totals ~6&nbsp;GB (venv,
-  cached model, filings, DB) &mdash; the 160&nbsp;GB the droplet ships with
-  is vast overkill. If RAM is tight, swap <code>embedding_model</code> in
-  <code>config.json</code> to <code>BAAI/bge-small-en-v1.5</code> (~130&nbsp;MB;
-  lower <code>similarity_threshold</code> to ~0.45 to compensate). Every
-  other stage is I/O- or network-bound and runs in a few hundred MB.
+  <strong>Phase two &mdash; daily operation (now).</strong> With the weights
+  frozen, none of that horsepower is needed. The project lives on the
+  existing <strong>small always-on droplet</strong> (1&nbsp;vCPU,
+  ~2&nbsp;GiB RAM, shared with four other services), which is enough because
+  the daily job is just a price pull and an HTML render &mdash; the install
+  there deliberately excludes the whole ML stack, and the refresh peaks
+  around <strong>100&nbsp;MB</strong>. That small box refreshes the report
+  every night and serves it privately to my own devices (see the next
+  section). Big machine rented briefly for the rare heavy compute; small
+  machine owned permanently for the daily loop.
 </p>
 
 <h2>11. Daily updates: the droplet and the private network</h2>

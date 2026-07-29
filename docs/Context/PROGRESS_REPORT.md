@@ -427,3 +427,21 @@ The interpreter is invoked explicitly inside `droplet_refresh.sh` (absolute `.ve
 - Let's Encrypt cert provisioned on first request via Tailscale's DNS-01 flow (`got cert` in journal); stored in `/var/lib/tailscale/certs/`.
 - **Gotcha worth remembering — the spec's self-curl verification is impossible on this box.** `curl https://unicorn-hunt.macaw-dominant.ts.net/` *from the droplet* fails TLS ("alert internal error"): locally-originated traffic to the node's own tailscale IP short-circuits through the host stack and lands on **Caddy's `*:443` wildcard listener**, which has no cert for the ts.net SNI. Proven by connecting to `100.79.67.34:443` with SNI `api.unicornpunk.org` — Caddy answered (HTTP 404 from that vhost). Traffic from *other* tailnet devices arrives over WireGuard and tailscaled diverts serve ports into its netstack before the host stack — Caddy never sees it. Verification therefore moved to the iPhone (H8).
 - **Exposure audit clean:** `ss -tlnp` shows the identical listener set to the pre-build baseline (caddy 80/443/2019-local, sshd 22, uvicorn 8000, resolved 53) plus tailscaled's own ports bound only to tailnet IPs; ufw rules untouched; no funnel; Caddy config untouched.
+- The self-curl trap is written up as a reusable skill note: `docs/Skills/VERIFYING_TAILSCALE_SERVE_LOCALLY.md`.
+
+### M6 — phone verification + wrap-up (2026-07-29) — BUILD COMPLETE
+
+User confirmed the report renders on the iPhone over the tailnet URL (H8). `DEPLOY_NOTES.md` written at the repo root (`2852da6`) so it lives at `/root/pantheon/DEPLOY_NOTES.md` via git — covers what was installed, serve config, cron, the git-based weights-update flow (no scp — a restructure dividend), teardown, and the "extending the tailnet" section (add a device / path-based & port-based / serve on new machines, Tailscale SSH as a future project).
+
+**Acceptance criteria (spec §6) — all verified:**
+
+| Criterion | Evidence |
+|---|---|
+| Daily cron unattended | First real 22:00 UTC run happened overnight: `start 2026-07-28T22:00:01Z … done 22:00:36Z`, republished `index.html` at 22:00 |
+| Reachable via tailnet HTTPS from iPhone | User-confirmed on phone |
+| Unreachable from public internet | From the Mac (off-tailnet): ts.net URL doesn't resolve/connect; even the droplet's **public** IP on 443 with the ts.net SNI refuses the handshake (Caddy, unknown SNI). No funnel, no new listeners, ufw untouched |
+| Frozen weights untouched; no torch | `git status` clean in `definitions/`; lean venv verified torch-free (M1) |
+| No secrets in repo/crontab | crontab clean; `.env` gitignored, mode 600, Polygon key only |
+| Existing services undisturbed | `caddy` / `unicornhunt` / `sonar` / `cron` / `tailscaled` all active; public API vhost responding |
+
+**Outstanding (user-side / future):** H9 VPN-on-demand toggle on the phone (optional); merge `droplet-deploy` → `main` and switch the droplet clone to `main` (`git checkout main && git pull`); Tailscale SSH + Mac-on-tailnet as a follow-up project.

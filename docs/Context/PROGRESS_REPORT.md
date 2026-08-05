@@ -491,3 +491,9 @@ User approved all four recommendations; executed ahead of Wave 2 so integration 
 - **Disk-only deletions** (gitignored, no commit): 19 of 20 `data/minidex.db.*.bak` snapshots (~49 MB reclaimed; `scored_v16.bak` kept — it's the droplet-bootstrap seed the runbooks name); the six superseded `outputs/2026-07-24*` pilot dirs (932 KB).
 - Suite after cleanup: **217 passed** (exactly the 5 dead-script tests fewer), same 6 pre-existing anchor failures, 3 skipped. Working tree fully clean.
 - Deferred to Wave 3 docs pass: README gains the three undocumented CLI commands; fix the stale §9 next-steps pointer this audit flagged.
+
+### Wave 2 — bucket_returns.py integration (2026-08-05) — M3 gate
+
+Single-owner rewrite landed (one commit). Compute: config-driven settings with CLI override, `weight_cap_score_aug` derived per bucket (verified across all 22 buckets: weights sum to 1, cap respected, cap binds in 20/22 at m=3), Sharpe wired at index + constituent + benchmark level, medians under each return. Frontend: pinned QQQ row in its own `<tbody>` (structurally exempt from sorting), sortable main table with paired detail-row movement, wireframe chevron sort indicators, all §2 label fixes, lazy uPlot charts with 1Y–1W buttons, footer rewritten, Architecture link in the header line.
+
+Verification: renders clean both weight methods (1.66 MB page); structural greps confirm every added/removed element; all three inline script blocks compile under node; suite unchanged (217 passed + the 6 pre-existing anchor failures). Browser automation unavailable this session — visual pass is the user's at the M3 gate.

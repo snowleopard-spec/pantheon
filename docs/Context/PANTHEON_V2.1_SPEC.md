@@ -63,11 +63,18 @@ All in `render_html()` / `_constituent_table()` in `scripts/bucket_returns.py`:
 "report": {
   "sharpe_window": "3m",
   "benchmark_ticker": "QQQ",
-  "weight_col": "weight_score"
+  "weight_col": "weight_score",
+  "_valid_values": {
+    "sharpe_window": ["1y", "6m", "3m", "1m", "1w"],
+    "weight_col": ["weight_score", "weight_cap_score", "weight_equal"],
+    "benchmark_ticker": "any ticker Polygon serves (ETFs included)"
+  }
 }
 ```
 
 Read by both `bucket_returns.py` and `pull_prices.py` with stdlib `json` (per D5/D6).
+
+JSON has no comments, so `_valid_values` is the in-file documentation of what each key accepts: underscore-prefixed keys are ignored by the loader. The loader validates the *actual* settings against the same lists hardcoded in `report_metrics.py` (the source of truth — editing `_valid_values` can't unlock new values) and exits with a clear message on an invalid value rather than rendering something silently wrong.
 
 `weight_col` moves the index-weighting method into config: `weight_score` (score-normalized, today's behavior), `weight_cap_score` (market-cap × score), or `weight_equal`. Today this exists only as the `--weight-col` CLI flag, which the droplet cron never passes — so the method is effectively hardcoded. After v2.1, edit `config.json` (git-tracked: commit → push → droplet pulls nightly) and the report follows. Precedence: explicit CLI flag > `config.json` > built-in default, matching the existing `MINIDEX_*` convention.
 
@@ -87,7 +94,7 @@ No new Python packages. The droplet's lean profile is untouched.
 | File | Purpose |
 |---|---|
 | `scripts/report_metrics.py` | **The key structural decision enabling parallel work.** A pure-compute module (pandas/numpy/stdlib only, no `minidex` imports) holding everything M2 adds: `load_report_config()` (stdlib-`json` read of the root `config.json` `report` block, with defaults), `daily_returns(prices, tickers, window_days, min_start_price)` (per-ticker daily simple-return series with the penny-filter applied at window start), `sharpe(series)` (D1: mean ÷ std ddof=1 × √252, guards: <10 obs or zero std → `None`), `bucket_daily_series(weights, daily_returns, weight_col)` (daily-renormalized weighted index series), and `median_constituent_returns(...)`. Imported by `bucket_returns.py` as a same-directory import (`scripts/` lands on `sys.path` when run as a script — same mechanism the droplet cron already relies on). |
-| `tests/test_report_metrics.py` | Unit tests for the above, importing via the established `sys.path.insert(0, scripts/)` pattern from `tests/test_performance.py`. Cases: Sharpe on a hand-computed series, annualization factor, <10-obs and zero-std guards, daily renormalization when a member is missing a bar, penny-filter consistency with the returns table, median with per-window membership differences, config defaults when the `report` block is absent. |
+| `tests/test_report_metrics.py` | Unit tests for the above, importing via the established `sys.path.insert(0, scripts/)` pattern from `tests/test_performance.py`. Cases: Sharpe on a hand-computed series, annualization factor, <10-obs and zero-std guards, daily renormalization when a member is missing a bar, penny-filter consistency with the returns table, median with per-window membership differences, config defaults when the `report` block is absent, loud rejection of invalid `sharpe_window`/`weight_col` values. |
 | `assets/vendor/uPlot.iife.min.js` + `assets/vendor/uPlot.min.css` | Vendored uPlot v1.6.x (MIT), committed verbatim with a `VERSION` note. Inlined into the HTML at render time. |
 
 ### 6.2 Edited files

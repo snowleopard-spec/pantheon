@@ -891,7 +891,10 @@ def main() -> None:
     chart_prices = chart_prices.sort_values(["ticker", "date"])
     chart_data: dict[str, list] = {}
     for t, g in chart_prices.groupby("ticker"):
-        ts = (g["date"].astype("int64") // 10**9).tolist()
+        # Cast to second-precision before taking the int64 view: pandas may
+        # parse CSV dates as datetime64[us] (or [s]), so a blind // 10**9
+        # of the raw int64 silently yields garbage epochs.
+        ts = g["date"].astype("datetime64[s]").astype("int64").tolist()
         px = [round(float(c), 4) for c in g["close"]]
         chart_data[t] = [ts, px]
     chart_json = json.dumps(chart_data, separators=(",", ":"))
@@ -903,6 +906,14 @@ def main() -> None:
     out_path.write_text(html, encoding="utf-8")
     print(f"bucket_returns: wrote {out_path} ({len(returns)} buckets, "
           f"{len(html)/1e6:.2f} MB)")
+
+    # Publish the architecture page alongside the report so the header link
+    # works both locally and on the droplet (which serves the whole dir).
+    arch_src = REPO_ROOT / "docs" / "ARCHITECTURE.html"
+    if arch_src.exists():
+        arch_out = out_path.parent / "architecture.html"
+        arch_out.write_bytes(arch_src.read_bytes())
+        print(f"bucket_returns: copied architecture page to {arch_out}")
 
     # Also print a small table to stdout
     display_df = returns.copy()

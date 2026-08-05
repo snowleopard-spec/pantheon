@@ -62,11 +62,14 @@ All in `render_html()` / `_constituent_table()` in `scripts/bucket_returns.py`:
 ```json
 "report": {
   "sharpe_window": "3m",
-  "benchmark_ticker": "QQQ"
+  "benchmark_ticker": "QQQ",
+  "weight_col": "weight_score"
 }
 ```
 
 Read by both `bucket_returns.py` and `pull_prices.py` with stdlib `json` (per D5/D6).
+
+`weight_col` moves the index-weighting method into config: `weight_score` (score-normalized, today's behavior), `weight_cap_score` (market-cap × score), or `weight_equal`. Today this exists only as the `--weight-col` CLI flag, which the droplet cron never passes — so the method is effectively hardcoded. After v2.1, edit `config.json` (git-tracked: commit → push → droplet pulls nightly) and the report follows. Precedence: explicit CLI flag > `config.json` > built-in default, matching the existing `MINIDEX_*` convention.
 
 ## 5. New dependencies
 

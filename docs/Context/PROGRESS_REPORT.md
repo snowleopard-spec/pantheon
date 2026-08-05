@@ -162,7 +162,7 @@ uv sync
 
 **Pilot ticker list** for `--tickers` flags is cached at `/tmp/pilot_tickers.txt` locally but that path is ephemeral — regenerate from the YAML anchors + AVGO,DELL,ETN,VST,ARW,IBM if needed for a pilot-scope re-run.
 
-**Immediate next action** for the next session: the pipeline has produced its first full-universe output. Downstream now belongs to the user — inspect `outputs/2026-07-25/minidex_weights.csv`, iterate on weighting schemes (custom cap, sqrt-cap, blended), wire it up to `scripts/performance.py` with a prices CSV for cumulative bucket returns. The droplet can be destroyed (`doctl compute droplet delete <id>` or via the DO console). Next full refresh is annual per spec — the runbook at `docs/DEPLOY_TO_DROPLET.md` walks through spinning up a fresh droplet from scratch.
+**Immediate next action** for the next session: the pipeline has produced its first full-universe output. Downstream now belongs to the user — inspect the frozen weights (canonical copy: `definitions/minidex_weights.csv`; the dated archive from this run: `outputs/2026-07-25/`), iterate on weighting schemes (custom cap, sqrt-cap, blended), and track returns via `scripts/pull_prices.py` + `scripts/bucket_returns.py`. (The legacy `scripts/performance.py` backtester this note originally pointed at was deleted in v2.1, superseded by the live report.) The droplet can be destroyed (`doctl compute droplet delete <id>` or via the DO console). Next full refresh is annual per spec — the runbook at `docs/Skills/DEPLOY_TO_DROPLET.md` walks through spinning up a fresh droplet from scratch.
 
 ## 12. Droplet spinup and bootstrap (2026-07-25)
 

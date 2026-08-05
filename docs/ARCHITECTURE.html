@@ -42,6 +42,14 @@
     font-size: 0.85rem;
     margin-top: -0.4rem;
   }
+  .report-link {
+    display: inline-block;
+    color: #999;
+    font-size: 0.8rem;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+  }
+  .report-link:hover { color: #555; text-decoration: underline; }
   table {
     border-collapse: collapse;
     width: 100%;
@@ -92,6 +100,7 @@
   }
   @media print {
     body { margin: 0; font-size: 11pt; max-width: none; }
+    .report-link { display: none; }
     h2 { page-break-after: avoid; }
     .diagram, table, .callout { page-break-inside: avoid; }
   }
@@ -99,6 +108,7 @@
 </head>
 <body>
 
+<a class="report-link" href="./">← Back to the report</a>
 <h1>Project Pantheon</h1>
 <p style="color:#6b6b6b; font-style: italic; margin-top: -0.5rem;">The mini-dex thematic index construction pipeline.</p>
 <p class="subtitle">A non-technical guide to how the pipeline turns 8,000 SEC filings into 22 thematic stock baskets.</p>
@@ -329,7 +339,7 @@
     <tr><td>SEC EDGAR (via <code>edgartools</code>)</td><td>The master list of US public filers, each company&rsquo;s SIC industry code, the latest 10-K annual report, and the machine-readable XBRL tags inside it that give segment revenue.</td></tr>
     <tr><td>Anthropic Message Batches API</td><td>The only paid input. Powers stage 5 scoring (revenue-fraction estimation per bucket) and the optional stage 3.5 segment extraction. Batches let us submit tens of thousands of prompts as one job at a discount.</td></tr>
     <tr><td>HuggingFace <code>BAAI/bge-large-en-v1.5</code></td><td>Runs locally to turn text into embeddings for the stage 4 shortlist. Free, offline, deterministic. A smaller variant is available for faster iteration.</td></tr>
-    <tr><td>Yahoo Finance (via <code>yfinance</code>)</td><td>Recent share prices for computing market cap in stage 3, and optional price history for the stand-alone back-test script.</td></tr>
+    <tr><td>Yahoo Finance (via <code>yfinance</code>)</td><td>Recent share prices for computing market cap in stage 3. (Daily price history for the returns report comes from Polygon.io &mdash; see section 7.)</td></tr>
     <tr><td>SQLite (stdlib)</td><td>A single local database file that stores everything each stage produces so the next stage can pick it up without re-running the previous one.</td></tr>
   </tbody>
 </table>
@@ -369,19 +379,30 @@
     <tr>
       <td><code>scripts/pull_prices.py</code></td>
       <td>Fetches adjusted daily closes from Polygon.io for every ticker in a
-      weights CSV (8 concurrent workers, retries 429s, tolerates 404s). Writes
-      <code>data/prices.csv</code>. Requires <code>POLYGON_API_KEY</code>.</td>
+      weights CSV, plus the configured benchmark ticker
+      (<code>report.benchmark_ticker</code> in <code>config.json</code>,
+      default QQQ) &mdash; 8 concurrent workers, retries 429s, tolerates 404s.
+      Incremental by default. Writes <code>data/prices.csv</code>. Requires
+      <code>POLYGON_API_KEY</code>.</td>
     </tr>
     <tr>
       <td><code>scripts/bucket_returns.py</code></td>
       <td>Computes trailing <strong>1y / 6m / 3m / 1m / 1w</strong> returns per
-      bucket as <code>&Sigma;(weight &times; ticker_return)</code> with
-      per-window renormalisation. Writes an interactive HTML report titled
-      &ldquo;Pantheon,&rdquo; sorted by 1-year, red/green formatted. Click any
-      bucket to expand its constituent list (ticker, company name, weight,
-      score, market cap, confidence) &mdash; company names looked up from
-      <code>data/minidex.db</code>. Weight scheme selectable via
-      <code>--weight-col</code> (default <code>weight_score</code>).</td>
+      sub-index as <code>&Sigma;(weight &times; ticker_return)</code> with
+      per-window renormalisation, plus an annualised Sharpe ratio over a
+      configurable window (default 3 months). Writes an interactive HTML
+      report titled &ldquo;Pantheon&rdquo;: a pinned QQQ benchmark row on top,
+      one row per sub-index with the median constituent&rsquo;s return shown
+      under each weighted figure, and sortable Sharpe and return columns.
+      Click a sub-index to expand its constituent list (ticker, company name,
+      index weight, score, market cap, confidence, Sharpe, returns &mdash;
+      company names looked up from <code>data/minidex.db</code>); click a
+      constituent to open its daily price chart (vendored uPlot, inlined
+      &mdash; the page stays fully self-contained). Weight scheme comes from
+      <code>report.weight_col</code> in <code>config.json</code>
+      (<code>--weight-col</code> overrides), including the render-time-derived
+      capped scheme <code>weight_cap_score_aug</code>. Also copies this
+      architecture page next to the report so the two link to each other.</td>
     </tr>
   </tbody>
 </table>
@@ -398,6 +419,11 @@
   <code>SEC_USER_AGENT</code>) stay in <code>.env</code>. Precedence:
   environment variable (<code>MINIDEX_&lt;NAME&gt;</code>) beats JSON beats
   hardcoded default &mdash; file-based defaults with per-run overrides.
+  A separate <code>report</code> block in the same file holds the
+  returns-report knobs (<code>sharpe_window</code>,
+  <code>benchmark_ticker</code>, <code>weight_col</code>,
+  <code>weight_cap_m</code>); its <code>_valid_values</code> key documents
+  the accepted values in-file, since JSON has no comments.
 </p>
 <table>
   <thead>
@@ -434,8 +460,11 @@
       <td>
         Minimum LLM score required for a company to be included in a
         bucket's final composition (stage 7). Rows below the floor are
-        dropped as immaterial exposure. Anchor tickers can override the
-        floor via <code>anchor_min_weight</code>.
+        dropped as immaterial exposure. Currently set to <code>0.25</code>
+        in <code>config.json</code> (raised from 0.10 in v2.1, trimming the
+        frozen composition to 340 memberships across the 22 buckets).
+        Anchor tickers can override the floor via
+        <code>anchor_min_weight</code>.
       </td>
     </tr>
     <tr>
@@ -526,9 +555,15 @@
 </table>
 <p>
   From the CSV alone you can derive further variants without re-running the
-  pipeline &mdash; a max-weight cap, square-root or log cap-weighting, blended
-  schemes, or confidence-filtered subsets. The heavy work is already done;
-  iterating on weighting is a small pandas script.
+  pipeline &mdash; square-root or log cap-weighting, blended schemes, or
+  confidence-filtered subsets. The returns report already does exactly this
+  with its fourth, render-time-derived scheme:
+  <code>weight_cap_score_aug</code> caps any single name at
+  <code>m/N</code> of its bucket (m = <code>report.weight_cap_m</code>,
+  default 3; N = member count) and redistributes the excess proportionally
+  until no name exceeds the cap &mdash; the frozen CSV is never touched. The
+  heavy work is already done; iterating on weighting is a small pandas
+  script.
 </p>
 
 <h2>10. Hardware</h2>
@@ -582,6 +617,13 @@
   never re-scores anything. It just re-prices the same baskets each day.
 </p>
 <p>
+  The report itself is the v2.1 page described in section 7: a pinned QQQ
+  benchmark row for comparison, an annualised Sharpe column next to the five
+  return windows, the median constituent&rsquo;s return under each weighted
+  figure, sortable columns, and a price chart behind every constituent row
+  &mdash; all in one self-contained HTML file, no external assets.
+</p>
+<p>
   The rendered page is published to a fixed spot (<code>/srv/pantheon/index.html</code>)
   and served <em>only</em> over the owner&rsquo;s private Tailscale network (a
   &ldquo;tailnet&rdquo; &mdash; a personal VPN that links your own devices) at
@@ -589,6 +631,10 @@
   real certificate, but the address is invisible and unreachable from the public
   internet. On the iPhone, with the Tailscale app signed in, it opens like any
   website &mdash; and it&rsquo;s pinned to the home screen like an app.
+  Two pages are published together: the report at the site root and this
+  architecture page beside it as <code>architecture.html</code>. The
+  report&rsquo;s header links here; the link at the top of this page leads
+  back.
 </p>
 <div class="callout">
   Nothing public changed on the droplet: no new open ports, and the existing public
@@ -664,7 +710,7 @@
 
 <h3>Anchor weight floor (Stage 7 index construction)</h3>
 <p>
-  Some legitimate anchors still score below the 0.10 <code>score_floor</code> that
+  Some legitimate anchors still score below the <code>score_floor</code> (currently 0.25) that
   excludes immaterial exposures. Stage 7 guarantees representation via an anchor-weight
   floor: any anchor gets at least <code>anchor_min_weight</code> (default 5%) of its
   bucket's <code>weight_cap_score</code>, even at score zero. Below-floor anchors

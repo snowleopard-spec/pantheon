@@ -909,10 +909,14 @@ def main() -> None:
 
     # Publish the architecture page alongside the report so the header link
     # works both locally and on the droplet (which serves the whole dir).
+    # The doc's back-link is href="./" (correct at the droplet site root,
+    # where the report is index.html); rewrite it for this file:// copy.
     arch_src = REPO_ROOT / "docs" / "ARCHITECTURE.html"
     if arch_src.exists():
         arch_out = out_path.parent / "architecture.html"
-        arch_out.write_bytes(arch_src.read_bytes())
+        arch_html = arch_src.read_text(encoding="utf-8")
+        arch_html = arch_html.replace('href="./"', f'href="{out_path.name}"')
+        arch_out.write_text(arch_html, encoding="utf-8")
         print(f"bucket_returns: copied architecture page to {arch_out}")
 
     # Also print a small table to stdout

@@ -32,4 +32,11 @@ fi
 install -m 644 outputs/bucket_returns.html "$DEST.tmp" && mv "$DEST.tmp" "$DEST" \
     || { echo "error: publish to $DEST failed" >&2; exit 1; }
 
+# Second page (v2.1): the architecture doc, linked from the report header.
+# Published from docs/ (its "./" back-link resolves to the report at the site
+# root). Non-fatal: the report is the critical artifact.
+ARCH_DEST="/srv/pantheon/architecture.html"
+install -m 644 docs/ARCHITECTURE.html "$ARCH_DEST.tmp" && mv "$ARCH_DEST.tmp" "$ARCH_DEST" \
+    || echo "warn: publish to $ARCH_DEST failed; report still refreshed"
+
 echo "=== pantheon refresh done $(date -u +%FT%TZ) ==="

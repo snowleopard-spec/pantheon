@@ -482,3 +482,12 @@ Brief: `docs/Context/New Prompt.md`. Spec with resolved decisions: `docs/Context
 - **Agent D — cleanup audit (read-only)**: full findings delivered for the H2 gate. Headlines: `performance.py` + its tests confidently dead (only importer is its own test file; nothing runnable invokes it; its output CSV exists nowhere — never successfully run against a promoted archive); `.bak` snapshots total 53 MB disk-only, but two runbooks name `scored_v16.bak` as the droplet-bootstrap seed, so keep-one-delete-19 proposed; `outputs/2026-07-24*` (932 KB, ignored) zero-referenced; dead-code sweep found the `_pick_recent_fact` cluster in `minidex/edgar.py` (~90 lines, zero callers) and 5 unused imports; all CLI commands and config keys live (three commands are README gaps, not dead code); `PROGRESS_REPORT.md` §9's next-steps pointer flagged as the one genuinely misleading stale reference.
 - Pre-existing baseline confirmed at wave close: the 6 `test_anchors.py` data-driven failures fail identically with all Wave 1 changes stashed. Full suite otherwise green (222 passed).
 - **Wave 1 closed; awaiting H2 (cleanup-list approval) before deletions. Wave 2 (single-owner `bucket_returns.py` integration) is next.**
+
+### H2 gate — cleanup executed (2026-08-05)
+
+User approved all four recommendations; executed ahead of Wave 2 so integration starts from a clean tree (spec had it in Wave 3 — harmless reorder, logged):
+
+- **Repo deletions** (`aaf17a7`): `scripts/performance.py` + `tests/test_performance.py`; the dead `_pick_recent_fact` cluster in `minidex/edgar.py` (~90 lines); five unused imports; the backtester's `ARCHITECTURE.html` table row; and the user's pending deletion of `PANTHEON_FRONTEND_SPEC.html` (unused redesign mockup).
+- **Disk-only deletions** (gitignored, no commit): 19 of 20 `data/minidex.db.*.bak` snapshots (~49 MB reclaimed; `scored_v16.bak` kept — it's the droplet-bootstrap seed the runbooks name); the six superseded `outputs/2026-07-24*` pilot dirs (932 KB).
+- Suite after cleanup: **217 passed** (exactly the 5 dead-script tests fewer), same 6 pre-existing anchor failures, 3 skipped. Working tree fully clean.
+- Deferred to Wave 3 docs pass: README gains the three undocumented CLI commands; fix the stale §9 next-steps pointer this audit flagged.

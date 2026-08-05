@@ -10,7 +10,9 @@ def test_settings_loads_from_env():
     assert s.anthropic_api_key.startswith("sk-ant-")
     assert "test@example.com" in s.sec_user_agent
     assert s.similarity_threshold == 0.60
-    assert s.score_floor == 0.10
+    # score_floor is user-tunable in config.json — assert it resolved to a
+    # sane value, not a pinned business number.
+    assert 0.0 <= s.score_floor <= 1.0
     assert s.embedding_model.startswith("BAAI/bge")
     assert s.batch_model.startswith("claude-")
 

@@ -354,7 +354,6 @@
     <tr><td><code>qc.py</code></td><td>Stage 6: produces a human-readable Markdown report of anchor-ticker sanity checks, run-to-run disagreements, borderline scores, and per-bucket member counts.</td></tr>
     <tr><td><code>indices.py</code></td><td>Stage 7: joins scores to market cap, computes three weight schemes per bucket (equal, score, score &times; cap), and freezes the run to <code>outputs/&lt;date&gt;/</code> with a manifest.</td></tr>
     <tr><td><code>cli.py</code></td><td>Thin Typer dispatcher that maps <code>minidex &lt;stage&gt;</code> commands to the module functions above; contains no business logic.</td></tr>
-    <tr><td><code>scripts/performance.py</code></td><td>Standalone static back-test: reads a frozen weights file and a price history, holds weights constant from the freeze date, and prints cumulative return per bucket.</td></tr>
   </tbody>
 </table>
 

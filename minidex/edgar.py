@@ -10,7 +10,7 @@ import json
 import logging
 from datetime import date
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from minidex import config, db
 
@@ -220,48 +220,6 @@ def _extract_segments(filing: Any, company: Any = None) -> list[dict]:
     return out
 
 
-def _fact_segment(fact: Any) -> str | None:
-    for attr in ("segment", "member", "dimension"):
-        val = getattr(fact, attr, None)
-        if val:
-            return str(val)
-    if isinstance(fact, dict):
-        for k in ("segment", "member", "dimension"):
-            if fact.get(k):
-                return str(fact[k])
-    return None
-
-
-def _fact_number(fact: Any) -> float | None:
-    for attr in ("value", "numeric_value", "amount"):
-        val = getattr(fact, attr, None)
-        if val is not None:
-            try:
-                return float(val)
-            except (TypeError, ValueError):
-                continue
-    if isinstance(fact, dict):
-        for k in ("value", "numeric_value", "amount"):
-            if fact.get(k) is not None:
-                try:
-                    return float(fact[k])
-                except (TypeError, ValueError):
-                    continue
-    return None
-
-
-def _fact_period(fact: Any) -> str | None:
-    for attr in ("period", "end_date", "period_end"):
-        val = getattr(fact, attr, None)
-        if val:
-            return str(val)
-    if isinstance(fact, dict):
-        for k in ("period", "end_date", "period_end"):
-            if fact.get(k):
-                return str(fact[k])
-    return None
-
-
 def _extract_market_cap(company: Any, ticker: str) -> tuple[float, str] | None:
     """Return (market_cap, asof_yyyy_mm_dd) from EDGAR shares × yfinance price.
 
@@ -310,41 +268,6 @@ def _latest_close_yf(ticker: str) -> tuple[float | None, str | None]:
     except Exception as exc:
         logger.debug("yfinance history failed for %s: %s", ticker, exc)
         return None, None
-
-
-def _pick_recent_fact(facts: Any, concepts: tuple[str, ...]) -> tuple[float, str] | None:
-    """Extract (value, asof) for the most recent occurrence of any concept."""
-    for concept in concepts:
-        rows = _facts_rows(facts, concept)
-        best: tuple[float, str] | None = None
-        for row in rows:
-            val = _fact_number(row)
-            asof = _fact_period(row)
-            if val is None or asof is None:
-                continue
-            if best is None or asof > best[1]:
-                best = (val, asof)
-        if best is not None:
-            return best
-    return None
-
-
-def _facts_rows(facts: Any, concept: str) -> list[Any]:
-    """Return facts for a given concept across a few known shapes."""
-    try:
-        if hasattr(facts, "query"):
-            return list(facts.query(concept=concept))
-        if hasattr(facts, "get_fact"):
-            r = facts.get_fact(concept)
-            return list(r) if r is not None else []
-        if isinstance(facts, dict):
-            v = facts.get(concept)
-            if v is None:
-                return []
-            return list(v) if isinstance(v, list) else [v]
-    except Exception:
-        return []
-    return []
 
 
 def _fmt_date(value: Any) -> str:

@@ -1,5 +1,8 @@
 """Pull daily closing prices from Polygon.io for every ticker in a
-minidex weights CSV. Saves to data/prices.csv with columns (date,ticker,close).
+minidex weights CSV, plus the report benchmark ticker (`report.benchmark_ticker`
+in config.json, default QQQ), which is unioned into the fetch list so the
+droplet cron picks it up with no extra flags.
+Saves to data/prices.csv with columns (date,ticker,close).
 
 Incremental by default: if data/prices.csv already exists, only fetches
 bars newer than the latest cached date per ticker (and full lookback for
@@ -28,6 +31,12 @@ from pathlib import Path
 import pandas as pd
 import requests
 from dotenv import load_dotenv
+
+# Same-directory import: scripts/ is on sys.path when run as a script
+# (the mechanism the droplet cron relies on). A missing report_metrics
+# module is a loud failure by design — silently dropping the benchmark
+# ticker would be worse.
+import report_metrics
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BASE_URL = "https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/day/{start}/{end}"
@@ -144,7 +153,9 @@ def main() -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     weights_df = pd.read_csv(weights_path)
-    tickers = sorted(set(weights_df["ticker"].astype(str).str.upper()))
+    tickers = set(weights_df["ticker"].astype(str).str.upper())
+    benchmark = str(report_metrics.load_report_config()["benchmark_ticker"]).upper()
+    tickers = sorted(tickers | {benchmark})
     end = date.today()
     full_start = end - timedelta(days=args.days)
 

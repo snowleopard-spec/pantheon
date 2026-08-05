@@ -77,19 +77,58 @@ Read by both `bucket_returns.py` and `pull_prices.py` with stdlib `json` (per D5
 
 No new Python packages. The droplet's lean profile is untouched.
 
-## 6. Milestones
+## 6. File plan
+
+### 6.1 New files
+
+| File | Purpose |
+|---|---|
+| `scripts/report_metrics.py` | **The key structural decision enabling parallel work.** A pure-compute module (pandas/numpy/stdlib only, no `minidex` imports) holding everything M2 adds: `load_report_config()` (stdlib-`json` read of the root `config.json` `report` block, with defaults), `daily_returns(prices, tickers, window_days, min_start_price)` (per-ticker daily simple-return series with the penny-filter applied at window start), `sharpe(series)` (D1: mean ÷ std ddof=1 × √252, guards: <10 obs or zero std → `None`), `bucket_daily_series(weights, daily_returns, weight_col)` (daily-renormalized weighted index series), and `median_constituent_returns(...)`. Imported by `bucket_returns.py` as a same-directory import (`scripts/` lands on `sys.path` when run as a script — same mechanism the droplet cron already relies on). |
+| `tests/test_report_metrics.py` | Unit tests for the above, importing via the established `sys.path.insert(0, scripts/)` pattern from `tests/test_performance.py`. Cases: Sharpe on a hand-computed series, annualization factor, <10-obs and zero-std guards, daily renormalization when a member is missing a bar, penny-filter consistency with the returns table, median with per-window membership differences, config defaults when the `report` block is absent. |
+| `assets/vendor/uPlot.iife.min.js` + `assets/vendor/uPlot.min.css` | Vendored uPlot v1.6.x (MIT), committed verbatim with a `VERSION` note. Inlined into the HTML at render time. |
+
+### 6.2 Edited files
+
+| File | Changes |
+|---|---|
+| `scripts/bucket_returns.py` | The only heavily edited `.py`. Compute side: import `report_metrics`, wire Sharpe (index + constituent), medians, and the benchmark row into the returns assembly; embed the price-history JSON. Render side: all §2 label/column fixes, pinned QQQ row, median sub-lines, Sharpe columns, sortable main table with paired detail-row movement, wireframe sort arrows, chart rows + period buttons, inlined uPlot, rewritten footer. |
+| `scripts/pull_prices.py` | Small: union `report.benchmark_ticker` from `load_report_config()` into the ticker list. |
+| `config.json` | Add the `report` block (§4). |
+| `docs/Explainers/OUTPUT_COLUMNS.md` | Document Index Weight relabel, Sharpe column, median line, benchmark row. |
+| `docs/Context/PROGRESS_REPORT.md` | §15 build log, updated at each milestone. |
+
+Not touched: everything under `minidex/`, `scripts/droplet_refresh.sh`, `scripts/performance.py`, the weights CSV, cron, serving.
+
+## 7. Parallel execution plan
+
+Ground rules: **exactly one writer per file per wave** (the repo's real constraint — `bucket_returns.py` is a single 611-line file with interleaved Python/CSS/JS, so it gets a single owner whenever it's open for edits); parallel agents are used where file ownership is disjoint; each wave ends with the orchestrating session integrating, running tests, and committing before the next wave starts.
+
+**Wave 1 — foundations (3 agents in parallel, disjoint files):**
+- *Agent A — metrics module:* write `scripts/report_metrics.py` + `tests/test_report_metrics.py` against the interface contract in §6.1; run pytest to green. The contract is fixed here in the spec precisely so Wave 2 can build against it without waiting.
+- *Agent B — benchmark plumbing:* edit `scripts/pull_prices.py` + `config.json`; verify with a live one-ticker QQQ pull into `data/prices.csv`.
+- *Agent C — uPlot vendoring:* fetch and commit `assets/vendor/` files, pin the version, smoke-test the IIFE in a minimal local HTML page.
+
+**Wave 2 — integration (sequential, single owner):** one agent (or the main session) makes all `bucket_returns.py` changes — compute wiring first, then the §2 fixes and §3 frontend features — rendering locally after each chunk. Sequential because every change lands in the same file; splitting it across agents would trade a fake speedup for merge conflicts.
+
+**Wave 3 — verification + docs (parallel again, disjoint):**
+- *Agent D — docs:* `OUTPUT_COLUMNS.md` update + footer-copy cross-check against actual behavior.
+- *Agent E — adversarial review:* full test suite, fresh render from real data, and a browser pass over the artifact: expand/collapse, every sortable header both directions, QQQ pinned under sort, chart open + all five period buttons, print stylesheet, page weight sanity (~2 MB).
+
+Waves map onto the milestones: Wave 1 = first half of M2, Wave 2 = rest of M2 + M3, Wave 3 = M4's pre-merge half. Merge, tag, and droplet refresh stay with the main session (deploy actions aren't parallelizable and shouldn't be delegated).
+
+## 8. Milestones
 
 - **M1 — Spec + branch** (this document): branch `v2.1-upgrades` created; spec + brief committed. *Gate: user review of this spec.*
-- **M2 — Compute layer**: config plumbing, QQQ pull, daily-return-series builder, index + constituent Sharpe, median-constituent returns; new `tests/test_bucket_returns.py` (Sharpe on a known series, median logic, daily-renormalization, penny-filter consistency); stdout table gains the Sharpe column. *Verify: pytest green, local pull + render runs clean.*
-- **M3 — Frontend**: all §2 fixes, benchmark row, median lines, Sharpe columns, sortable main table, wireframe sort arrows, uPlot charts + period buttons. *Verify: local render inspected in browser (expand, sort, chart, print stylesheet).*
-- **M4 — Docs + release**: update `docs/Explainers/OUTPUT_COLUMNS.md` and footer-adjacent docs; PROGRESS_REPORT §15 finalized; merge to `main`, tag `v2.1`, droplet `git pull` + manual refresh; tailnet verification from the phone (H2).
+- **M2 — Compute layer** (= Wave 1 + the compute half of Wave 2): config plumbing, QQQ pull, `report_metrics.py` + `tests/test_report_metrics.py`, index + constituent Sharpe, median-constituent returns wired into the assembly; stdout table gains the Sharpe column. *Verify: pytest green, local pull + render runs clean.*
+- **M3 — Frontend** (= the render half of Wave 2): all §2 fixes, benchmark row, median lines, Sharpe columns, sortable main table, wireframe sort arrows, uPlot charts + period buttons. *Verify: local render inspected in browser (expand, sort, chart, print stylesheet).*
+- **M4 — Docs + release** (= Wave 3, then main-session deploy): docs agents + adversarial review agent; PROGRESS_REPORT §15 finalized; merge to `main`, tag `v2.1`, droplet `git pull` + manual refresh; tailnet verification from the phone (H2).
 
-## 7. Human actions
+## 9. Human actions
 
 - **H1** — review this spec; give the go-ahead for M2.
 - **H2** — after the M4 droplet refresh, confirm the upgraded report renders on the iPhone over the tailnet URL (the droplet cannot self-verify — see `docs/Skills/VERIFYING_TAILSCALE_SERVE_LOCALLY.md`).
 
-## 8. Out of scope
+## 10. Out of scope
 
 - The deleted `PANTHEON_FRONTEND_SPEC.html` "carved-stone-ledger" redesign mockup — v2.1 keeps the current GitHub-dark theme. (The mockup's deletion sits uncommitted in the working tree; disposition is the user's call at the M1 gate.)
 - OHLC/volume/intraday data — charts are close-only lines, matching the data on hand. Polygon returns OHLCV, so a candlestick upgrade is possible later by widening `pull_prices.py`.

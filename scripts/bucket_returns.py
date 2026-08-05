@@ -897,7 +897,9 @@ def main() -> None:
         ts = g["date"].astype("datetime64[s]").astype("int64").tolist()
         px = [round(float(c), 4) for c in g["close"]]
         chart_data[t] = [ts, px]
-    chart_json = json.dumps(chart_data, separators=(",", ":"))
+    # Harden against script-block breakout: json.dumps doesn't escape "</",
+    # so a hostile ticker string could otherwise close the <script> tag.
+    chart_json = json.dumps(chart_data, separators=(",", ":")).replace("</", "<\\/")
 
     asof = str(prices["date"].max())  # latest price bar = the report's true as-of date
     html = render_html(returns, weights, weight_col, asof, company_names,
@@ -915,6 +917,10 @@ def main() -> None:
     if arch_src.exists():
         arch_out = out_path.parent / "architecture.html"
         arch_html = arch_src.read_text(encoding="utf-8")
+        if 'href="./"' not in arch_html:
+            print("bucket_returns: warn — architecture page has no "
+                  'href="./" back-link to rewrite; local copy will lack '
+                  "a working link back to the report")
         arch_html = arch_html.replace('href="./"', f'href="{out_path.name}"')
         arch_out.write_text(arch_html, encoding="utf-8")
         print(f"bucket_returns: copied architecture page to {arch_out}")

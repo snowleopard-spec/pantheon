@@ -517,3 +517,5 @@ Verification: renders clean both weight methods (1.66 MB page); structural greps
 - Droplet: `git pull` + manual `droplet_refresh.sh` — pull fetched the fresh Aug-5 bars (incl. QQQ's first droplet-side fetch), render clean, atomic two-file publish verified in `/srv/pantheon/`: `index.html` 1.8 MB (Sharpe column, benchmark row, architecture link all present), `architecture.html` 47 KB with the `./` back-link. Both 22:38 UTC.
 - Nightly cron (22:00 UTC) needs no changes — config-driven benchmark + the refresh script's second publish step are all it takes.
 - **Outstanding: H3** — user confirms report + Architecture link on the iPhone over the tailnet.
+
+**H3 verified (2026-08-06):** user confirmed the v2.1 report and the Architecture page render and interact correctly on the iPhone over the tailnet. **v2.1 build complete.**

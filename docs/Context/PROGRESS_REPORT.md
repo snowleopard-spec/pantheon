@@ -519,3 +519,12 @@ Verification: renders clean both weight methods (1.66 MB page); structural greps
 - **Outstanding: H3** — user confirms report + Architecture link on the iPhone over the tailnet.
 
 **H3 verified (2026-08-06):** user confirmed the v2.1 report and the Architecture page render and interact correctly on the iPhone over the tailnet. **v2.1 build complete.**
+
+## 16. v2.2 company search (2026-08-06)
+
+Brief: rolling `docs/Context/New Prompt.md` (quoted verbatim in `PANTHEON_V2.2_SPEC.md`). User amendments at review: both enrichments in (click-through + inline chart), and **no floor — show all scores**. Single-wave, single-owner build on `v2.2-search`.
+
+- Search universe widened per the no-floor decision: all **810** scored companies (3,387 latest_scores pairs) — verified byte-identical counts on the droplet's DB snapshot before building. Payload ~180 KB; page now 2.00 MB.
+- Panel: all scores sorted desc, member rows carry Index Weight + click-through (scroll/expand/flash), below-floor rows muted + tagged; members embed the standard chart (non-members' prices deliberately not tracked — spec D5). DB-less render degrades to members-only search, loudly.
+- Verification: headless-Chrome gauntlet all-PASS (payload counts, prefix + lowercase name search, Enter/arrow-key selection, NVDA panel 2 member + 12 below-floor rows, click-through to the right bucket with flash, chartless non-member panel with note — AAPL, fittingly, is scored-but-in-no-index — Escape/click-away). All 4 script blocks compile under node. Suite at baseline (217 + 6 pre-existing).
+- Docs: OUTPUT_COLUMNS search-panel section, ARCHITECTURE report paragraph extended.

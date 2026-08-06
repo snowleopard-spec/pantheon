@@ -70,6 +70,78 @@ def _load_company_names(db_path: Path) -> dict[str, str]:
     return {t: n for t, n in rows if t and n}
 
 
+def _load_search_data(
+    db_path: Path,
+    weights: pd.DataFrame,
+    weight_col: str,
+    score_floor: float,
+    company_names: dict[str, str],
+) -> str:
+    """JSON payload for the company search: every scored (company, bucket)
+    pair from the DB's latest_scores view — deliberately NO floor, so the
+    panel can show why a company is (or isn't) in each sub-index. Joined
+    against the active weights for membership/weight. Falls back to a
+    weights-only payload if the DB is unavailable: the report must render
+    regardless of search-data health.
+    """
+    bucket_names = (
+        weights.drop_duplicates("bucket_id").set_index("bucket_id")["bucket_name"].to_dict()
+    )
+    member_weight = {
+        (r["bucket_id"], r["ticker"]): float(r[weight_col]) * 100
+        for _, r in weights.iterrows()
+    }
+    rows: list = []
+    if db_path.exists():
+        try:
+            conn = sqlite3.connect(db_path)
+            rows = conn.execute(
+                "SELECT UPPER(ls.ticker), c.name, c.market_cap, ls.bucket_id, "
+                "ls.score, ls.confidence "
+                "FROM latest_scores ls LEFT JOIN companies c ON c.cik = ls.cik"
+            ).fetchall()
+            conn.close()
+        except sqlite3.Error as exc:
+            print(f"bucket_returns: warn — search DB read failed ({exc}); "
+                  "search falls back to index members only", file=sys.stderr)
+    else:
+        print(f"bucket_returns: warn — {db_path} missing; search covers index "
+              "members only", file=sys.stderr)
+
+    companies: dict[str, dict] = {}
+    if rows:
+        for ticker, name, mcap, bucket_id, score, conf in rows:
+            c = companies.setdefault(ticker, {
+                "t": ticker,
+                "n": name or company_names.get(ticker, ""),
+                "m": float(mcap) if mcap is not None else None,
+                "s": [],
+            })
+            w = member_weight.get((bucket_id, ticker))
+            c["s"].append([bucket_id, round(float(score), 4), conf or "",
+                           round(w, 2) if w is not None else None])
+    else:
+        for _, r in weights.iterrows():
+            t = r["ticker"]
+            c = companies.setdefault(t, {
+                "t": t,
+                "n": company_names.get(t, ""),
+                "m": None,
+                "s": [],
+            })
+            c["s"].append([r["bucket_id"], round(float(r["score"]), 4),
+                           str(r.get("confidence", "")),
+                           round(float(r[weight_col]) * 100, 2)])
+
+    payload = {
+        "floor": score_floor,
+        "buckets": bucket_names,
+        "companies": sorted(companies.values(), key=lambda c: c["t"]),
+    }
+    # Same script-breakout hardening as the PRICES blob.
+    return json.dumps(payload, separators=(",", ":")).replace("</", "<\\/")
+
+
 def _price_at_or_before(prices: pd.DataFrame, ticker: str, target: date) -> float | None:
     sub = prices.loc[(prices["ticker"] == ticker) & (prices["date"] <= pd.Timestamp(target))]
     if sub.empty:
@@ -407,6 +479,104 @@ CSS = """
   .uplot { font-family: inherit; }
   .u-legend { color: #8b949e; font-size: 0.78rem; }
   .u-legend .u-value { color: #e6edf3; font-variant-numeric: tabular-nums; }
+  /* --- company search ----------------------------------------------------- */
+  .search-wrap {
+    position: relative;
+    max-width: 430px;
+    margin: 0 auto 1.3rem auto;
+  }
+  #company-search {
+    width: 100%;
+    box-sizing: border-box;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #e6edf3;
+    font: inherit;
+    font-size: 0.95rem;
+    padding: 0.45rem 0.8rem;
+  }
+  #company-search:focus { outline: none; border-color: #58a6ff; }
+  #company-search::placeholder { color: #6e7681; }
+  #search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    z-index: 20;
+    margin: 0.2rem 0 0 0;
+    padding: 0;
+    list-style: none;
+    background: #1c232c;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  #search-suggestions li {
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+  }
+  #search-suggestions li.active,
+  #search-suggestions li:hover { background: #262d38; }
+  #search-suggestions .sg-ticker {
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    color: #58a6ff;
+    min-width: 3.6rem;
+  }
+  #search-suggestions .sg-name {
+    color: #b1bac4;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+  #search-suggestions .sg-tag { color: #6e7681; font-size: 0.72rem; white-space: nowrap; }
+  #search-panel {
+    max-width: 700px;
+    margin: 0 auto 1.6rem auto;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 0.9rem 1.1rem 1.1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  }
+  .sp-head { display: flex; align-items: baseline; gap: 0.7rem; margin-bottom: 0.6rem; }
+  .sp-ticker {
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 1.15rem;
+    color: #f0f6fc;
+    font-weight: 700;
+  }
+  .sp-name { color: #b1bac4; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sp-mcap { color: #8b949e; font-size: 0.85rem; white-space: nowrap; }
+  .sp-close { background: none; border: none; color: #6e7681; font-size: 1rem; cursor: pointer; padding: 0 0.2rem; }
+  .sp-close:hover { color: #e6edf3; }
+  .sp-chart { margin: 0.4rem 0 0.8rem; }
+  table.sp-scores { font-size: 0.85rem; box-shadow: none; }
+  table.sp-scores thead th { font-size: 0.72rem; padding: 0.35rem 0.55rem; text-transform: none; letter-spacing: 0; }
+  table.sp-scores tbody td { padding: 0.35rem 0.55rem; vertical-align: middle; }
+  table.sp-scores td.spc-bucket { text-align: left; }
+  table.sp-scores tr.member td.spc-bucket { cursor: pointer; }
+  table.sp-scores tr.member:hover td.spc-bucket { color: #56d364; }
+  table.sp-scores td.spc-score, table.sp-scores td.spc-wt { text-align: right; width: 4.8rem; }
+  table.sp-scores td.spc-conf { text-align: center; color: #8b949e; width: 3.5rem; font-size: 0.78rem; }
+  table.sp-scores tr.subfloor td { color: #6e7681; }
+  .sp-floor-tag {
+    font-size: 0.68rem;
+    color: #6e7681;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0 0.25rem;
+    margin-left: 0.4rem;
+  }
+  .sp-note { color: #6e7681; font-size: 0.75rem; margin: 0.5rem 0 0; }
+  tr.bucket-row.flash td { animation: rowflash 1.6s ease-out; }
+  @keyframes rowflash { 0% { background: #1f6feb55; } 100% { background: transparent; } }
   footer {
     margin-top: 2rem;
     padding-top: 0.9rem;
@@ -428,6 +598,7 @@ CSS = """
     tr.detail-row td.detail-cell, tr.chart-row td.chart-cell {
       background: #faf9f2; border-top-color: #ccc;
     }
+    .search-wrap, #search-panel { display: none; }
     tbody td, table.constituents tbody td { border-bottom-color: #eee; }
     footer { color: #666; border-top-color: #ccc; }
     .updated { color: #666; }
@@ -604,6 +775,149 @@ SCRIPT = """
       buildChart(td, row.dataset.ticker);
     });
   });
+
+  // ---- company search ----------------------------------------------------
+  var searchInput = document.getElementById('company-search');
+  var sugList = document.getElementById('search-suggestions');
+  var panel = document.getElementById('search-panel');
+  var activeIdx = -1;
+  var currentMatches = [];
+
+  function fmtMcap(v) {
+    if (v == null) return '';
+    if (v >= 1e12) return '$' + (v / 1e12).toFixed(2) + 'T';
+    if (v >= 1e9) return '$' + (v / 1e9).toFixed(2) + 'B';
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    return '$' + Math.round(v);
+  }
+
+  function searchMatches(q) {
+    q = q.trim().toUpperCase();
+    if (!q) return [];
+    var pref = [], other = [];
+    SEARCH.companies.forEach(function(c) {
+      if (c.t.indexOf(q) === 0) pref.push(c);
+      else if (c.t.indexOf(q) !== -1 || (c.n || '').toUpperCase().indexOf(q) !== -1) other.push(c);
+    });
+    return pref.concat(other).slice(0, 8);
+  }
+
+  function renderSuggestions() {
+    sugList.textContent = '';
+    if (!currentMatches.length) { sugList.setAttribute('hidden', ''); return; }
+    currentMatches.forEach(function(c, i) {
+      var li = document.createElement('li');
+      if (i === activeIdx) li.classList.add('active');
+      var tk = document.createElement('span'); tk.className = 'sg-ticker'; tk.textContent = c.t;
+      var nm = document.createElement('span'); nm.className = 'sg-name'; nm.textContent = c.n || '';
+      li.appendChild(tk); li.appendChild(nm);
+      var isMember = c.s.some(function(s) { return s[3] != null; });
+      if (!isMember) {
+        var tag = document.createElement('span'); tag.className = 'sg-tag'; tag.textContent = 'not in any index';
+        li.appendChild(tag);
+      }
+      // mousedown, not click: fires before the input's blur/click-away
+      li.addEventListener('mousedown', function(evt) { evt.preventDefault(); selectCompany(c); });
+      sugList.appendChild(li);
+    });
+    sugList.removeAttribute('hidden');
+  }
+
+  function closeSuggestions() { sugList.setAttribute('hidden', ''); activeIdx = -1; }
+
+  function gotoBucket(bucketId) {
+    var row = document.querySelector('tr.bucket-row[data-bucket="' + bucketId + '"]');
+    var detail = document.querySelector('tr.detail-row[data-bucket="' + bucketId + '"]');
+    if (!row) return;
+    if (detail && detail.hasAttribute('hidden')) row.querySelector('td.name').click();
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row.classList.remove('flash');
+    void row.offsetWidth;  // restart the CSS animation
+    row.classList.add('flash');
+  }
+
+  function selectCompany(c) {
+    closeSuggestions();
+    searchInput.value = c.t + (c.n ? ' — ' + c.n : '');
+    panel.textContent = '';
+    var head = document.createElement('div'); head.className = 'sp-head';
+    var tk = document.createElement('span'); tk.className = 'sp-ticker'; tk.textContent = c.t;
+    var nm = document.createElement('span'); nm.className = 'sp-name'; nm.textContent = c.n || '';
+    var mc = document.createElement('span'); mc.className = 'sp-mcap'; mc.textContent = fmtMcap(c.m);
+    var x = document.createElement('button'); x.className = 'sp-close'; x.textContent = '\\u2715';
+    x.addEventListener('click', function() {
+      panel.setAttribute('hidden', '');
+      searchInput.value = '';
+    });
+    head.appendChild(tk); head.appendChild(nm); head.appendChild(mc); head.appendChild(x);
+    panel.appendChild(head);
+
+    if (PRICES[c.t]) {
+      var cd = document.createElement('div'); cd.className = 'sp-chart';
+      panel.appendChild(cd);
+      panel.removeAttribute('hidden');  // must be visible for clientWidth
+      buildChart(cd, c.t);
+    }
+
+    var tbl = document.createElement('table'); tbl.className = 'sp-scores';
+    var thead = document.createElement('thead');
+    thead.innerHTML = '<tr><th style="text-align:left">Sub Index</th>' +
+                      '<th>Score</th><th>Conf</th><th>Index Weight</th></tr>';
+    tbl.appendChild(thead);
+    var tb = document.createElement('tbody');
+    var rows = c.s.slice().sort(function(a, b) { return b[1] - a[1]; });
+    rows.forEach(function(s) {
+      var tr = document.createElement('tr');
+      var member = s[3] != null;
+      tr.className = member ? 'member' : 'subfloor';
+      var b = document.createElement('td'); b.className = 'spc-bucket';
+      b.textContent = SEARCH.buckets[s[0]] || s[0];
+      if (!member) {
+        var tag = document.createElement('span'); tag.className = 'sp-floor-tag'; tag.textContent = 'below floor';
+        b.appendChild(tag);
+      }
+      var sc = document.createElement('td'); sc.className = 'spc-score'; sc.textContent = s[1].toFixed(2);
+      var cf = document.createElement('td'); cf.className = 'spc-conf'; cf.textContent = s[2] || '';
+      var wt = document.createElement('td'); wt.className = 'spc-wt'; wt.textContent = member ? s[3].toFixed(2) + '%' : '\\u2014';
+      tr.appendChild(b); tr.appendChild(sc); tr.appendChild(cf); tr.appendChild(wt);
+      tr.addEventListener('click', function() { gotoBucket(s[0]); });
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    panel.appendChild(tbl);
+    var note = document.createElement('p'); note.className = 'sp-note';
+    note.textContent = 'All LLM scores shown (no floor). Click a sub index to open it in the table below.'
+      + (PRICES[c.t] ? '' : ' No price chart: not an index member, so prices are not tracked.');
+    panel.appendChild(note);
+    panel.removeAttribute('hidden');
+  }
+
+  searchInput.addEventListener('input', function() {
+    currentMatches = searchMatches(searchInput.value);
+    activeIdx = -1;
+    renderSuggestions();
+  });
+  searchInput.addEventListener('keydown', function(evt) {
+    if (sugList.hasAttribute('hidden')) return;
+    if (evt.key === 'ArrowDown') {
+      evt.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, currentMatches.length - 1);
+      renderSuggestions();
+    } else if (evt.key === 'ArrowUp') {
+      evt.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+      renderSuggestions();
+    } else if (evt.key === 'Enter') {
+      evt.preventDefault();
+      if (activeIdx >= 0) selectCompany(currentMatches[activeIdx]);
+      else if (currentMatches.length) selectCompany(currentMatches[0]);
+    } else if (evt.key === 'Escape') {
+      closeSuggestions();
+    }
+  });
+  document.addEventListener('click', function(evt) {
+    if (!evt.target.closest('.search-wrap')) closeSuggestions();
+  });
 """
 
 
@@ -620,6 +934,7 @@ def render_html(
     benchmark: dict,
     sharpe_label: str,
     chart_json: str,
+    search_json: str,
     uplot_js: str,
     uplot_css: str,
 ) -> str:
@@ -765,6 +1080,13 @@ def render_html(
 <h1>Pantheon</h1>
 {updated_line}
 
+<div class="search-wrap">
+  <input id="company-search" type="text" placeholder="Search a company…"
+         autocomplete="off" spellcheck="false">
+  <ul id="search-suggestions" hidden></ul>
+</div>
+<div id="search-panel" hidden></div>
+
 <table id="main-table">
   <thead>
     <tr>
@@ -783,7 +1105,9 @@ def render_html(
 
 <footer>
   <b>Click a sub index</b> to expand its constituents; <b>click a constituent</b>
-  to open its price chart (1Y–1W buttons set the visible window).<br>
+  to open its price chart (1Y–1W buttons set the visible window).
+  <b>Search</b> any scored company above — the panel shows all its LLM scores
+  (floor ignored) and, for index members, its price chart.<br>
   <b>{escape(benchmark["ticker"])}</b> ({escape(benchmark["label"])}) is pinned
   to the top row and excluded from sorting. Click the Sharpe or return column
   headers to sort the sub indices.<br>
@@ -805,6 +1129,7 @@ def render_html(
 
 <script>{uplot_js}</script>
 <script>var PRICES = {chart_json};</script>
+<script>var SEARCH = {search_json};</script>
 <script>{script}</script>
 
 </body>
@@ -901,10 +1226,20 @@ def main() -> None:
     # so a hostile ticker string could otherwise close the <script> tag.
     chart_json = json.dumps(chart_data, separators=(",", ":")).replace("</", "<\\/")
 
+    # Search payload: all LLM scores per company (no floor), for the panel.
+    try:
+        score_floor = float(json.loads((REPO_ROOT / "config.json").read_text())
+                            .get("score_floor", 0.10))
+    except (OSError, ValueError):
+        score_floor = 0.10
+    search_json = _load_search_data(db_path, weights, weight_col, score_floor,
+                                    company_names)
+
     asof = str(prices["date"].max())  # latest price bar = the report's true as-of date
     html = render_html(returns, weights, weight_col, asof, company_names,
                        ticker_returns, medians, bucket_sharpe, const_sharpe,
-                       benchmark, sharpe_label, chart_json, uplot_js, uplot_css)
+                       benchmark, sharpe_label, chart_json, search_json,
+                       uplot_js, uplot_css)
     out_path.write_text(html, encoding="utf-8")
     print(f"bucket_returns: wrote {out_path} ({len(returns)} buckets, "
           f"{len(html)/1e6:.2f} MB)")

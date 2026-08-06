@@ -104,6 +104,9 @@ An annualised Sharpe ratio, shown before the 1Y column on both the main table an
 ### Median-constituent line
 Under each index return, a smaller figure gives the **unweighted median** of valid constituent returns for that window — same penny-filter and missing-price exclusions as the weighted number. The median stock may differ between windows; that's expected.
 
+### Company search panel (v2.2)
+The search box under the title covers **every LLM-scored company** — all 810 companies with rows in the DB's `latest_scores` view, not just index members. The panel shows all of a company's scores with **no floor applied**: member rows carry the active Index Weight and click through to their sub-index in the main table; below-floor rows are muted and tagged. Index members also get their price chart inline (non-members' prices aren't tracked, so no chart). If `data/minidex.db` is unavailable at render, search degrades to index members only (scores from the frozen CSV) with a stderr warning.
+
 ### Benchmark row
 The main table's first row is the benchmark (`report.benchmark_ticker`, default `QQQ`), showing its returns and Sharpe on the same conventions. It is pinned: excluded from sorting, always first, visually tinted, not expandable, no median sub-line.
 

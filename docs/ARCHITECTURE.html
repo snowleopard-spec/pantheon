@@ -398,7 +398,11 @@
       index weight, score, market cap, confidence, Sharpe, returns &mdash;
       company names looked up from <code>data/minidex.db</code>); click a
       constituent to open its daily price chart (vendored uPlot, inlined
-      &mdash; the page stays fully self-contained). Weight scheme comes from
+      &mdash; the page stays fully self-contained). A search box under the
+      title covers every LLM-scored company (not just index members): the
+      panel lists all of a company&rsquo;s scores with below-floor rows
+      tagged, links through to each sub-index, and embeds the price chart
+      for members. Weight scheme comes from
       <code>report.weight_col</code> in <code>config.json</code>
       (<code>--weight-col</code> overrides), including the render-time-derived
       capped scheme <code>weight_cap_score_aug</code>. Also copies this

@@ -24,6 +24,14 @@ SIC_INCLUDE: list[int | tuple[int, int]] = [
     (3600, 3600),  # broad electrical & electronic machinery header code
 ]
 
+# Manual allowlist for companies whose SEC SIC code misclassifies them out of
+# the tech universe. They pass Stage 2 like any SIC match — no anchor-style
+# QC expectations or weight floors — and still have to earn membership
+# through the shortlist and LLM scoring on merit.
+TICKER_INCLUDE: set[str] = {
+    "LWLG",  # Lightwave Logic — electro-optic polymer photonics; files under SIC 3080 (Misc. Plastics)
+}
+
 
 def _in_include(sic: str | None) -> bool:
     if not sic:
@@ -143,7 +151,8 @@ def run() -> None:
 
 
 def filter_candidates() -> None:
-    """Stage 2: mark is_candidate=1 for SIC-included rows plus all anchor tickers."""
+    """Stage 2: mark is_candidate=1 for SIC-included rows, all anchor tickers,
+    and the TICKER_INCLUDE allowlist."""
     s = config.get_settings()
     anchors = _load_anchor_tickers(s.definitions_path)
 
@@ -154,7 +163,12 @@ def filter_candidates() -> None:
             conn.execute("UPDATE companies SET is_candidate = 0")
 
             for row in conn.execute("SELECT cik, ticker, sic FROM companies").fetchall():
-                include = _in_include(row["sic"]) or (row["ticker"] or "").upper() in anchors
+                ticker_uc = (row["ticker"] or "").upper()
+                include = (
+                    _in_include(row["sic"])
+                    or ticker_uc in anchors
+                    or ticker_uc in TICKER_INCLUDE
+                )
                 if include:
                     conn.execute(
                         "UPDATE companies SET is_candidate = 1 WHERE cik = ?", (row["cik"],)

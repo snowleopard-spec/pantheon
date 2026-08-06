@@ -522,11 +522,31 @@ Verification: renders clean both weight methods (1.66 MB page); structural greps
 
 ## 16. v2.2 company search (2026-08-06)
 
-Brief: rolling `docs/Context/New Prompt.md` (quoted verbatim in `PANTHEON_V2.2_SPEC.md`). User amendments at review: both enrichments in (click-through + inline chart), and **no floor — show all scores**. Single-wave, single-owner build on `v2.2-search`.
+Brief: rolling `docs/Context/New Prompt.md` (quoted verbatim in `PANTHEON_V2.2_SPEC.md`) — search box under the title, autocomplete over the sub-index companies, centre-aligned score panel on selection. User amendments at spec review: both proposed enrichments in (click-through to the sub-index + inline price chart), and **no floor — show all scores**. Single-wave, single-owner build on `v2.2-search`; all code edits in `scripts/bucket_returns.py` (spec D7).
 
-- Search universe widened per the no-floor decision: all **810** scored companies (3,387 latest_scores pairs) — verified byte-identical counts on the droplet's DB snapshot before building. Payload ~180 KB; page now 2.00 MB.
-- Panel: all scores sorted desc, member rows carry Index Weight + click-through (scroll/expand/flash), below-floor rows muted + tagged; members embed the standard chart (non-members' prices deliberately not tracked — spec D5). DB-less render degrades to members-only search, loudly.
-- Verification: headless-Chrome gauntlet all-PASS (payload counts, prefix + lowercase name search, Enter/arrow-key selection, NVDA panel 2 member + 12 below-floor rows, click-through to the right bucket with flash, chartless non-member panel with note — AAPL, fittingly, is scored-but-in-no-index — Escape/click-away). All 4 script blocks compile under node. Suite at baseline (217 + 6 pre-existing).
-- Docs: OUTPUT_COLUMNS search-panel section, ARCHITECTURE report paragraph extended.
+### Design decisions (spec D1–D7)
 
-**v2.2 shipped (2026-08-06):** `v2.2-search` fast-forwarded into `main` (`f3d0e5b..9eb9ea2`), tag `v2.2` pushed, branch deleted. Droplet pulled + refreshed clean: `/srv/pantheon/index.html` 2.0 MB with the search feature, `architecture.html` updated, both 22:21 UTC. Search verified present in the published page. Outstanding: user phone check.
+- **Search universe = all 810 scored companies** (3,387 (company, bucket) pairs in the DB's `latest_scores` view), not just the 340 index memberships — the natural consequence of no-floor: a company that scored below the floor everywhere is findable, and the panel shows why it's in no index (D1).
+- **Score source = `latest_scores`** — the same two-run average the index build uses — read from `data/minidex.db` at render time. Droplet's DB snapshot verified identical on these counts (810 / 3,387) before building, so both machines render the same search (D2). **Graceful degradation:** DB missing/unreadable ⇒ weights-CSV-only fallback (members + frozen scores) with a loud stderr warning — the report never fails to render over search-data health.
+- **Panel rows** (D3/D4): sub-index · score (2 dp) · confidence · Index Weight, sorted by score descending; member rows carry the active-column weight + click-through; below-floor rows show a muted dash + "below floor" tag.
+- **Charts for members only** (D5): the panel reuses the existing `PRICES` payload + uPlot chart builder at zero added payload. Prices are only pulled for weights tickers + benchmark; extending the daily pull to all 810 scored tickers (~2.6× Polygon calls, ~4 MB page) judged not worth it for companies we don't track — non-member panels get the scores table with a note, no chart.
+- **Self-contained constraint holds** (D6): vanilla-JS autocomplete over an embedded `SEARCH` blob — ~180 KB, page 1.82 → 2.00 MB — no new dependencies; same `</`-escape script-breakout hardening as `PRICES`.
+
+### Implementation (`4325797`, all in `bucket_returns.py`)
+
+- `_load_search_data`: payload built from `latest_scores` LEFT JOIN `companies`, joined against the active weights frame for membership/weight; `floor` read from config for the below-floor tagging.
+- Autocomplete: ≥1 char, up to 8 matches, ticker-prefix matches ranked above ticker/name-substring matches; ↑/↓/Enter keyboard nav, Esc + click-away close; suggestion clicks bind on `mousedown` (fires before the input's blur, so click-away can't eat the selection); non-members tagged "not in any index" in the dropdown.
+- Panel: centre-aligned card (ticker / name / market cap header, ✕ to close), member chart with the standard 1Y–1W period buttons; member-row click-through scrolls to the sub-index, expands it, and flashes the row.
+
+### Verification
+
+Headless-Chrome gauntlet, all-PASS: 810 companies / 3,387 pairs embedded; ticker-prefix and lowercase name-substring matching; Enter and arrow-key selection; NVDA panel 2 member + 12 below-floor rows; click-through landed on the right bucket with flash; chartless non-member panel with note (AAPL, fittingly, being the scored-but-in-no-index case); Escape and click-away. All 4 inline script blocks compile under node. Suite at baseline (217 passed + 6 pre-existing anchor failures). Docs: OUTPUT_COLUMNS search-panel section, ARCHITECTURE report paragraph extended.
+
+### Shipped (2026-08-06)
+
+`v2.2-search` fast-forwarded into `main` (`f3d0e5b..9eb9ea2`), tag `v2.2` pushed, branch deleted. Droplet pulled + refreshed clean: `/srv/pantheon/index.html` 2.0 MB with the search feature, `architecture.html` updated, both 22:21 UTC. Search verified present in the published page.
+
+### Post-ship notes (2026-08-06)
+
+- **Stale page on the phone — client cache, not the server.** The user's phone initially showed the pre-v2.2 page. Server side verified current: `tailscale serve` maps `/` to the directory and reads files per-request, and the published `index.html` was the new 2.0 MB build. Root cause: the iOS home-screen web-app held its cached copy; fully closing and reopening the app fixed it. Operational gotcha worth remembering after any publish. Phone check then passed — **v2.2 build complete.**
+- **Score semantics recorded** (post-ship user question): scores are per-bucket revenue-fraction estimates judged in isolation (prompt v1.6 Rule 1) and deliberately do **not** sum to 100% — buckets overlap by design (Rule 3), sub-0.10 fractions floor to zero (Rule 4), and unthemed revenue is simply unrepresented; pre-revenue companies score on business purpose instead (Rule 5 exception). Displayed values are the two-run averages.

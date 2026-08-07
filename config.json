@@ -16,5 +16,18 @@
       "weight_cap_m": "any number >= 1 (per-name cap = m/N; only used by weight_cap_score_aug)",
       "benchmark_ticker": "any ticker Polygon serves (ETFs included)"
     }
+  },
+  "coherence": {
+    "freq": "daily",
+    "window_days": 365,
+    "n_draws": 10000,
+    "seed": 42,
+    "min_coverage": 0.67,
+    "_valid_values": {
+      "freq": ["daily", "weekly"],
+      "window_days": "integer >= 60",
+      "n_draws": "integer >= 1000",
+      "min_coverage": "fraction of window observations required, 0-1"
+    }
   }
 }

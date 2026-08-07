@@ -58,6 +58,15 @@ renders the interactive returns report (Sharpe column, pinned QQQ benchmark
 row, median-constituent lines, per-constituent price charts) to
 `outputs/bucket_returns.html`, copying `docs/ARCHITECTURE.html` alongside it.
 
+### Coherence report
+
+`uv run python scripts/coherence.py` tests whether each bucket actually
+*trades* like a sub-index: mean pairwise correlation of members'
+market-residual returns vs size-matched random draws from non-members.
+Writes `outputs/coherence.html` (sortable stats + bucket-ordered heatmap)
+and `outputs/coherence.csv`. Knobs in the `config.json` `coherence` block
+(freq, window, draws, seed); spec: `docs/Context/COHERENCE_SPEC_1.md`.
+
 ## Tests
 
 ```bash

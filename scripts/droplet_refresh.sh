@@ -39,4 +39,14 @@ ARCH_DEST="/srv/pantheon/architecture.html"
 install -m 644 docs/ARCHITECTURE.html "$ARCH_DEST.tmp" && mv "$ARCH_DEST.tmp" "$ARCH_DEST" \
     || echo "warn: publish to $ARCH_DEST failed; report still refreshed"
 
+# Coherence report (v2.3): re-render + publish beside the main report.
+# Non-fatal — the main report is never hostage to the add-on.
+COH_DEST="/srv/pantheon/coherence.html"
+if "$PY" scripts/coherence.py; then
+    install -m 644 outputs/coherence.html "$COH_DEST.tmp" && mv "$COH_DEST.tmp" "$COH_DEST" \
+        || echo "warn: publish to $COH_DEST failed"
+else
+    echo "warn: coherence render failed (exit $?); keeping previous $COH_DEST"
+fi
+
 echo "=== pantheon refresh done $(date -u +%FT%TZ) ==="

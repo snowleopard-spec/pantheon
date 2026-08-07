@@ -954,7 +954,8 @@ def render_html(
     updated_line = (
         f'<p class="updated">Updated {escape(generated_str)}'
         f' · prices through {escape(asof_str)}'
-        f' · <a href="architecture.html">Architecture</a></p>'
+        f' · <a href="architecture.html">Architecture</a>'
+        f' · <a href="coherence.html">Coherence</a></p>'
     )
 
     def _fmt_mcap(v) -> str:

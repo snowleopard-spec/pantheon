@@ -693,7 +693,51 @@
 </svg>
 </div>
 
-<h2>12. Exception rules and overrides</h2>
+<h2>12. Coherence: do the buckets trade like sub-indices?</h2>
+<p>
+  The buckets are built from what companies <em>say</em> in their filings. The
+  coherence report (v2.3) asks whether the market agrees: do a bucket&rsquo;s
+  members actually move together, beyond what the overall market explains?
+</p>
+<p>
+  <strong>Method, in one breath.</strong> Take each member&rsquo;s daily returns
+  over the past year, strip out the market component (a regression against QQQ
+  &mdash; what remains is the stock&rsquo;s own movement), and average the
+  pairwise correlations of those residuals across every pair in the bucket.
+  Then compare that number against ten thousand random groups of the same size
+  drawn from the rest of the Pantheon universe. If a bucket sits at the 95th
+  percentile, its members co-move more tightly than 95% of arbitrary
+  same-size groups &mdash; evidence the theme is economically real, not just a
+  labelling choice.
+</p>
+<p>
+  <strong>Result: the market overwhelmingly agrees.</strong> On the current
+  data, <strong>20 of the 22 buckets sit at or above the 95th
+  percentile</strong> against their random baselines &mdash; even after market
+  movement is stripped out. A sample:
+</p>
+<table>
+  <thead><tr><th>Bucket</th><th>Residual &rho;</th><th>z</th><th>Percentile</th><th>Reading</th></tr></thead>
+  <tbody>
+    <tr><td>Cybersecurity</td><td>0.287</td><td>16.6</td><td>100</td><td>tightest theme in the set</td></tr>
+    <tr><td>Semiconductor capital equipment</td><td>0.437</td><td>16.4</td><td>100</td><td>strong shared fate</td></tr>
+    <tr><td>AI-native software &amp; services</td><td>0.203</td><td>13.8</td><td>100</td><td>coherent even at 74 members</td></tr>
+    <tr><td>Connectors &amp; interconnect</td><td>0.156</td><td>1.8</td><td>94</td><td>just under the bar</td></tr>
+    <tr><td>Hyperscalers</td><td>0.082</td><td>0.6</td><td>78</td><td>co-movement is mostly market beta</td></tr>
+  </tbody>
+</table>
+<p>
+  The Hyperscalers result is instructive rather than damning: six mega-caps
+  <em>are</em> a large slice of the market itself, so once the market factor is
+  removed there is little bucket-specific movement left. The report also shows
+  each statistic on raw (un-residualized) returns &mdash; the gap between the
+  two columns is how much apparent co-movement was simply market beta.
+  Full table and a bucket-ordered correlation heatmap:
+  <code>coherence.html</code>, re-rendered nightly beside the main report.
+  Method details: <code>docs/Context/COHERENCE_SPEC_1.md</code>.
+</p>
+
+<h2>13. Exception rules and overrides</h2>
 <p>
   Two overrides sit on top of the base &ldquo;score = revenue fraction&rdquo; rule
   to handle corner cases it cannot capture on its own.
@@ -734,7 +778,7 @@
   slot in the final index regardless.
 </p>
 
-<h2>13. The 22 buckets</h2>
+<h2>14. The 22 buckets</h2>
 <p>
   Reader-friendly summaries of every bucket the pipeline scores against. Full
   definitions live in <code>definitions/minidex_definitions.yaml</code>.

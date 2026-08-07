@@ -554,8 +554,21 @@ CSS = """
   }
   .sp-name { color: #b1bac4; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .sp-mcap { color: #8b949e; font-size: 0.85rem; white-space: nowrap; }
-  .sp-close { background: none; border: none; color: #6e7681; font-size: 1rem; cursor: pointer; padding: 0 0.2rem; }
+  .sp-close {
+    position: absolute;
+    right: 0.45rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6e7681;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0.2rem;
+  }
   .sp-close:hover { color: #e6edf3; }
+  #company-search { padding-right: 2.1rem; }
   .sp-chart { margin: 0.4rem 0 0.8rem; }
   table.sp-scores { font-size: 0.85rem; box-shadow: none; }
   table.sp-scores thead th { font-size: 0.72rem; padding: 0.35rem 0.55rem; text-transform: none; letter-spacing: 0; }
@@ -783,6 +796,20 @@ SCRIPT = """
   var activeIdx = -1;
   var currentMatches = [];
 
+  // Close button lives beside the search bar (not in the panel), shown only
+  // while a panel is open.
+  var closeBtn = document.createElement('button');
+  closeBtn.className = 'sp-close';
+  closeBtn.textContent = '\\u2715';
+  closeBtn.setAttribute('hidden', '');
+  closeBtn.setAttribute('aria-label', 'Close company panel');
+  closeBtn.addEventListener('click', function() {
+    panel.setAttribute('hidden', '');
+    searchInput.value = '';
+    closeBtn.setAttribute('hidden', '');
+  });
+  document.querySelector('.search-wrap').appendChild(closeBtn);
+
   function fmtMcap(v) {
     if (v == null) return '';
     if (v >= 1e12) return '$' + (v / 1e12).toFixed(2) + 'T';
@@ -844,13 +871,9 @@ SCRIPT = """
     var tk = document.createElement('span'); tk.className = 'sp-ticker'; tk.textContent = c.t;
     var nm = document.createElement('span'); nm.className = 'sp-name'; nm.textContent = c.n || '';
     var mc = document.createElement('span'); mc.className = 'sp-mcap'; mc.textContent = fmtMcap(c.m);
-    var x = document.createElement('button'); x.className = 'sp-close'; x.textContent = '\\u2715';
-    x.addEventListener('click', function() {
-      panel.setAttribute('hidden', '');
-      searchInput.value = '';
-    });
-    head.appendChild(tk); head.appendChild(nm); head.appendChild(mc); head.appendChild(x);
+    head.appendChild(tk); head.appendChild(nm); head.appendChild(mc);
     panel.appendChild(head);
+    closeBtn.removeAttribute('hidden');
 
     if (PRICES[c.t]) {
       var cd = document.createElement('div'); cd.className = 'sp-chart';

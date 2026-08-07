@@ -326,8 +326,8 @@ CSS = """
     transform: rotate(90deg);
     color: #56d364;
   }
-  tr.benchmark-row td { background: #131c2e; }
-  tr.benchmark-row:hover td { background: #17233a; }
+  tr.benchmark-row td { background: #2e2508; }
+  tr.benchmark-row:hover td { background: #372d0b; }
   tr.benchmark-row td.name { cursor: default; }
   tr.benchmark-row td.name:hover strong { color: #f0f6fc; }
   .bench-sub {
@@ -594,7 +594,7 @@ CSS = """
     }
     thead th, table.constituents thead th { background: #f2efe6; color: #444; }
     .pos { color: #146c2e; } .neg { color: #b3261e; } .flat { color: #666; }
-    tr.benchmark-row td { background: #eef2fa; }
+    tr.benchmark-row td { background: #f7f2e0; }
     tr.detail-row td.detail-cell, tr.chart-row td.chart-cell {
       background: #faf9f2; border-top-color: #ccc;
     }

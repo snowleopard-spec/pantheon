@@ -72,3 +72,4 @@ No new files, no new dependencies, no pipeline/DB/serving changes. Droplet picks
 - Options A (pure cross-sectional) and B (relative-strength time-series z) — B noted as the natural stat-arb follow-up.
 - Z in the search panel or main table; any alerting/threshold logic; score-weighted variants.
 - Making tint counts/eligibility configurable.
+- **Queued follow-up (explicitly not this build):** a standalone housekeeping refactor splitting `bucket_returns.py` into renderer + a `scripts/report_assets.py` for the CSS/JS constants (coherence then imports assets cleanly instead of reaching into `bucket_returns`). To be done as its own task with the headless harness verifying unchanged output.

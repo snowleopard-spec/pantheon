@@ -9,7 +9,7 @@ For each bucket, for each member, over a configurable lookback window:
 
 1. **Leave-one-out bucket series.** The member's benchmark is its bucket's daily weighted return series **recomputed without the member** (weights renormalised over the remaining members, same daily-renormalisation rules as `bucket_daily_series`). Rationale: regressing a heavy member on an index containing itself biases beta toward 1 and shrinks its residuals — muting precisely the large names the feature should flag.
 2. **OLS residuals.** Regress the member's daily returns on the LOO series (intercept + slope, closed-form — the established pattern from coherence's `residualize`). Keep the daily residuals.
-3. **CAR.** Cumulative abnormal return = sum of daily residuals over the window (simple sum of dailies — a descriptive lens, not a compounded track record).
+3. **CAR.** Cumulative abnormal return = **OLS intercept × number of observations** — the window-total abnormal drift vs the LOO bucket. *(Build correction to the draft's "sum of daily residuals": with the intercept fitted on the same window, residuals sum to exactly zero by construction — the abnormal drift is the intercept. Caught by the unit tests; a descriptive lens, not a compounded track record, as before.)*
 4. **Robust cross-sectional z.** Within the bucket:
    `z = (CAR_member − median(CARs)) / (1.4826 × MAD(CARs))`.
    Median/MAD rather than mean/std — bucket CARs have fat tails and one +900% name must not define everyone else's z. Guard: MAD below 1e-12 → all z blank.

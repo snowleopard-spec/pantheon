@@ -579,3 +579,12 @@ User promoted the coherence add-on to a tagged release. `droplet_refresh.sh` now
 **Post-v2.3 polish (2026-08-07):** QQQ benchmark row recoloured to olive gold `#2e2508` (hover `#372d0b`, print `#f7f2e0`) — user-picked from a six-swatch live palette page.
 
 **Post-v2.3 polish 2 (2026-08-07):** `ARCHITECTURE.html` restyled to the report's GitHub-dark theme (user request) — sans typography at the doc's 900px reading measure, dark tables/callouts/code chips, both SVG diagrams recolored (pipeline boxes lifted to `#262d38`/`#6e7681` for contrast after review; output nodes in the QQQ olive gold), print stylesheet reverts to light.
+
+## 19. v2.4 — intra-bucket out/underperformer z-scores (2026-08-07)
+
+Spec `PANTHEON_V2.4_SPEC.md` (Option C from the design discussion: beta-adjusted residual z). Resolved at review: leave-one-out bucket benchmark per member; robust median/MAD cross-sectional z; tint top-3/bottom-3 where >6 scored members; `report.z_window` config key; the report-assets refactor explicitly queued as a separate follow-up (user question on file bloat — answer: report_metrics is the cohesive home, ~100-line delta; bucket_returns' size is a CSS/JS-constants problem for a dedicated pass).
+
+- **Method correction caught by the unit tests (spec §1.3 amended):** the draft's "CAR = sum of OLS residuals" is identically zero when the intercept is fitted on the estimation window — the abnormal drift IS the intercept. CAR := intercept × n_obs.
+- `report_metrics.residual_car_z` computes all LOO series per bucket in one pass from full-bucket aggregates (numerator/denominator minus the member's own contribution). 6 new tests (planted alpha; LOO-vs-naive beta direction; outlier robustness; MAD-0 guard; exclusion rules; z_window validation) — module suite 40 green, full suite 228 + 6 pre-existing.
+- Frontend: `3M Z` column (signed, sortable, dash for excluded) on constituent tables; tint classes on rows (17 of 22 buckets eligible → 51 green + 51 red rows); print-mode tints; footer method note with the leader-vs-stretched caveat.
+- Verification: independent hand-reimplementation of memory_storage's nine z-scores from the raw CSVs matched rendered values to 3e-7 (rounding); headless-Chrome pass — tint counts and identities correct, tints survive sorting and chart insertion, Foundry (n=4) untinted, z sorts with dashes last.

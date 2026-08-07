@@ -238,6 +238,13 @@ def _fmt_sharpe(x: float | None) -> str:
     return f'<span class="{cls}">{x:.2f}</span>'
 
 
+def _fmt_z(x: float | None) -> str:
+    if x is None or (isinstance(x, float) and np.isnan(x)):
+        return '<span class="na">—</span>'
+    cls = "pos" if x > 0.005 else ("neg" if x < -0.005 else "flat")
+    return f'<span class="{cls}">{x:+.2f}</span>'
+
+
 def _sort_attr(x: float | None) -> str:
     if x is None or (isinstance(x, float) and np.isnan(x)):
         return ""
@@ -376,11 +383,17 @@ CSS = """
     max-width: 18rem;
   }
   table.constituents tbody tr.ct-row { height: 1.8rem; cursor: pointer; }
+  /* v2.4 leader/laggard tints (buckets with > 6 valid z only) */
+  table.constituents tr.ct-top td { background: #10231a; }
+  table.constituents tr.ct-top:hover td { background: #152c21; }
+  table.constituents tr.ct-bottom td { background: #271416; }
+  table.constituents tr.ct-bottom:hover td { background: #30191c; }
   table.constituents .ct-wt,
   table.constituents .ct-score,
   table.constituents .ct-mcap { text-align: right; }
   table.constituents .ct-conf { text-align: center; color: #8b949e; font-size: 0.78rem; width: 3rem; }
   table.constituents .ct-sharpe,
+  table.constituents .ct-z,
   table.constituents .ct-ret {
     text-align: right;
     font-size: 0.82rem;
@@ -608,6 +621,8 @@ CSS = """
     thead th, table.constituents thead th { background: #f2efe6; color: #444; }
     .pos { color: #146c2e; } .neg { color: #b3261e; } .flat { color: #666; }
     tr.benchmark-row td { background: #f7f2e0; }
+    table.constituents tr.ct-top td { background: #eef7ee; }
+    table.constituents tr.ct-bottom td { background: #fbeeee; }
     tr.detail-row td.detail-cell, tr.chart-row td.chart-cell {
       background: #faf9f2; border-top-color: #ccc;
     }
@@ -956,6 +971,8 @@ def render_html(
     const_sharpe: dict[str, float | None],
     benchmark: dict,
     sharpe_label: str,
+    member_z: dict[str, dict[str, float | None]],
+    z_label: str,
     chart_json: str,
     search_json: str,
     uplot_js: str,
@@ -994,6 +1011,15 @@ def render_html(
         return f"${v:,.0f}"
 
     def _constituent_table(bucket_id: str) -> str:
+        bucket_z = member_z.get(bucket_id, {})
+        # Leader/laggard tinting: only when more than 6 members hold a
+        # valid z (top-3 / bottom-3 can then never overlap).
+        valid_z = {t: v for t, v in bucket_z.items() if v is not None}
+        top3: set[str] = set()
+        bottom3: set[str] = set()
+        if len(valid_z) > 6:
+            ranked = sorted(valid_z, key=valid_z.get, reverse=True)
+            top3, bottom3 = set(ranked[:3]), set(ranked[-3:])
         members = weights[weights["bucket_id"] == bucket_id].copy()
         # Default sort: weight descending, NaN last. Click column headers
         # in the browser to re-sort by any other field.
@@ -1013,13 +1039,15 @@ def render_html(
             conf = escape(str(m.get("confidence", "")))
             conf_rank = {"high": 3, "medium": 2, "low": 1}.get(str(m.get("confidence", "")).lower(), 0)
             sharpe_v = const_sharpe.get(ticker)
+            z_v = bucket_z.get(ticker)
+            tint = " ct-top" if ticker in top3 else (" ct-bottom" if ticker in bottom3 else "")
             rets = ticker_returns.get(ticker, {})
             ret_cells = "".join(
                 f'<td class="ct-ret" data-sort="{_sort_attr(rets.get(label))}">{_fmt_pct(rets.get(label))}</td>'
                 for label, _ in WINDOWS
             )
             rows.append(
-                f'<tr class="ct-row" data-ticker="{escape(ticker)}">'
+                f'<tr class="ct-row{tint}" data-ticker="{escape(ticker)}">'
                 f'<td class="ct-ticker" data-sort="{escape(ticker)}"><code>{escape(ticker)}</code></td>'
                 f'<td class="ct-name" data-sort="{escape((full_name or ticker).lower())}">{escape(full_name) if full_name else "<em>—</em>"}</td>'
                 f'<td class="ct-wt" data-sort="{weight_pct:.6f}">{weight_pct:.2f}%</td>'
@@ -1027,6 +1055,7 @@ def render_html(
                 f'<td class="ct-mcap" data-sort="{mcap_num}">{mcap}</td>'
                 f'<td class="ct-conf" data-sort="{conf_rank}">{conf}</td>'
                 f'<td class="ct-sharpe" data-sort="{_sort_attr(sharpe_v)}">{_fmt_sharpe(sharpe_v)}</td>'
+                f'<td class="ct-z" data-sort="{_sort_attr(z_v)}">{_fmt_z(z_v)}</td>'
                 f'{ret_cells}'
                 f'</tr>'
             )
@@ -1044,6 +1073,7 @@ def render_html(
             '<th class="num sortable" data-type="num">Market cap</th>'
             '<th class="sortable" data-type="num">Conf</th>'
             f'<th class="num sortable" data-type="num">{escape(sharpe_label)}</th>'
+            f'<th class="num sortable" data-type="num">{escape(z_label)}</th>'
             f'{window_headers}'
             '</tr></thead>'
             f'<tbody>{"".join(rows)}</tbody></table>'
@@ -1142,6 +1172,14 @@ def render_html(
   series with weights renormalised each day.<br>
   <b>Small figures</b> under each index return: the median constituent's return
   for that window (the median stock can differ between windows).<br>
+  <b>{escape(z_label)}:</b> intra-bucket out/underperformance — each member's
+  abnormal return vs its own sub-index (recomputed <i>without</i> the member,
+  beta-adjusted) over the trailing
+  {escape(z_label.split(" ")[0].lower())} window, expressed as a robust
+  (median/MAD) z-score across the bucket. In buckets with more than 6 scored
+  members, the top-3 rows are tinted green and the bottom-3 red. A high z reads
+  as <i>leader</i> or <i>stretched</i> depending on your prior — it is
+  descriptive, not a signal.<br>
   <b>Weights:</b> <code>{escape(weight_col)}</code> ({escape(weight_blurb)}),
   renormalised per window across members that priced.
   <b>Penny-stock filter:</b> tickers with a window-start price below $1
@@ -1227,6 +1265,18 @@ def main() -> None:
     bucket_sharpe = {b: report_metrics.sharpe(bucket_series[b].dropna())
                      for b in bucket_series.columns}
 
+    # v2.4: intra-bucket residual z (LOO-beta-adjusted, robust cross-section)
+    z_window = cfg["z_window"]
+    z_label = f"{z_window.upper()} Z"
+    if z_window == sharpe_window:
+        daily_z = daily
+    else:
+        daily_z = report_metrics.daily_returns(
+            prices, all_tickers, report_metrics.WINDOW_DAYS[z_window],
+            min_start_price=args.min_start_price)
+    member_z = report_metrics.residual_car_z(weights, daily_z, weight_col,
+                                             weight_cap_m=weight_cap_m)
+
     benchmark = {
         "ticker": benchmark_ticker,
         "label": "Nasdaq-100 benchmark" if benchmark_ticker == "QQQ" else "Benchmark",
@@ -1262,8 +1312,8 @@ def main() -> None:
     asof = str(prices["date"].max())  # latest price bar = the report's true as-of date
     html = render_html(returns, weights, weight_col, asof, company_names,
                        ticker_returns, medians, bucket_sharpe, const_sharpe,
-                       benchmark, sharpe_label, chart_json, search_json,
-                       uplot_js, uplot_css)
+                       benchmark, sharpe_label, member_z, z_label,
+                       chart_json, search_json, uplot_js, uplot_css)
     out_path.write_text(html, encoding="utf-8")
     print(f"bucket_returns: wrote {out_path} ({len(returns)} buckets, "
           f"{len(html)/1e6:.2f} MB)")

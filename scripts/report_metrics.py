@@ -57,6 +57,13 @@ Public API (final signatures):
         returns | None}}. Interoperates with `compute_ticker_returns`'
         output; the same exclusions (penny filter → None) apply, so the
         median is over exactly the names in the weighted number.
+
+    residual_car_z(weights: pd.DataFrame, daily_rets: pd.DataFrame,
+                   weight_col: str, weight_cap_m: float = 3.0
+                   ) -> dict[str, dict[str, float | None]]
+        v2.4: intra-bucket out/underperformer z — OLS residuals vs the
+        bucket's leave-one-out daily series, CAR over the window, robust
+        (median/MAD) cross-sectional z. None per the spec's exclusions.
 """
 from __future__ import annotations
 
@@ -75,6 +82,7 @@ WINDOW_DAYS: dict[str, int] = {"1y": 365, "6m": 180, "3m": 90, "1m": 30, "1w": 7
 
 TRADING_DAYS_PER_YEAR = 252
 MIN_SHARPE_OBS = 10
+MIN_Z_OBS = 10
 
 # Source of truth for config validation — editing config.json's
 # "_valid_values" documentation block cannot unlock new values.
@@ -91,6 +99,7 @@ REPORT_DEFAULTS: dict[str, object] = {
     "benchmark_ticker": "QQQ",
     "weight_col": "weight_score",
     "weight_cap_m": 3,
+    "z_window": "3m",
 }
 
 
@@ -137,6 +146,12 @@ def load_report_config(path: Path | str | None = None) -> dict:
         raise ValueError(
             f"report.benchmark_ticker: invalid value {bt!r} — "
             f"must be a non-empty ticker string"
+        )
+    zw = out["z_window"]
+    if zw not in VALID_SHARPE_WINDOWS:
+        raise ValueError(
+            f"report.z_window: invalid value {zw!r} — "
+            f"valid options: {', '.join(VALID_SHARPE_WINDOWS)}"
         )
     return out
 
@@ -301,6 +316,86 @@ def bucket_daily_series(
         den = sub.notna().mul(wv, axis=1).sum(axis=1)
         out[bucket_id] = num.where(den > 0) / den.where(den > 0)
     return pd.DataFrame(out, index=daily_rets.index)
+
+
+def residual_car_z(
+    weights: pd.DataFrame,
+    daily_rets: pd.DataFrame,
+    weight_col: str,
+    weight_cap_m: float = 3.0,
+) -> dict[str, dict[str, float | None]]:
+    """Intra-bucket out/underperformer z-scores (v2.4 spec §1).
+
+    For each bucket member: OLS of its daily returns on the bucket's
+    **leave-one-out** daily weighted series (the bucket recomputed without
+    the member — regressing a heavy member on an index containing itself
+    biases beta toward 1 and shrinks its residuals), CAR = sum of the
+    daily residuals over the window, then a robust cross-sectional z
+    within the bucket: (CAR − median) / (1.4826 × MAD).
+
+    Returns {bucket_id: {ticker: z | None}} over the bucket's nominal
+    membership. None for members excluded from the panel (penny filter /
+    no window-start bar), members with fewer than ``MIN_Z_OBS``
+    overlapping observations, degenerate buckets (< 2 members with data),
+    and whole buckets where the MAD collapses below 1e-12.
+    """
+    base_col = "weight_cap_score" if weight_col == "weight_cap_score_aug" else weight_col
+    if base_col not in weights.columns:
+        raise ValueError(f"residual_car_z: weights frame has no column {base_col!r}")
+
+    out: dict[str, dict[str, float | None]] = {}
+    for bucket_id, g in weights.groupby("bucket_id", sort=False):
+        w = g.set_index("ticker")[base_col].astype(float)
+        if weight_col == "weight_cap_score_aug":
+            w = capped_weights(w, weight_cap_m)
+        z_out: dict[str, float | None] = {t: None for t in w.index}
+        members = [t for t in w.index if t in daily_rets.columns]
+        if len(members) < 2:
+            out[bucket_id] = z_out
+            continue
+
+        sub = daily_rets[members]
+        wv = w.loc[members]
+        # Full-bucket per-day aggregates; each member's LOO series is the
+        # aggregate minus its own contribution (numerator and the
+        # renormalisation denominator alike).
+        num_all = sub.mul(wv, axis=1).sum(axis=1, min_count=1)
+        den_all = sub.notna().mul(wv, axis=1).sum(axis=1)
+
+        cars: dict[str, float] = {}
+        for t in members:
+            r = sub[t]
+            num_loo = num_all - (wv[t] * r).fillna(0.0)
+            den_loo = den_all - wv[t] * r.notna().astype(float)
+            loo = num_loo.where(den_loo > 1e-15) / den_loo.where(den_loo > 1e-15)
+            mask = r.notna() & loo.notna()
+            if int(mask.sum()) < MIN_Z_OBS:
+                continue
+            x = loo[mask].to_numpy(dtype=float)
+            y = r[mask].to_numpy(dtype=float)
+            xm, ym = x.mean(), y.mean()
+            var = float(((x - xm) ** 2).sum())
+            slope = float(((x - xm) * (y - ym)).sum() / var) if var > 1e-18 else 0.0
+            inter = ym - slope * xm
+            # CAR = intercept × n_obs: the window-total abnormal return.
+            # (Residuals of an intercept-fitted OLS sum to zero on the
+            # estimation window by construction — the abnormal drift IS
+            # the intercept.)
+            cars[t] = float(inter * len(y))
+
+        if len(cars) < 2:
+            out[bucket_id] = z_out
+            continue
+        vals = np.array(list(cars.values()), dtype=float)
+        med = float(np.median(vals))
+        scale = 1.4826 * float(np.median(np.abs(vals - med)))
+        if scale < 1e-12:
+            out[bucket_id] = z_out
+            continue
+        for t, car in cars.items():
+            z_out[t] = float((car - med) / scale)
+        out[bucket_id] = z_out
+    return out
 
 
 def median_constituent_returns(

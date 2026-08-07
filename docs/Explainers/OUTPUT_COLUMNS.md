@@ -101,6 +101,13 @@ An annualised Sharpe ratio, shown before the 1Y column on both the main table an
 - **Guards:** fewer than 10 daily returns, or (near-)zero standard deviation → the cell shows a dash.
 - **Note on `1w`:** it is accepted by the validator for symmetry with the return windows, but a 7-calendar-day window yields ~5 daily observations — below the 10-observation guard — so every Sharpe cell would render a dash. Practical minimum is `1m`.
 
+### Z column (v2.4)
+Intra-bucket out/underperformance, before the 1Y column on the constituent tables (header e.g. `3M Z`; window via `report.z_window`, default `3m`, same valid values and `1w` caveat as the Sharpe window).
+- **Method:** each member's daily returns are regressed on its bucket's daily series **recomputed without the member** (leave-one-out — prevents heavy members regressing on themselves), the abnormal return over the window is the regression intercept × observations, and the z is a robust cross-sectional score within the bucket: (CAR − median) ÷ (1.4826 × MAD).
+- **Tinting:** in buckets with more than 6 scored members, the top-3 rows by z are tinted green and the bottom-3 red. Smaller buckets show the column untinted.
+- **Exclusions (dash):** penny-filtered members, fewer than 10 observations, degenerate buckets, or a collapsed MAD.
+- **Caveat:** a high z reads as *leader* (momentum) or *stretched* (mean-reversion) depending on your prior — it is descriptive, not a signal; multi-horizon agreement is the disambiguator. A member of several buckets gets an independent z in each.
+
 ### Median-constituent line
 Under each index return, a smaller figure gives the **unweighted median** of valid constituent returns for that window — same penny-filter and missing-price exclusions as the weighted number. The median stock may differ between windows; that's expected.
 

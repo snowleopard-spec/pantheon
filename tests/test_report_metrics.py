@@ -254,6 +254,7 @@ DEFAULTS = {
     "benchmark_ticker": "QQQ",
     "weight_col": "weight_score",
     "weight_cap_m": 3,
+    "z_window": "3m",
 }
 
 
@@ -321,3 +322,123 @@ def test_config_invalid_weight_cap_m_raises(tmp_path: Path, bad_m):
 def test_config_float_weight_cap_m_accepted(tmp_path: Path):
     p = _write_config(tmp_path, report={"weight_cap_m": 1.5})
     assert rm.load_report_config(p)["weight_cap_m"] == 1.5
+
+
+# ---------------------------------------------------------------------------
+# residual_car_z (v2.4)
+# ---------------------------------------------------------------------------
+
+def _z_weights(bucket_id: str, tickers: list[str]) -> pd.DataFrame:
+    return pd.DataFrame([
+        {"bucket_id": bucket_id, "bucket_name": bucket_id, "ticker": t,
+         "weight_score": 1.0 / len(tickers), "weight_cap_score": 1.0 / len(tickers)}
+        for t in tickers
+    ])
+
+
+def _z_panel(seed: int = 3, n_days: int = 80, alpha_ticker: str | None = "A0"):
+    """Six-member equal-weight bucket; one member gets a steady daily drift."""
+    rng = np.random.default_rng(seed)
+    dates = pd.bdate_range("2025-01-02", periods=n_days)
+    common = rng.normal(0, 0.01, n_days)
+    data = {}
+    for i in range(6):
+        t = f"A{i}"
+        drift = 0.004 if t == alpha_ticker else 0.0
+        data[t] = common + rng.normal(0, 0.004, n_days) + drift
+    return pd.DataFrame(data, index=dates)
+
+
+def test_residual_car_z_planted_alpha():
+    rets = _z_panel()
+    weights = _z_weights("b", list(rets.columns))
+    z = rm.residual_car_z(weights, rets, "weight_score")["b"]
+    # The drifting member should be the clear top; the others centred near 0.
+    assert z["A0"] == max(v for v in z.values() if v is not None)
+    assert z["A0"] > 2.0
+    others = [v for t, v in z.items() if t != "A0"]
+    assert all(abs(v) < 3.0 for v in others)
+
+
+def test_residual_car_z_loo_beta_direction():
+    # A dominant-weight member regressed on an index containing itself has
+    # beta pulled toward 1; the LOO regression must not. Construct a member
+    # uncorrelated with the rest: naive in-index beta would be ~its own
+    # weight share, LOO beta ~0 — so its residual CAR keeps its own drift.
+    rng = np.random.default_rng(9)
+    dates = pd.bdate_range("2025-01-02", periods=100)
+    rest = rng.normal(0, 0.01, 100)
+    lone = rng.normal(0.003, 0.002, 100)  # positive drift, independent
+    rets = pd.DataFrame({
+        "BIG": lone,
+        "S1": rest + rng.normal(0, 0.003, 100),
+        "S2": rest + rng.normal(0, 0.003, 100),
+        "S3": rest + rng.normal(0, 0.003, 100),
+    }, index=dates)
+    weights = pd.DataFrame([
+        {"bucket_id": "b", "bucket_name": "b", "ticker": "BIG",
+         "weight_score": 0.7, "weight_cap_score": 0.7},
+        *[{"bucket_id": "b", "bucket_name": "b", "ticker": f"S{i}",
+           "weight_score": 0.1, "weight_cap_score": 0.1} for i in (1, 2, 3)],
+    ])
+    z = rm.residual_car_z(weights, rets, "weight_score")["b"]
+    # BIG's drift survives residualization against the LOO series (which it
+    # is not part of), making it the top name.
+    assert z["BIG"] == max(v for v in z.values() if v is not None)
+    assert z["BIG"] > 0
+
+
+def test_residual_car_z_robust_to_outlier():
+    # Hand-check the median/MAD z on a constructed CAR vector: patch the
+    # regression away by making returns equal to residual patterns is hard,
+    # so instead verify robustness property end-to-end: adding one insane
+    # mover barely shifts the other members' z.
+    rets = _z_panel(alpha_ticker=None)
+    weights = _z_weights("b", list(rets.columns))
+    base = rm.residual_car_z(weights, rets, "weight_score")["b"]
+    wild = rets.copy()
+    wild["A5"] = wild["A5"] + 0.05  # +5%/day lunacy
+    z_wild = rm.residual_car_z(_z_weights("b", list(wild.columns)), wild,
+                               "weight_score")["b"]
+    for t in ("A1", "A2", "A3"):
+        assert abs(z_wild[t] - base[t]) < 1.5
+
+
+def test_residual_car_z_mad_zero_guard():
+    # Identical members -> every CAR identical -> MAD 0 -> all None.
+    dates = pd.bdate_range("2025-01-02", periods=40)
+    col = np.random.default_rng(1).normal(0, 0.01, 40)
+    rets = pd.DataFrame({t: col.copy() for t in ("X0", "X1", "X2")}, index=dates)
+    weights = _z_weights("b", ["X0", "X1", "X2"])
+    z = rm.residual_car_z(weights, rets, "weight_score")["b"]
+    assert all(v is None for v in z.values())
+
+
+def test_residual_car_z_exclusions():
+    rets = _z_panel()
+    # GHOST absent from the panel (penny-filtered / no data upstream);
+    # THIN has only 5 observations.
+    thin = pd.Series(np.nan, index=rets.index)
+    thin.iloc[-5:] = 0.01
+    rets = rets.assign(THIN=thin)
+    weights = _z_weights("b", list(rets.columns) + ["GHOST"])
+    z = rm.residual_car_z(weights, rets, "weight_score")["b"]
+    assert z["GHOST"] is None
+    assert z["THIN"] is None
+    assert sum(v is not None for v in z.values()) == 6
+    # Degenerate bucket: only one member with data.
+    w2 = _z_weights("solo", ["A0", "GHOST"])
+    z2 = rm.residual_car_z(w2, rets, "weight_score")["solo"]
+    assert all(v is None for v in z2.values())
+
+
+def test_z_window_config_validation(tmp_path):
+    cfg = tmp_path / "config.json"
+    cfg.write_text(json.dumps({"report": {"z_window": "3m"}}))
+    assert rm.load_report_config(cfg)["z_window"] == "3m"
+    cfg.write_text(json.dumps({"report": {"z_window": "2d"}}))
+    with pytest.raises(ValueError, match="z_window"):
+        rm.load_report_config(cfg)
+    # default applies when absent
+    cfg.write_text(json.dumps({}))
+    assert rm.load_report_config(cfg)["z_window"] == "3m"

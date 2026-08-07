@@ -10,8 +10,10 @@
     "benchmark_ticker": "QQQ",
     "weight_col": "weight_score",
     "weight_cap_m": 3,
+    "z_window": "3m",
     "_valid_values": {
       "sharpe_window": ["1y", "6m", "3m", "1m", "1w"],
+      "z_window": ["1y", "6m", "3m", "1m", "1w"],
       "weight_col": ["weight_score", "weight_cap_score", "weight_cap_score_aug", "weight_equal"],
       "weight_cap_m": "any number >= 1 (per-name cap = m/N; only used by weight_cap_score_aug)",
       "benchmark_ticker": "any ticker Polygon serves (ETFs included)"

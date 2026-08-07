@@ -420,7 +420,11 @@
       title covers every LLM-scored company (not just index members): the
       panel lists all of a company&rsquo;s scores with below-floor rows
       tagged, links through to each sub-index, and embeds the price chart
-      for members. Weight scheme comes from
+      for members. A per-member <strong>Z column</strong> (v2.4) flags each
+      sub-index&rsquo;s out/underperformers &mdash; beta-adjusted abnormal
+      return vs the bucket excluding the member, as a robust z-score &mdash;
+      with the top-3/bottom-3 rows tinted green/red in buckets of more than
+      six scored members. Weight scheme comes from
       <code>report.weight_col</code> in <code>config.json</code>
       (<code>--weight-col</code> overrides), including the render-time-derived
       capped scheme <code>weight_cap_score_aug</code>. Also copies this

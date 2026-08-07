@@ -4,84 +4,95 @@
 <meta charset="utf-8">
 <title>Project Pantheon — Architecture (non-technical)</title>
 <style>
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; background: #0d1117; }
   body {
-    font-family: Georgia, "Times New Roman", Times, serif;
-    color: #1c1c1c;
-    background: #fdfdfb;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #e6edf3;
+    background: #0d1117;
     max-width: 900px;
     margin: 2.4rem auto;
     padding: 0 1.4rem 4rem 1.4rem;
-    line-height: 1.55;
-    font-size: 17px;
+    line-height: 1.6;
+    font-size: 16px;
   }
   h1 {
     font-size: 2rem;
     margin: 0 0 0.2rem 0;
     letter-spacing: -0.01em;
+    color: #f0f6fc;
+    font-weight: 700;
   }
   h2 {
     font-size: 1.35rem;
     margin: 2.4rem 0 0.6rem 0;
     padding-bottom: 0.25rem;
-    border-bottom: 1px solid #d8d5cd;
+    border-bottom: 1px solid #30363d;
+    color: #f0f6fc;
   }
   h3 {
     font-size: 1.1rem;
     margin: 1.6rem 0 0.4rem 0;
+    color: #f0f6fc;
   }
   p { margin: 0.6rem 0 1rem 0; }
   .subtitle {
-    color: #666;
+    color: #8b949e;
     font-style: italic;
     margin-top: 0;
     margin-bottom: 1.6rem;
   }
   .meta {
-    color: #777;
+    color: #6e7681;
     font-size: 0.85rem;
     margin-top: -0.4rem;
   }
   .report-link {
     display: inline-block;
-    color: #999;
+    color: #8b949e;
     font-size: 0.8rem;
     text-decoration: none;
     margin-bottom: 0.5rem;
   }
-  .report-link:hover { color: #555; text-decoration: underline; }
+  .report-link:hover { color: #58a6ff; text-decoration: underline; }
   table {
     border-collapse: collapse;
     width: 100%;
     margin: 0.8rem 0 1.4rem 0;
     font-size: 0.95rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    overflow: hidden;
   }
   th, td {
     text-align: left;
     padding: 0.5rem 0.7rem;
-    border-bottom: 1px solid #e2ded4;
+    border-bottom: 1px solid #21262d;
     vertical-align: top;
   }
   th {
-    background: #f2efe6;
+    background: #1c232c;
     font-weight: 600;
+    color: #b1bac4;
+    border-bottom: 1px solid #30363d;
   }
   td code, p code, li code {
     font-family: "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.86em;
-    background: #f2efe6;
+    background: #1c232c;
     padding: 0.05rem 0.3rem;
     border-radius: 3px;
+    color: #e6edf3;
   }
   ul, ol { margin: 0.4rem 0 1rem 1.4rem; }
   li { margin: 0.25rem 0; }
   .callout {
-    border-left: 3px solid #7a8fa6;
-    background: #f4f6f9;
+    border-left: 3px solid #388bfd;
+    background: #161b22;
     padding: 0.6rem 0.9rem;
     margin: 1rem 0 1.4rem 0;
     font-size: 0.95rem;
-    color: #333;
+    color: #b1bac4;
   }
   .diagram {
     margin: 1rem 0 1.6rem 0;
@@ -94,14 +105,21 @@
   footer {
     margin-top: 3rem;
     padding-top: 1rem;
-    border-top: 1px solid #d8d5cd;
-    color: #777;
+    border-top: 1px solid #30363d;
+    color: #6e7681;
     font-size: 0.85rem;
   }
   @media print {
+    html, body { background: #fff; color: #1c1c1c; }
     body { margin: 0; font-size: 11pt; max-width: none; }
     .report-link { display: none; }
-    h2 { page-break-after: avoid; }
+    h1, h2, h3 { color: #1c1c1c; }
+    h2 { border-bottom-color: #ccc; page-break-after: avoid; }
+    .subtitle, .meta, .callout, footer { color: #555; }
+    table, td code, p code, li code, .callout { background: #fff; }
+    th { background: #f2efe6; color: #444; }
+    th, td { border-bottom-color: #ddd; }
+    footer { border-top-color: #ccc; }
     .diagram, table, .callout { page-break-inside: avoid; }
   }
 </style>
@@ -110,7 +128,7 @@
 
 <a class="report-link" href="./">← Back to the report</a>
 <h1>Project Pantheon</h1>
-<p style="color:#6b6b6b; font-style: italic; margin-top: -0.5rem;">The mini-dex thematic index construction pipeline.</p>
+<p style="color:#8b949e; font-style: italic; margin-top: -0.5rem;">The mini-dex thematic index construction pipeline.</p>
 <p class="subtitle">A non-technical guide to how the pipeline turns 8,000 SEC filings into 22 thematic stock baskets.</p>
 <p class="meta">Companion to <code>docs/Context/PANTHEON_SPEC.md</code>. Written for product managers and analysts who want the shape of the system without the code.</p>
 
@@ -184,18 +202,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 720" role="img" aria-label="mini-dex data flow">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="#4a6a8a"/>
+      <path d="M0,0 L10,5 L0,10 z" fill="#7a8fa6"/>
     </marker>
     <style>
-      .box { fill: #f2efe6; stroke: #8a8578; stroke-width: 1; }
-      .ext { fill: #e6edf4; stroke: #7a8fa6; stroke-width: 1; }
-      .out { fill: #eae4d6; stroke: #8a7a4a; stroke-width: 1; }
-      .lbl { font: 12px Georgia, serif; fill: #1c1c1c; }
+      .box { fill: #262d38; stroke: #6e7681; stroke-width: 1; }
+      .ext { fill: #13233a; stroke: #388bfd; stroke-width: 1; }
+      .out { fill: #2e2508; stroke: #9e6a03; stroke-width: 1; }
+      .lbl { font: 12px -apple-system, sans-serif; fill: #e6edf3; }
       .lbl b { font-weight: 700; }
-      .sub { font: 10.5px Georgia, serif; fill: #555; }
-      .tag { font: 10px "SFMono-Regular", Menlo, monospace; fill: #333; }
-      .arrow { stroke: #4a6a8a; stroke-width: 1.4; fill: none; }
-      .title { font: bold 13px Georgia, serif; fill: #1c1c1c; }
+      .sub { font: 10.5px -apple-system, sans-serif; fill: #8b949e; }
+      .tag { font: 10px "SFMono-Regular", Menlo, monospace; fill: #b1bac4; }
+      .arrow { stroke: #7a8fa6; stroke-width: 1.4; fill: none; }
+      .title { font: bold 13px -apple-system, sans-serif; fill: #e6edf3; }
     </style>
   </defs>
 

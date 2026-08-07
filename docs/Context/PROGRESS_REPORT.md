@@ -577,3 +577,5 @@ User promoted the coherence add-on to a tagged release. `droplet_refresh.sh` now
 **v2.3 shipped (2026-08-07):** merged + tagged; droplet pulled and refreshed 21:33 UTC — `/srv/pantheon/` now serves `index.html` (2.0 MB, Coherence nav link), `coherence.html` (354 KB, heatmap verified), `architecture.html` (§12 included). Coherence is now part of the nightly 22:00 UTC cycle.
 
 **Post-v2.3 polish (2026-08-07):** QQQ benchmark row recoloured to olive gold `#2e2508` (hover `#372d0b`, print `#f7f2e0`) — user-picked from a six-swatch live palette page.
+
+**Post-v2.3 polish 2 (2026-08-07):** `ARCHITECTURE.html` restyled to the report's GitHub-dark theme (user request) — sans typography at the doc's 900px reading measure, dark tables/callouts/code chips, both SVG diagrams recolored (pipeline boxes lifted to `#262d38`/`#6e7681` for contrast after review; output nodes in the QQQ olive gold), print stylesheet reverts to light.

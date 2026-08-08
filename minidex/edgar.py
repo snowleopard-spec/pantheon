@@ -439,13 +439,21 @@ def _process_and_store(
 
     segments_json = json.dumps(segments, separators=(",", ":"))
 
+    # Store the path repo-relative so the DB is portable across machines
+    # (absolute paths made each machine blind to the other's fetches).
+    repo_root = getattr(settings, "repo_root", None)
+    try:
+        stored_path = out_path.relative_to(repo_root) if repo_root else out_path
+    except ValueError:
+        stored_path = out_path
+
     db.upsert_filing(
         conn,
         cik=cik,
         accession=accession,
         fy=fy,
         filed_date=filed_date,
-        item1_path=str(out_path),
+        item1_path=str(stored_path),
         item1_chars=len(text or ""),
         segments_json=segments_json,
     )

@@ -154,10 +154,28 @@ def _read_item1(path: str | None, max_chars: int) -> str:
     try:
         text = p.read_text(encoding="utf-8", errors="replace")
     except FileNotFoundError:
+        print(f"score: WARNING — Item 1 file missing, prompt will lack it: {p}")
         return ""
     if len(text) > max_chars:
         return text[:max_chars]
     return text
+
+
+def _refuse_if_item1_missing(candidates: list[Candidate], max_chars: int) -> None:
+    """Hard-refuse submission when any candidate's Item 1 reads empty.
+
+    An empty Item 1 silently produces a segments-only prompt; that must be an
+    explicit decision, never an accident of an unreadable path.
+    """
+    missing = sorted(
+        c.ticker for c in candidates if not _read_item1(c.item1_path, max_chars).strip()
+    )
+    if missing:
+        raise SystemExit(
+            "score submit: REFUSING to submit — Item 1 text is empty/unreadable "
+            f"for: {', '.join(missing)}. Check filings.item1_path (must resolve "
+            "on this machine; repo-relative paths are portable)."
+        )
 
 
 def _fill_user_template(
@@ -477,6 +495,8 @@ def submit(
         if not candidates:
             print("score submit: no candidates with filings + shortlist rows; nothing to do.")
             return []
+
+        _refuse_if_item1_missing(candidates, s.max_item1_chars)
 
         deep_tickers = _load_deep_score_tickers(s.definitions_path)
         reqs = build_batch_requests(
@@ -849,6 +869,7 @@ def retry(
     try:
         db.init_schema(conn)
         candidates = load_candidates(conn, ticker_list=tickers)
+        _refuse_if_item1_missing(candidates, s.max_item1_chars)
         by_ticker = {c.ticker.upper(): c for c in candidates}
 
         # Build one request per failed custom_id, matching its run number.

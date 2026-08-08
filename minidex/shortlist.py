@@ -74,6 +74,9 @@ def _read_item1(path: str | Path) -> str:
     try:
         return p.read_text(encoding="utf-8", errors="replace")
     except FileNotFoundError:
+        # An unreadable filing embeds as an empty string — a silent hole in the
+        # shortlist. Say so loudly (this was invisible for two weeks once).
+        print(f"shortlist: WARNING — Item 1 file missing, embedding empty text: {p}")
         return ""
 
 

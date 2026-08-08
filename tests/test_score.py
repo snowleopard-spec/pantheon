@@ -500,6 +500,22 @@ def test_submit_confirmation_declines(scored_settings, monkeypatch):
     assert fake.messages.batches.created == []
 
 
+def test_submit_refuses_when_item1_unreadable(scored_settings):
+    """A candidate whose item1_path doesn't resolve must block the whole submit."""
+    _seed_db(scored_settings, [("0000010", "NVDA", "NVIDIA", 2024, ["fabless_chip_design"])])
+    conn = db.connect(scored_settings.db_path)
+    try:
+        conn.execute("UPDATE filings SET item1_path = '/nonexistent/machine/path.txt'")
+        conn.commit()
+    finally:
+        conn.close()
+
+    fake = FakeClient()
+    with pytest.raises(SystemExit, match="REFUSING.*NVDA"):
+        score.submit(assume_yes=True, client_factory=lambda: fake, settings=scored_settings)
+    assert fake.messages.batches.created == []
+
+
 def test_submit_no_candidates_is_noop(scored_settings):
     conn = db.connect(scored_settings.db_path)
     try:

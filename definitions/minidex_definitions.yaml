@@ -318,3 +318,12 @@ buckets:
     excludes: [PQC-focused vendors (pqc_quantum), physical security]
     anchors: [CRWD, PANW, ZS, S]
     keywords: [cybersecurity, endpoint protection, zero trust, SIEM, cloud security, identity]
+
+# Deep-score list: diversified names whose Item 1 text embeds too broadly for
+# the shortlist similarity gate to ever surface them (e.g. an IDM conglomerate
+# whose filing covers a dozen businesses). Members bypass the embedding
+# shortlist entirely — they are paired with ALL buckets — and are scored by the
+# stronger `deep_score_model` instead of the batch model. No anchor-style
+# privileges: no QC expectation, no weight floor; index membership is still
+# earned through the score and the score_floor.
+deep_score: [INTC, AMD]

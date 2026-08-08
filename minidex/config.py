@@ -55,6 +55,7 @@ class Settings:
 
     max_item1_chars: int = 12_000
     anchor_min_weight: float = 0.05
+    deep_score_model: str = "claude-opus-5"
 
     def file_sha256(self, path: Path) -> str:
         return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -175,6 +176,13 @@ def get_settings() -> Settings:
             "anchor_min_weight",
             0.05,
             float,
+            json_config,
+        ),
+        deep_score_model=_resolve(
+            "MINIDEX_DEEP_SCORE_MODEL",
+            "deep_score_model",
+            "claude-opus-5",
+            str,
             json_config,
         ),
     )

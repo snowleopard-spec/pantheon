@@ -48,6 +48,7 @@ def _clear_tuning_env(monkeypatch):
         "MINIDEX_BATCH_MODEL",
         "MINIDEX_MAX_ITEM1_CHARS",
         "MINIDEX_ANCHOR_MIN_WEIGHT",
+        "MINIDEX_DEEP_SCORE_MODEL",
     ):
         monkeypatch.delenv(key, raising=False)
 
@@ -64,6 +65,7 @@ def test_missing_json_file_falls_back_to_defaults(monkeypatch, tmp_path):
     assert s.batch_model == "claude-haiku-4-5"
     assert s.max_item1_chars == 12_000
     assert s.anchor_min_weight == 0.05
+    assert s.deep_score_model == "claude-opus-5"
 
 
 def test_json_file_values_override_defaults(monkeypatch, tmp_path):
@@ -78,6 +80,7 @@ def test_json_file_values_override_defaults(monkeypatch, tmp_path):
                 "batch_model": "claude-sonnet-test",
                 "max_item1_chars": 9999,
                 "anchor_min_weight": 0.11,
+                "deep_score_model": "claude-deep-test",
             }
         ),
         encoding="utf-8",
@@ -92,6 +95,7 @@ def test_json_file_values_override_defaults(monkeypatch, tmp_path):
     assert s.batch_model == "claude-sonnet-test"
     assert s.max_item1_chars == 9999
     assert s.anchor_min_weight == 0.11
+    assert s.deep_score_model == "claude-deep-test"
 
 
 def test_env_var_beats_json_file(monkeypatch, tmp_path):

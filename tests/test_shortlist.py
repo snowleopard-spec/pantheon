@@ -332,6 +332,100 @@ def test_pair_count_and_median_synthetic(tmp_path: Path):
     assert result["median_per_company"] == pytest.approx(1.0)
 
 
+# -----------------------------
+# Deep-score list
+# -----------------------------
+
+DEEP_DEFS = DEFAULT_DEFS + "\ndeep_score: [DDD]\n"
+
+
+def _orthogonal_overrides():
+    """Bucket vectors on axes 0-2; company vectors chosen per test."""
+    return {
+        "definition-a a1, a2": np.array([1, 0, 0, 0, 0, 0, 0, 0], dtype=float),
+        "definition-b b1": np.array([0, 1, 0, 0, 0, 0, 0, 0], dtype=float),
+        "definition-c": np.array([0, 0, 1, 0, 0, 0, 0, 0], dtype=float),
+    }
+
+
+def test_load_deep_score_tickers(tmp_path: Path):
+    p = tmp_path / "d.yaml"
+    p.write_text(DEEP_DEFS, encoding="utf-8")
+    assert shortlist.load_deep_score_tickers(p) == ["DDD"]
+    p.write_text(DEFAULT_DEFS, encoding="utf-8")
+    assert shortlist.load_deep_score_tickers(p) == []
+
+
+def test_deep_ticker_gets_all_buckets_regardless_of_similarity(tmp_path: Path):
+    """A deep-score name below threshold on every bucket still gets every bucket."""
+    settings = _make_settings(tmp_path, threshold=0.60, definitions_text=DEEP_DEFS)
+
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_company_with_item1(conn, tmp_path, "cik_d", "DDD", "text-for-D")
+    conn.close()
+
+    overrides = _orthogonal_overrides()
+    # Orthogonal to every bucket axis: all similarities are 0.0.
+    overrides["text-for-D"] = np.array([0, 0, 0, 1, 0, 0, 0, 0], dtype=float)
+
+    encoder = FakeEncoder(overrides=overrides)
+    result = shortlist.run(model_factory=lambda name: encoder, settings=settings)
+
+    conn = db.connect(settings.db_path)
+    rows = conn.execute(
+        "SELECT bucket_id, similarity, source FROM shortlist WHERE cik='cik_d' "
+        "ORDER BY bucket_id"
+    ).fetchall()
+    conn.close()
+
+    assert [r["bucket_id"] for r in rows] == ["bucket_a", "bucket_b", "bucket_c"]
+    assert all(r["source"] == "deep" for r in rows)
+    assert all(r["similarity"] == pytest.approx(0.0, abs=1e-9) for r in rows)
+    assert result["n_deep_pairs"] == 3
+
+
+def test_anchor_source_wins_over_deep(tmp_path: Path):
+    """A deep-score name that is also an anchor keeps 'anchor' on its anchor bucket."""
+    defs = DEFAULT_DEFS + "\ndeep_score: [AAA]\n"  # AAA anchors bucket_a
+    settings = _make_settings(tmp_path, threshold=0.60, definitions_text=defs)
+
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_company_with_item1(conn, tmp_path, "cik_a", "AAA", "text-for-A")
+    conn.close()
+
+    overrides = _orthogonal_overrides()
+    overrides["text-for-A"] = np.array([0, 0, 0, 1, 0, 0, 0, 0], dtype=float)
+
+    encoder = FakeEncoder(overrides=overrides)
+    shortlist.run(model_factory=lambda name: encoder, settings=settings)
+
+    conn = db.connect(settings.db_path)
+    src = {
+        r["bucket_id"]: r["source"]
+        for r in conn.execute("SELECT bucket_id, source FROM shortlist").fetchall()
+    }
+    conn.close()
+
+    assert src == {"bucket_a": "anchor", "bucket_b": "deep", "bucket_c": "deep"}
+
+
+def test_deep_ticker_not_a_candidate_is_skipped(tmp_path: Path, capsys):
+    settings = _make_settings(tmp_path, threshold=0.60, definitions_text=DEEP_DEFS)
+
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_company_with_item1(conn, tmp_path, "cik_x", "XXX", "text-for-X")
+    conn.close()
+
+    encoder = FakeEncoder()
+    result = shortlist.run(model_factory=lambda name: encoder, settings=settings)
+
+    assert result["n_deep_pairs"] == 0
+    assert "deep-score ticker DDD" in capsys.readouterr().out
+
+
 def test_no_candidates_does_not_crash(tmp_path: Path):
     settings = _make_settings(tmp_path)
     conn = db.connect(settings.db_path)

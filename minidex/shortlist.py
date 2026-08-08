@@ -16,6 +16,12 @@ def load_bucket_defs(definitions_path: Path) -> list[dict[str, Any]]:
     return list(data["buckets"])
 
 
+def load_deep_score_tickers(definitions_path: Path) -> list[str]:
+    """Read the top-level `deep_score` ticker list (upper-cased); [] if absent."""
+    data = yaml.safe_load(definitions_path.read_text(encoding="utf-8"))
+    return [str(t).upper() for t in (data.get("deep_score") or [])]
+
+
 def bucket_embed_text(bucket: dict[str, Any]) -> str:
     """definition + ' ' + joined includes list."""
     definition = (bucket.get("definition") or "").strip()
@@ -179,12 +185,39 @@ def run(
                 )
                 pair_sim[(cik, bucket_id)] = score
 
-        # Force anchor pairs (source='anchor'). Anchor source always wins;
-        # similarity comes from the computed sim matrix if available.
         cik_by_ticker = {c["ticker"].upper(): c["cik"] for c in candidates}
         idx_by_cik = {c: i for i, c in enumerate(candidate_ciks)}
         bucket_idx = {bid: i for i, bid in enumerate(bucket_ids)}
 
+        # Force deep-score pairs (source='deep'): members bypass the
+        # similarity gate entirely and get every bucket. Written before the
+        # anchor pass so an anchor pair keeps its 'anchor' provenance.
+        deep_tickers = load_deep_score_tickers(s.definitions_path)
+        deep_pairs_written = 0
+        with db.transaction(conn):
+            for ticker in deep_tickers:
+                cik = cik_by_ticker.get(ticker)
+                if cik is None:
+                    print(
+                        f"shortlist: deep-score ticker {ticker} is not a candidate "
+                        "with a filing; skipping."
+                    )
+                    continue
+                i = idx_by_cik[cik]
+                for j, bid in enumerate(bucket_ids):
+                    computed = float(sim[i, j])
+                    db.upsert_shortlist(
+                        conn,
+                        cik=cik,
+                        bucket_id=bid,
+                        similarity=computed,
+                        source="deep",
+                    )
+                    pair_sim[(cik, bid)] = computed
+                    deep_pairs_written += 1
+
+        # Force anchor pairs (source='anchor'). Anchor source always wins;
+        # similarity comes from the computed sim matrix if available.
         anchor_sims: list[float] = []
         anchor_pairs_written = 0
         with db.transaction(conn):
@@ -228,6 +261,7 @@ def run(
         print(
             f"shortlist: candidates={len(candidates)} buckets={len(buckets)} "
             f"embed_pairs={len(embed_pairs)} anchor_pairs={anchor_pairs_written} "
+            f"deep_pairs={deep_pairs_written} "
             f"total_pairs={total_pairs} median_per_company={median_per_company:.1f} "
             f"threshold={s.similarity_threshold:.3f}"
         )
@@ -247,6 +281,7 @@ def run(
             "n_pairs": total_pairs,
             "n_embed_pairs": len(embed_pairs),
             "n_anchor_pairs": anchor_pairs_written,
+            "n_deep_pairs": deep_pairs_written,
             "anchor_min_similarity": anchor_min,
             "median_per_company": median_per_company,
         }

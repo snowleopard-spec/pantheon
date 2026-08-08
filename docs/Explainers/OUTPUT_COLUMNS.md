@@ -148,6 +148,8 @@ Version of `prompts/scoring_prompt.md` that produced the row.
 ### `model_version`
 Anthropic model ID echoed from the API response.
 - **Example:** `claude-haiku-4-5-20251001`
+- **Deep-score list:** tickers in the `deep_score` list in `definitions/minidex_definitions.yaml` (seeded: INTC, AMD) bypass the embedding shortlist — they are scored against **all 22 buckets** — and run on the stronger `deep_score_model` (`claude-opus-5` in `config.json`) instead of the batch model, so their rows carry a different `model_version`. The list is reserved for diversified names whose Item 1 text is too broad for the similarity gate to ever surface them; it grants no anchor-style privileges (no QC expectation, no weight floor).
+- **Cross-model caveat:** scores from different models are not perfectly calibrated against each other. Mitigations: the shared prompt, two-run averaging, and QC disagreement checks — and the deep list is not a general quality-upgrade lever. When deep-model rows are ingested, the same company's rows from other models at the same `prompt_version` are deleted, so `latest_scores` never mixes models for one company by string-ordering accident.
 
 ---
 
@@ -155,7 +157,7 @@ Anthropic model ID echoed from the API response.
 
 A row appears in the CSV only if **all** of these hold:
 
-1. The `(cik, bucket_id)` pair is in the shortlist (either the embedding similarity cleared the threshold, or the ticker is a declared anchor for that bucket).
+1. The `(cik, bucket_id)` pair is in the shortlist (the embedding similarity cleared the threshold, the ticker is a declared anchor for that bucket, or the ticker is on the `deep_score` list — which pairs it with every bucket).
 2. Either the average of the two scoring runs is `>= score_floor` (currently `0.25` in `config.json`), **or** the ticker is a declared anchor. Anchors are force-included even at score `0.0`.
 3. The row is the latest available for that `(cik, bucket_id)` — newest `fy`, then newest `prompt_version`, then newest `model_version`.
 

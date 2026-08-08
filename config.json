@@ -3,6 +3,7 @@
   "similarity_threshold": 0.60,
   "score_floor": 0.25,
   "batch_model": "claude-haiku-4-5",
+  "deep_score_model": "claude-opus-5",
   "max_item1_chars": 12000,
   "anchor_min_weight": 0.05,
   "report": {

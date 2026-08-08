@@ -74,9 +74,10 @@ def _seed_db(s: config.Settings, tickers: list[tuple[str, str, str, int, list[st
 
 
 class _Msg:
-    def __init__(self, text: str, model: str = "claude-haiku-4-5"):
+    def __init__(self, text: str, model: str = "claude-haiku-4-5", stop_reason: str = "end_turn"):
         self.content = [type("B", (), {"type": "text", "text": text})]
         self.model = model
+        self.stop_reason = stop_reason
 
 
 class _Res:
@@ -260,6 +261,182 @@ def test_load_candidates_respects_ticker_list(scored_settings):
     finally:
         conn.close()
     assert [c.ticker for c in only_nvda] == ["NVDA"]
+
+
+# ---------- deep-score list -------------------------------------------------
+
+
+DEEP_DEFS_YAML = """
+buckets:
+  - id: fabless_chip_design
+    name: Fabless
+    definition: chip design
+    includes: []
+    excludes: []
+    anchors: []
+deep_score: [AMD]
+"""
+
+
+def _deep_settings(scored_settings, tmp_path: Path):
+    """scored_settings with a definitions yaml whose deep_score list is [AMD]."""
+    from dataclasses import replace
+
+    defs_path = tmp_path / "deep_defs.yaml"
+    defs_path.write_text(DEEP_DEFS_YAML, encoding="utf-8")
+    return replace(scored_settings, definitions_path=defs_path)
+
+
+def test_build_batch_requests_deep_shape(scored_settings):
+    """Deep tickers get the deep model, no temperature, 16k max_tokens; others unchanged."""
+    _seed_db(
+        scored_settings,
+        [
+            ("0000010", "NVDA", "NVIDIA", 2024, ["fabless_chip_design"]),
+            ("0000020", "AMD", "AMD", 2024, ["fabless_chip_design"]),
+        ],
+    )
+    conn = db.connect(scored_settings.db_path)
+    try:
+        cands = score.load_candidates(conn)
+    finally:
+        conn.close()
+    sys_p, tpl = score._load_prompt_sections(scored_settings.prompt_path)
+    bd = score._load_bucket_defs(scored_settings.definitions_path)
+
+    common = dict(
+        system_prompt=sys_p,
+        user_template=tpl,
+        bucket_defs=bd,
+        model="claude-haiku-4-5",
+        max_item1_chars=1000,
+    )
+    reqs = score.build_batch_requests(
+        cands, deep_tickers={"AMD"}, deep_model="claude-opus-5", **common
+    )
+    by_id = {r["custom_id"]: r["params"] for r in reqs}
+
+    for cid in ("AMD_2024_run1", "AMD_2024_run2"):
+        p = by_id[cid]
+        assert p["model"] == "claude-opus-5"
+        assert "temperature" not in p
+        assert p["max_tokens"] == score.DEEP_MAX_TOKENS
+        assert p["max_tokens"] >= 16_000
+
+    for cid in ("NVDA_2024_run1", "NVDA_2024_run2"):
+        p = by_id[cid]
+        assert p["model"] == "claude-haiku-4-5"
+        assert p["temperature"] == 0
+        assert p["max_tokens"] == score.DEFAULT_MAX_TOKENS
+
+    # Non-deep requests are byte-identical to a build with no deep list at all.
+    plain = {r["custom_id"]: r["params"] for r in score.build_batch_requests(cands, **common)}
+    assert by_id["NVDA_2024_run1"] == plain["NVDA_2024_run1"]
+    assert by_id["NVDA_2024_run2"] == plain["NVDA_2024_run2"]
+
+
+def test_submit_routes_deep_tickers_from_yaml(scored_settings, tmp_path):
+    """submit() reads deep_score from the definitions yaml and routes per request."""
+    s = _deep_settings(scored_settings, tmp_path)
+    _seed_db(
+        s,
+        [
+            ("0000010", "NVDA", "NVIDIA", 2024, ["fabless_chip_design"]),
+            ("0000020", "AMD", "AMD", 2024, ["fabless_chip_design"]),
+        ],
+    )
+    fake = FakeClient()
+    batch_ids = score.submit(assume_yes=True, client_factory=lambda: fake, settings=s)
+    assert len(batch_ids) == 1
+
+    submitted = {r["custom_id"]: r["params"] for r in fake.messages.batches.created[0]}
+    assert submitted["AMD_2024_run1"]["model"] == s.deep_score_model
+    assert "temperature" not in submitted["AMD_2024_run1"]
+    assert submitted["AMD_2024_run1"]["max_tokens"] == score.DEEP_MAX_TOKENS
+    assert submitted["NVDA_2024_run1"]["model"] == s.batch_model
+    assert submitted["NVDA_2024_run1"]["temperature"] == 0
+
+
+def test_poll_refusal_goes_to_failures(scored_settings, capsys):
+    _seed_db(scored_settings, [("0000010", "NVDA", "NVIDIA", 2024, ["fabless_chip_design"])])
+    _prime_batch(scored_settings, "b_ref", ["NVDA_2024_run1"])
+
+    fake = FakeClient()
+    fake.messages.batches.results_map["b_ref"] = [
+        _Individual(
+            "NVDA_2024_run1",
+            _Res("succeeded", message=_Msg("", model="claude-opus-5", stop_reason="refusal")),
+        ),
+    ]
+
+    result = score.poll(client_factory=lambda: fake, settings=scored_settings)
+    assert result["n_inserted"] == 0
+    assert result["n_failures"] == 1
+    failures = json.loads((scored_settings.data_dir / score.FAILURES_FILENAME).read_text())
+    assert failures[0]["reason"] == "refusal"
+    assert "REFUSED" in capsys.readouterr().out
+
+
+def test_poll_deep_model_supersedes_other_models(scored_settings):
+    """Ingesting deep-model rows deletes the same company's other-model rows
+    at the same prompt_version, and leaves other companies untouched."""
+    _seed_db(
+        scored_settings,
+        [
+            ("0000020", "AMD", "AMD", 2024, ["fabless_chip_design"]),
+            ("0000010", "NVDA", "NVIDIA", 2024, ["fabless_chip_design"]),
+        ],
+    )
+    pv = scored_settings.prompt_version
+    conn = db.connect(scored_settings.db_path)
+    try:
+        with db.transaction(conn):
+            for cik, ticker in (("0000020", "AMD"), ("0000010", "NVDA")):
+                for run in (1, 2):
+                    db.insert_score(
+                        conn, cik=cik, ticker=ticker, bucket_id="fabless_chip_design",
+                        fy=2024, run=run, score=0.5, confidence="high", rationale="old",
+                        evidence_type="segment_data", pre_revenue=0,
+                        prompt_version=pv, model_version="claude-haiku-4-5",
+                        created_at="2026-01-01T00:00:00Z",
+                    )
+    finally:
+        conn.close()
+
+    _prime_batch(scored_settings, "b_deep", ["AMD_2024_run1", "AMD_2024_run2"])
+    fake = FakeClient()
+    fake.messages.batches.results_map["b_deep"] = [
+        _Individual(
+            f"AMD_2024_run{run}",
+            _Res(
+                "succeeded",
+                message=_Msg(
+                    _valid_response_json("AMD", 2024, ["fabless_chip_design"]),
+                    model=scored_settings.deep_score_model,
+                ),
+            ),
+        )
+        for run in (1, 2)
+    ]
+
+    result = score.poll(client_factory=lambda: fake, settings=scored_settings)
+    assert result["n_inserted"] == 2
+    assert result["n_failures"] == 0
+
+    conn = db.connect(scored_settings.db_path)
+    try:
+        rows = conn.execute(
+            "SELECT ticker, model_version, COUNT(*) AS n FROM scores "
+            "GROUP BY ticker, model_version ORDER BY ticker"
+        ).fetchall()
+    finally:
+        conn.close()
+    got = {(r["ticker"], r["model_version"]): r["n"] for r in rows}
+    # AMD's haiku rows are gone; only the deep-model rows remain.
+    assert got == {
+        ("AMD", scored_settings.deep_score_model): 2,
+        ("NVDA", "claude-haiku-4-5"): 2,
+    }
 
 
 # ---------- fence stripping -------------------------------------------------

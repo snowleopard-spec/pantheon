@@ -30,10 +30,16 @@ from minidex import config, db, models
 MAX_REQUESTS_PER_BATCH = 100_000
 # Room for output; scoring responses are small JSON.
 DEFAULT_MAX_TOKENS = 2048
-# Rough Haiku 4.5 batch price ($/MTok) for the cost estimate. This is only a
-# rough estimate — real billing is authoritative.
-_ROUGH_PRICE_PER_MTOK_INPUT = 0.50
-_ROUGH_PRICE_PER_MTOK_OUTPUT = 2.50
+# Deep-score requests run on Opus 5, where thinking is on by default and
+# max_tokens caps thinking + JSON output together — needs far more headroom.
+DEEP_MAX_TOKENS = 16_000
+# Rough batch prices ($/MTok input, $/MTok output; 50% batch discount already
+# applied) for the cost estimate. Real billing is authoritative.
+_ROUGH_BATCH_PRICES = {
+    "claude-haiku-4-5": (0.50, 2.50),
+    "claude-opus-5": (2.50, 12.50),
+}
+_DEFAULT_BATCH_PRICES = (0.50, 2.50)
 
 FAILURES_FILENAME = "score_failures.json"
 
@@ -90,6 +96,12 @@ def _load_prompt_sections(prompt_path: Path) -> tuple[str, str]:
 def _load_bucket_defs(definitions_path: Path) -> dict[str, dict[str, Any]]:
     data = yaml.safe_load(definitions_path.read_text(encoding="utf-8"))
     return {b["id"]: b for b in data["buckets"]}
+
+
+def _load_deep_score_tickers(definitions_path: Path) -> set[str]:
+    """Top-level `deep_score` ticker list from the definitions YAML (upper-cased)."""
+    data = yaml.safe_load(definitions_path.read_text(encoding="utf-8"))
+    return {str(t).upper() for t in (data.get("deep_score") or [])}
 
 
 def _format_segments(segments_json: str | None) -> str:
@@ -282,6 +294,31 @@ def build_user_prompt(
     )
 
 
+def _request_params(
+    *,
+    model: str,
+    system_prompt: str,
+    user: str,
+    deep: bool,
+    max_tokens: int,
+) -> dict[str, Any]:
+    """Params for one batch request.
+
+    Deep (Opus 5) requests differ from Haiku's: no `temperature` (Opus 5
+    rejects any sampling parameter with a 400) and a much larger max_tokens
+    (thinking is on by default and shares the max_tokens budget).
+    """
+    params: dict[str, Any] = {
+        "model": model,
+        "max_tokens": max_tokens,
+        "system": system_prompt,
+        "messages": [{"role": "user", "content": user}],
+    }
+    if not deep:
+        params["temperature"] = 0
+    return params
+
+
 def build_batch_requests(
     candidates: list[Candidate],
     *,
@@ -292,10 +329,17 @@ def build_batch_requests(
     max_item1_chars: int,
     runs: Iterable[int] = (1, 2),
     max_tokens: int = DEFAULT_MAX_TOKENS,
+    deep_tickers: set[str] | frozenset[str] = frozenset(),
+    deep_model: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Return a plain-dict list of batch requests (SDK accepts dicts)."""
+    """Return a plain-dict list of batch requests (SDK accepts dicts).
+
+    Tickers in `deep_tickers` get `deep_model` with the deep request shape;
+    everyone else gets `model` with the unchanged Haiku shape.
+    """
     reqs: list[dict[str, Any]] = []
     for cand in candidates:
+        deep = cand.ticker.upper() in deep_tickers and deep_model is not None
         user = build_user_prompt(
             cand,
             user_template=user_template,
@@ -307,13 +351,13 @@ def build_batch_requests(
             reqs.append(
                 {
                     "custom_id": custom_id,
-                    "params": {
-                        "model": model,
-                        "max_tokens": max_tokens,
-                        "temperature": 0,
-                        "system": system_prompt,
-                        "messages": [{"role": "user", "content": user}],
-                    },
+                    "params": _request_params(
+                        model=deep_model if deep else model,
+                        system_prompt=system_prompt,
+                        user=user,
+                        deep=deep,
+                        max_tokens=DEEP_MAX_TOKENS if deep else max_tokens,
+                    ),
                 }
             )
     return reqs
@@ -335,16 +379,26 @@ def _rough_input_tokens(req: dict[str, Any]) -> int:
     return (sys_len + user_len) // 4
 
 
-def estimate_cost(requests: list[dict[str, Any]], max_tokens: int) -> dict[str, float]:
-    total_input = sum(_rough_input_tokens(r) for r in requests)
-    total_output = len(requests) * max_tokens
-    cost_in = total_input * _ROUGH_PRICE_PER_MTOK_INPUT / 1_000_000
-    cost_out = total_output * _ROUGH_PRICE_PER_MTOK_OUTPUT / 1_000_000
+def estimate_cost(requests: list[dict[str, Any]]) -> dict[str, float]:
+    """Rough cost, pricing each request at its own model's batch rates."""
+    total_input = 0
+    total_output = 0
+    cost = 0.0
+    for r in requests:
+        params = r["params"]
+        price_in, price_out = _ROUGH_BATCH_PRICES.get(
+            params.get("model", ""), _DEFAULT_BATCH_PRICES
+        )
+        n_in = _rough_input_tokens(r)
+        n_out = int(params.get("max_tokens") or DEFAULT_MAX_TOKENS)
+        total_input += n_in
+        total_output += n_out
+        cost += n_in * price_in / 1_000_000 + n_out * price_out / 1_000_000
     return {
         "n_requests": float(len(requests)),
         "input_tokens_est": float(total_input),
         "output_tokens_est_ceiling": float(total_output),
-        "cost_usd_est": cost_in + cost_out,
+        "cost_usd_est": cost,
     }
 
 
@@ -424,6 +478,7 @@ def submit(
             print("score submit: no candidates with filings + shortlist rows; nothing to do.")
             return []
 
+        deep_tickers = _load_deep_score_tickers(s.definitions_path)
         reqs = build_batch_requests(
             candidates,
             system_prompt=system_prompt,
@@ -431,15 +486,21 @@ def submit(
             bucket_defs=bucket_defs,
             model=s.batch_model,
             max_item1_chars=s.max_item1_chars,
+            deep_tickers=deep_tickers,
+            deep_model=s.deep_score_model,
         )
 
-        est = estimate_cost(reqs, DEFAULT_MAX_TOKENS)
+        n_deep = sum(1 for r in reqs if r["params"]["model"] == s.deep_score_model)
+        est = estimate_cost(reqs)
+        model_note = f"model={s.batch_model}"
+        if n_deep:
+            model_note += f" + {n_deep} deep-score requests on {s.deep_score_model}"
         print(
             f"score submit: {int(est['n_requests'])} requests "
             f"(~{int(est['input_tokens_est']):,} input tokens, "
             f"<= {int(est['output_tokens_est_ceiling']):,} output tokens); "
             f"rough cost estimate ${est['cost_usd_est']:.2f} "
-            f"(model={s.batch_model}, 50% batch discount already applied)."
+            f"({model_note}, 50% batch discount already applied)."
         )
         if not _confirm(assume_yes):
             print("score submit: aborted by user.")
@@ -539,6 +600,7 @@ def _ingest_batch_results(
     ticker_cik: dict[str, str],
     failures: list[dict[str, Any]],
     seen_custom_ids: set[str],
+    deep_model: str | None = None,
 ) -> int:
     """Insert one score row per bucket for each successful result. Returns row count."""
     inserted = 0
@@ -566,6 +628,23 @@ def _ingest_batch_results(
         message = getattr(result_obj, "message", None) or (
             result_obj.get("message") if isinstance(result_obj, dict) else None
         )
+
+        # Opus 5 safety classifiers can decline a request: HTTP-successful
+        # result, stop_reason == "refusal", empty/partial content. Treat as a
+        # failed request, not a crash.
+        stop_reason = getattr(message, "stop_reason", None) or (
+            message.get("stop_reason") if isinstance(message, dict) else None
+        )
+        if stop_reason == "refusal":
+            print(
+                f"score poll: WARNING — request {custom_id} was REFUSED by the "
+                "model's safety classifiers; recorded as a failure."
+            )
+            failures.append(
+                {"custom_id": custom_id, "reason": "refusal", "raw": None}
+            )
+            continue
+
         raw_text = _message_text(message)
         text = _strip_markdown_fence(raw_text)
         try:
@@ -624,6 +703,24 @@ def _ingest_batch_results(
                     created_at=now,
                 )
                 inserted += 1
+
+            # Deep-model rows explicitly supersede other models' rows for the
+            # same company + prompt_version. The latest_scores view otherwise
+            # picks by string-comparing model_version — precedence should be a
+            # decision, not string-ordering luck. History lives in the
+            # git-tracked promoted-run archives, not dead DB rows.
+            if deep_model is not None and model_version == deep_model:
+                cur = conn.execute(
+                    "DELETE FROM scores WHERE cik = ? AND prompt_version = ? "
+                    "AND model_version != ?",
+                    (cik, prompt_version, model_version),
+                )
+                if cur.rowcount:
+                    print(
+                        f"score poll: superseded {cur.rowcount} row(s) from other "
+                        f"models for {ticker} at prompt v{prompt_version} "
+                        f"(deep model {model_version} wins)."
+                    )
     return inserted
 
 
@@ -673,6 +770,7 @@ def poll(
                 ticker_cik=ticker_cik,
                 failures=failures,
                 seen_custom_ids=seen,
+                deep_model=s.deep_score_model,
             )
             total_inserted += inserted
 
@@ -754,6 +852,7 @@ def retry(
         by_ticker = {c.ticker.upper(): c for c in candidates}
 
         # Build one request per failed custom_id, matching its run number.
+        deep_tickers = _load_deep_score_tickers(s.definitions_path)
         reqs: list[dict[str, Any]] = []
         skipped: list[str] = []
         for cid, ticker, fy, run in parsed:
@@ -761,6 +860,7 @@ def retry(
             if cand is None:
                 skipped.append(cid)
                 continue
+            deep = ticker.upper() in deep_tickers
             user = build_user_prompt(
                 cand,
                 user_template=user_template,
@@ -770,13 +870,13 @@ def retry(
             reqs.append(
                 {
                     "custom_id": cid,
-                    "params": {
-                        "model": s.batch_model,
-                        "max_tokens": DEFAULT_MAX_TOKENS,
-                        "temperature": 0,
-                        "system": system_prompt,
-                        "messages": [{"role": "user", "content": user}],
-                    },
+                    "params": _request_params(
+                        model=s.deep_score_model if deep else s.batch_model,
+                        system_prompt=system_prompt,
+                        user=user,
+                        deep=deep,
+                        max_tokens=DEEP_MAX_TOKENS if deep else DEFAULT_MAX_TOKENS,
+                    ),
                 }
             )
 
@@ -784,7 +884,7 @@ def retry(
             print(f"score retry: nothing to submit (skipped {len(skipped)}).")
             return []
 
-        est = estimate_cost(reqs, DEFAULT_MAX_TOKENS)
+        est = estimate_cost(reqs)
         print(
             f"score retry: {int(est['n_requests'])} requests "
             f"(~${est['cost_usd_est']:.2f} rough estimate)."

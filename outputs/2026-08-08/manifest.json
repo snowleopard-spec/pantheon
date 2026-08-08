@@ -1,0 +1,20 @@
+{
+  "anchor_min_weight": 0.05,
+  "asof": "2026-08-08",
+  "definitions_sha256": "106e4c60ca65408a2a91e24bb1e3bebd8123b3849a9dcce2b5bf8c91882e629c",
+  "embedding_model": "BAAI/bge-large-en-v1.5",
+  "filing_fy_histogram": {
+    "2022": 1,
+    "2024": 2,
+    "2025": 219,
+    "2026": 55
+  },
+  "model_version": "mixed",
+  "n_companies_scored": 277,
+  "n_pairs_scored": 342,
+  "prompt_sha256": "591859fb7f6f9f696c025d9f3b3fa4bbe41e0bb757af6bd90feefa4fca7ca623",
+  "prompt_version": "1.6",
+  "run_date": "2026-08-08",
+  "score_floor": 0.25,
+  "similarity_threshold": 0.6
+}

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Project Pantheon — Architecture (non-technical)</title>
+<title>Pantheon — Architecture</title>
 <style>
   html { -webkit-text-size-adjust: 100%; background: #0d1117; }
   body {
@@ -15,13 +15,24 @@
     line-height: 1.6;
     font-size: 16px;
   }
+  /* Header matches the report/coherence pages (see scripts/bucket_returns.py CSS). */
   h1 {
-    font-size: 2rem;
-    margin: 0 0 0.2rem 0;
-    letter-spacing: -0.01em;
+    font-size: 3rem;
+    letter-spacing: -0.02em;
+    margin: 0.6rem 0 1.6rem 0;
     color: #f0f6fc;
+    text-align: center;
     font-weight: 700;
   }
+  .updated {
+    text-align: center;
+    color: #8b949e;
+    font-size: 0.85rem;
+    margin: -1.2rem 0 1.6rem 0;
+    letter-spacing: 0.01em;
+  }
+  .updated a { color: #58a6ff; text-decoration: none; }
+  .updated a:hover { text-decoration: underline; }
   h2 {
     font-size: 1.35rem;
     margin: 2.4rem 0 0.6rem 0;
@@ -46,14 +57,6 @@
     font-size: 0.85rem;
     margin-top: -0.4rem;
   }
-  .report-link {
-    display: inline-block;
-    color: #8b949e;
-    font-size: 0.8rem;
-    text-decoration: none;
-    margin-bottom: 0.5rem;
-  }
-  .report-link:hover { color: #58a6ff; text-decoration: underline; }
   table {
     border-collapse: collapse;
     width: 100%;
@@ -112,10 +115,10 @@
   @media print {
     html, body { background: #fff; color: #1c1c1c; }
     body { margin: 0; font-size: 11pt; max-width: none; }
-    .report-link { display: none; }
+    .updated a { display: none; }
     h1, h2, h3 { color: #1c1c1c; }
     h2 { border-bottom-color: #ccc; page-break-after: avoid; }
-    .subtitle, .meta, .callout, footer { color: #555; }
+    .updated, .subtitle, .meta, .callout, footer { color: #555; }
     table, td code, p code, li code, .callout { background: #fff; }
     th { background: #f2efe6; color: #444; }
     th, td { border-bottom-color: #ddd; }
@@ -126,11 +129,10 @@
 </head>
 <body>
 
-<a class="report-link" href="./">← Back to the report</a>
-<h1>Project Pantheon</h1>
-<p style="color:#8b949e; font-style: italic; margin-top: -0.5rem;">The mini-dex thematic index construction pipeline.</p>
-<p class="subtitle">A non-technical guide to how the pipeline turns 8,000 SEC filings into 22 thematic stock baskets.</p>
-<p class="meta">Companion to <code>docs/Context/PANTHEON_SPEC.md</code>. Written for product managers and analysts who want the shape of the system without the code.</p>
+<h1>Architecture</h1>
+<p class="updated">How the pipeline turns 8,000 SEC filings into 22 thematic stock baskets ·
+<a href="./">← Report</a> · <a href="coherence.html">Coherence</a></p>
+<p class="meta" style="text-align: center; margin-bottom: 1.8rem;">A non-technical companion to <code>docs/Context/PANTHEON_V1_SPEC.md</code> — the shape of the system without the code.</p>
 
 <h2>1. What this system does</h2>
 <p>

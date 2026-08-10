@@ -488,7 +488,7 @@ CSS = """
     margin-bottom: 0.5rem;
   }
   .chart-desc {
-    color: #ccff00;
+    color: #d2b04c;  /* olive-gold family, matches the QQQ benchmark row */
     font-size: 0.95rem;
     line-height: 1.5;
     margin: 0.6rem 0 0 0;

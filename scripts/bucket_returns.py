@@ -414,7 +414,6 @@ CSS = """
   table.constituents .ct-score,
   table.constituents .ct-mcap { text-align: right; }
   table.constituents .ct-conf { text-align: center; color: #8b949e; font-size: 0.78rem; width: 3rem; }
-  table.constituents .ct-sharpe,
   table.constituents .ct-z,
   table.constituents .ct-ret {
     text-align: right;
@@ -489,9 +488,9 @@ CSS = """
     margin-bottom: 0.5rem;
   }
   .chart-desc {
-    color: #8b949e;
-    font-size: 0.85rem;
-    line-height: 1.45;
+    color: #ccff00;
+    font-size: 0.95rem;
+    line-height: 1.5;
     margin: 0.6rem 0 0 0;
     max-width: 68rem;
   }
@@ -644,6 +643,7 @@ CSS = """
   @media print {
     html, body { background: #fff; color: #1c1c1c; }
     body { margin: 0; font-size: 10pt; }
+    .chart-desc { color: #555; }
     table, table.constituents {
       background: #fff; box-shadow: none; border-color: #ccc;
     }
@@ -942,7 +942,8 @@ SCRIPT = """
                       '<th>Score</th><th>Conf</th><th>Index Weight</th></tr>';
     tbl.appendChild(thead);
     var tb = document.createElement('tbody');
-    var rows = c.s.slice().sort(function(a, b) { return b[1] - a[1]; });
+    var rows = c.s.filter(function(s) { return s[1] > 0; })
+                  .sort(function(a, b) { return b[1] - a[1]; });
     rows.forEach(function(s) {
       var tr = document.createElement('tr');
       var member = s[3] != null;
@@ -961,9 +962,11 @@ SCRIPT = """
       tb.appendChild(tr);
     });
     tbl.appendChild(tb);
-    panel.appendChild(tbl);
+    if (rows.length) panel.appendChild(tbl);
     var note = document.createElement('p'); note.className = 'sp-note';
-    note.textContent = 'All LLM scores shown (no floor). Click a sub index to open it in the table below.'
+    note.textContent = (rows.length
+        ? 'Nonzero LLM scores shown (no floor; zero scores omitted). Click a sub index to open it in the table below.'
+        : "All of this company's sub-index scores are 0.")
       + (PRICES[c.t] ? '' : ' No price chart: not an index member, so prices are not tracked.');
     panel.appendChild(note);
     panel.removeAttribute('hidden');
@@ -1078,7 +1081,6 @@ def render_html(
             mcap = _fmt_mcap(mcap_raw)
             conf = escape(str(m.get("confidence", "")))
             conf_rank = {"high": 3, "medium": 2, "low": 1}.get(str(m.get("confidence", "")).lower(), 0)
-            sharpe_v = const_sharpe.get(ticker)
             z_v = bucket_z.get(ticker)
             tint = " ct-top" if ticker in top3 else (" ct-bottom" if ticker in bottom3 else "")
             rets = ticker_returns.get(ticker, {})
@@ -1094,7 +1096,6 @@ def render_html(
                 f'<td class="ct-score" data-sort="{score:.4f}">{score:.2f}</td>'
                 f'<td class="ct-mcap" data-sort="{mcap_num}">{mcap}</td>'
                 f'<td class="ct-conf" data-sort="{conf_rank}">{conf}</td>'
-                f'<td class="ct-sharpe" data-sort="{_sort_attr(sharpe_v)}">{_fmt_sharpe(sharpe_v)}</td>'
                 f'<td class="ct-z" data-sort="{_sort_attr(z_v)}">{_fmt_z(z_v)}</td>'
                 f'{ret_cells}'
                 f'</tr>'
@@ -1112,7 +1113,6 @@ def render_html(
             '<th class="num sortable" data-type="num">Score</th>'
             '<th class="num sortable" data-type="num">Market cap</th>'
             '<th class="sortable" data-type="num">Conf</th>'
-            f'<th class="num sortable" data-type="num">{escape(sharpe_label)}</th>'
             f'<th class="num sortable" data-type="num">{escape(z_label)}</th>'
             f'{window_headers}'
             '</tr></thead>'
@@ -1205,11 +1205,11 @@ def render_html(
   <b>{escape(benchmark["ticker"])}</b> ({escape(benchmark["label"])}) is pinned
   to the top row and excluded from sorting. Click the Sharpe or return column
   headers to sort the sub indices.<br>
-  <b>{escape(sharpe_label)}:</b> annualised Sharpe ratio — mean ÷ std (ddof 1)
-  of daily returns × √252, risk-free rate 0 — over the trailing
+  <b>{escape(sharpe_label)}</b> (indices only): annualised Sharpe ratio — mean ÷ std
+  (ddof 1) of daily returns × √252, risk-free rate 0 — over the trailing
   {escape(sharpe_label.split(" ")[0].lower())} window (configurable in
-  <code>config.json</code>). Index-level Sharpe uses the daily weighted return
-  series with weights renormalised each day.<br>
+  <code>config.json</code>), using the daily weighted return series with
+  weights renormalised each day.<br>
   <b>Small figures</b> under each index return: the median constituent's return
   for that window (the median stock can differ between windows).<br>
   <b>{escape(z_label)}:</b> intra-bucket out/underperformance — each member's
@@ -1308,7 +1308,7 @@ def main() -> None:
 
     # v2.4: intra-bucket residual z (LOO-beta-adjusted, robust cross-section)
     z_window = cfg["z_window"]
-    z_label = f"{z_window.upper()} Z"
+    z_label = f"{z_window.upper()} Z of Sub Idx Res"
     if z_window == sharpe_window:
         daily_z = daily
     else:

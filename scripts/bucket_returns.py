@@ -32,6 +32,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import yaml
 
 # Same-directory import: scripts/ is on sys.path when run as a script (the
 # mechanism the droplet cron relies on). Tests insert scripts/ explicitly.
@@ -140,6 +141,27 @@ def _load_search_data(
     }
     # Same script-breakout hardening as the PRICES blob.
     return json.dumps(payload, separators=(",", ":")).replace("</", "<\\/")
+
+
+def _load_descriptions(path: Path) -> dict[str, str]:
+    """definitions/company_descriptions.yaml -> {TICKER: text}.
+
+    Hand-editable file; missing or unparseable degrades to {} (the report
+    never fails over description health), but parse errors are loud.
+    """
+    if not path.exists():
+        return {}
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError as e:
+        print(f"bucket_returns: warn — could not parse {path.name}: {e}",
+              file=sys.stderr)
+        return {}
+    if not isinstance(data, dict):
+        print(f"bucket_returns: warn — {path.name} is not a mapping; ignoring",
+              file=sys.stderr)
+        return {}
+    return {str(k).upper(): " ".join(str(v).split()) for k, v in data.items() if v}
 
 
 def _price_at_or_before(prices: pd.DataFrame, ticker: str, target: date) -> float | None:
@@ -466,6 +488,13 @@ CSS = """
     align-items: center;
     margin-bottom: 0.5rem;
   }
+  .chart-desc {
+    color: #8b949e;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    margin: 0.6rem 0 0 0;
+    max-width: 68rem;
+  }
   .chart-controls .chart-title {
     color: #b1bac4;
     font-size: 0.8rem;
@@ -749,6 +778,12 @@ SCRIPT = """
     wrap.className = 'chart-wrap';
     cell.appendChild(controls);
     cell.appendChild(wrap);
+    if (typeof DESCS !== 'undefined' && DESCS[ticker]) {
+      var desc = document.createElement('p');
+      desc.className = 'chart-desc';
+      desc.textContent = DESCS[ticker];
+      cell.appendChild(desc);
+    }
 
     var width = Math.max(320, cell.clientWidth - 20);
     var opts = {
@@ -894,7 +929,11 @@ SCRIPT = """
       var cd = document.createElement('div'); cd.className = 'sp-chart';
       panel.appendChild(cd);
       panel.removeAttribute('hidden');  // must be visible for clientWidth
-      buildChart(cd, c.t);
+      buildChart(cd, c.t);  // buildChart appends the description under the chart
+    } else if (typeof DESCS !== 'undefined' && DESCS[c.t]) {
+      var pd = document.createElement('p'); pd.className = 'chart-desc';
+      pd.textContent = DESCS[c.t];
+      panel.appendChild(pd);
     }
 
     var tbl = document.createElement('table'); tbl.className = 'sp-scores';
@@ -975,6 +1014,7 @@ def render_html(
     z_label: str,
     chart_json: str,
     search_json: str,
+    descs_json: str,
     uplot_js: str,
     uplot_css: str,
 ) -> str:
@@ -1192,6 +1232,7 @@ def render_html(
 <script>{uplot_js}</script>
 <script>var PRICES = {chart_json};</script>
 <script>var SEARCH = {search_json};</script>
+<script>var DESCS = {descs_json};</script>
 <script>{script}</script>
 
 </body>
@@ -1309,11 +1350,19 @@ def main() -> None:
     search_json = _load_search_data(db_path, weights, weight_col, score_floor,
                                     company_names)
 
+    descs = _load_descriptions(REPO_ROOT / "definitions" / "company_descriptions.yaml")
+    undescribed = sorted(set(weights["ticker"]) - set(descs))
+    if descs and undescribed:
+        print(f"bucket_returns: warn — {len(undescribed)} index member(s) have no "
+              f"entry in company_descriptions.yaml: {', '.join(undescribed[:8])}"
+              f"{'…' if len(undescribed) > 8 else ''}", file=sys.stderr)
+    descs_json = json.dumps(descs, separators=(",", ":")).replace("</", "<\\/")
+
     asof = str(prices["date"].max())  # latest price bar = the report's true as-of date
     html = render_html(returns, weights, weight_col, asof, company_names,
                        ticker_returns, medians, bucket_sharpe, const_sharpe,
                        benchmark, sharpe_label, member_z, z_label,
-                       chart_json, search_json, uplot_js, uplot_css)
+                       chart_json, search_json, descs_json, uplot_js, uplot_css)
     out_path.write_text(html, encoding="utf-8")
     print(f"bucket_returns: wrote {out_path} ({len(returns)} buckets, "
           f"{len(html)/1e6:.2f} MB)")

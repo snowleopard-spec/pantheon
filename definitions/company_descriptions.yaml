@@ -1,0 +1,4067 @@
+# Two-line company descriptions, shown under price charts and in the search
+# panel on the Pantheon report. Keyed by ticker; plain text values.
+#
+# Generated 2026-08-10 by parallel agents reading each company's 10-K Item 1
+# extract (data/raw/). HAND-EDITS WELCOME — this file is the source of truth
+# and nothing regenerates it wholesale. To add a company, add a line; the
+# report warns at render time about index members missing an entry.
+
+AAOI: >-
+  Designs and manufactures fiber-optic networking products, from lasers to
+  transceivers and turn-key equipment; revenue comes mainly from cable TV network gear
+  and optical transceivers for hyperscale data centers.
+
+AAPL: >-
+  Designs and sells smartphones, personal computers, tablets, wearables and
+  accessories, earning further revenue from services including the App Store,
+  advertising, AppleCare, cloud, subscriptions and payments.
+
+AAT: >-
+  Vertically integrated REIT that owns and operates office, retail, multifamily and
+  mixed-use properties in Southern/Northern California, Washington, Oregon, Texas and
+  Hawaii; earns rent from tenants across its portfolio.
+
+AATC: >-
+  Holding company whose main subsidiary makes above-ground traffic detection products
+  using video and radar for intersection and highway management; sells through
+  distributors to government agencies and municipalities.
+
+ABR: >-
+  REIT and direct lender for commercial real estate, mainly multifamily; earns
+  interest on bridge and mezzanine loans plus fees and servicing income from
+  originating and selling agency loans through Fannie Mae, Freddie Mac and HUD.
+
+ACIW: >-
+  Develops payments orchestration software for banks, merchants and billers, covering
+  card issuing/acquiring, real-time payments, fraud management and bill payment; earns
+  from software licenses, SaaS and payment services.
+
+ACMR: >-
+  Makes capital equipment for semiconductor fabs — wet cleaning, plating, furnace,
+  PECVD, track and advanced packaging tools; most revenue comes from single-wafer
+  cleaning systems sold to chipmakers in Asia.
+
+ACRE: >-
+  Specialty finance REIT that directly originates and holds commercial real estate
+  loans — senior mortgages, subordinated debt, mezzanine and preferred equity; earns
+  interest income and is externally managed by an Ares Management unit.
+
+ADAM: >-
+  Internally managed mortgage REIT holding Agency RMBS, residential loans and other
+  credit-sensitive housing assets; also originates business-purpose loans to
+  residential real estate investors through its Constructive subsidiary.
+
+ADC: >-
+  REIT focused on retail properties net leased to national tenants, with 2,674
+  properties across all 50 states; earns long-term net-lease rent, with tenants
+  covering taxes, insurance and maintenance.
+
+ADI: >-
+  Designs and manufactures analog, mixed-signal and power semiconductors — data
+  converters, amplifiers, RF ICs, power management and sensors — sold to OEMs across
+  industrial, automotive, communications, consumer and healthcare markets.
+
+ADNH: >-
+  Develops high-temperature PEM fuel cell technology, focusing on membrane electrode
+  assemblies and stacks; much of current revenue comes from joint development and
+  technology assessment agreements with OEMs such as Airbus and Hyundai.
+
+ADP: >-
+  Provides HR and payroll (human capital management) software and outsourcing —
+  payroll, time, benefits, talent and compliance; earns recurring fees from over 1.1
+  million clients, paying 42 million workers worldwide.
+
+ADSK: >-
+  Makes 3D design and engineering software — AutoCAD, Revit, Fusion, Maya — for
+  architecture/construction, manufacturing and media; earns subscription revenue sold
+  through direct and indirect channels globally.
+
+ADTN: >-
+  Supplies fiber broadband access, optical transport and subscriber networking
+  equipment plus SaaS and support services; revenue comes from telecom service
+  providers, utilities, enterprises and government customers.
+
+AEHR: >-
+  Builds semiconductor test and burn-in systems for wafer-level, singulated die and
+  packaged parts; sells FOX systems, WaferPak contactors and DiePak carriers for
+  silicon carbide power devices, AI processors and photonics.
+
+AEIS: >-
+  Designs and services precision power conversion, measurement and control products;
+  revenue comes from OEMs and end users in semiconductor equipment, data center
+  computing, industrial/medical, and telecom and networking markets.
+
+AEP: >-
+  Public utility holding company whose subsidiaries generate, transmit and distribute
+  electricity to roughly five million retail customers across eleven states; earns
+  regulated retail and wholesale electricity revenues.
+
+AES: >-
+  Global energy company developing and operating power generation — majority
+  renewables — sold under long-term contracts to corporate and data center customers,
+  plus regulated electric utilities in Indiana and Ohio.
+
+AETN: >-
+  Operates a network of electrified truck parking spaces at travel centers, letting
+  trucks and refrigerated trailers plug in instead of idling; earns energy vending
+  fees and relies on government grants to fund EV charging upgrades.
+
+AGNC: >-
+  Internally managed REIT that invests in government-guaranteed Agency residential
+  mortgage-backed securities on a leveraged basis; earns the spread between interest
+  on its portfolio and repo borrowing and hedging costs.
+
+AHR: >-
+  Self-managed REIT that owns and operates senior housing, skilled nursing, outpatient
+  medical and other healthcare properties in the US, UK and Isle of Man; earns rent
+  and operating income via RIDEA structures.
+
+AHT: >-
+  REIT holding 68 upscale and upper-upscale full-service US hotels branded Hilton,
+  Hyatt, Marriott and IHG; earns hotel operating revenue through third-party managers
+  and is externally advised by an Ashford Inc. subsidiary.
+
+AI: >-
+  Sells enterprise AI application software — an agentic AI platform, industry-specific
+  applications and generative AI tools; earns subscription revenue from businesses and
+  government customers, deployed on cloud or on-premises.
+
+AIFF: >-
+  Applies AI to brain health via an FDA-cleared EEG/ERP system that captures brain
+  activity in clinics and returns cloud-analyzed reports; earns recurring revenue from
+  tiered clinic subscriptions tied to usage.
+
+AIMD: >-
+  Develops AI Nose, an AI-based scent-digitization sensor platform for industrial and
+  healthcare monitoring, plus VELDONA low-dose oral interferon therapeutics; targets
+  hardware sales, subscriptions and licensing income.
+
+AIOT: >-
+  Provides AIoT asset-tracking and fleet intelligence — the Unity SaaS platform, AI
+  video safety and telematics for vehicles, trailers and warehouse equipment; earns
+  device sales and recurring software subscriptions.
+
+AIP: >-
+  Licenses network-on-chip interconnect and SoC integration automation IP that chip
+  designers use to move data inside complex semiconductors; earns license, support and
+  maintenance fees plus royalties.
+
+AIRG: >-
+  Supplies wireless connectivity products — embedded antennas, cellular modems, 5G
+  smart repeaters, fleet vehicle gateways and asset trackers — sold into enterprise,
+  automotive and consumer device markets, with cloud subscriptions.
+
+AISP: >-
+  Sells an AI-driven edge video and sensor data platform — Outpost AI edge devices,
+  Acropolis management software and Command visualization — to government, law
+  enforcement and enterprises under multi-year contracts.
+
+AIV: >-
+  Multifamily REIT winding down under a stockholder-approved plan of sale and
+  liquidation; earns apartment rental income while it sells its U.S. communities and
+  returns net proceeds to shareholders.
+
+AKR: >-
+  Equity REIT owning street and open-air retail in dense U.S. metro corridors plus an
+  institutional fund platform; earns mostly tenant rents and expense recoveries, with
+  fund management and incentive fees.
+
+ALAB: >-
+  Designs semiconductor connectivity products for AI and cloud data centers—PCIe/CXL
+  retimers, Ethernet cable modules, CXL memory controllers and fabric switches with
+  embedded software—sold to hyperscalers and system OEMs.
+
+ALBT: >-
+  Distributes the Keto Air ketosis breathalyzer in North America and develops an AI
+  short-form video generation platform acquired with RPM Interactive; both segments
+  are early-stage sources of revenue.
+
+ALGM: >-
+  Designs magnetic sensor ICs and application-specific power ICs for motion sensing
+  and power management in automotive and industrial systems; fabless revenue from chip
+  sales to carmakers, tier-1 suppliers and industrial customers.
+
+ALIS: >-
+  Blank-check SPAC with no operating revenue, formed to complete a business
+  combination with a focus on Asia; has agreed to merge with Goodvision AI, with IPO
+  proceeds held in trust until a deal closes.
+
+ALKT: >-
+  Cloud-based digital banking and account-opening platform for U.S. community and
+  regional banks and credit unions; earns nearly all revenue from multi-year SaaS
+  subscriptions priced per registered user.
+
+ALMU: >-
+  Develops compound-semiconductor photodetectors and photonics on large-diameter
+  silicon substrates; revenue today from government R&D contracts (DARPA, NASA, Navy)
+  plus engineering services and small-volume orders.
+
+ALRM: >-
+  Cloud platform for connected-property services—security, video analytics, energy and
+  access control—sold through service-provider partners; earns recurring SaaS and
+  license fees plus hardware sales such as cameras.
+
+ALX: >-
+  REIT owning five New York City properties, including the Bloomberg-anchored 731
+  Lexington Avenue and Queens shopping centers; earns rental revenue (Bloomberg about
+  61% of it) and is managed by Vornado.
+
+AMAT: >-
+  Makes wafer-fabrication equipment for semiconductor manufacturing—materials
+  engineering, process control and advanced packaging—plus services, spares and
+  automation software for installed fabs worldwide.
+
+AMBA: >-
+  Develops low-power system-on-chip semiconductors and software for edge and physical
+  AI; revenue from SoC sales into security cameras, automotive ADAS and autonomy,
+  robotics and consumer video devices.
+
+AMBQ: >-
+  Designs ultra-low-power SoCs using sub-threshold (SPOT) technology for
+  battery-powered edge AI devices like wearables and health monitors; earns revenue
+  from chip sales via direct sales and distributors.
+
+AMD: >-
+  Designs CPUs, GPUs and adaptive SoCs; revenue from Data Center EPYC processors and
+  Instinct AI GPUs, Ryzen PC chips, semi-custom game-console SoCs and Radeon graphics,
+  plus embedded products.
+
+AME: >-
+  Manufactures electronic instruments and electromechanical devices; earns revenue
+  from analytical, test and measurement instruments plus precision motion control,
+  medical components and engineered products worldwide.
+
+AMH: >-
+  Internally managed REIT that develops, renovates, leases and manages single-family
+  rental homes—about 61,000 across 24 states; earns rental income, supplemented by its
+  built-for-rental development program.
+
+AMKR: >-
+  Provides outsourced semiconductor assembly and test services—advanced packaging,
+  wafer-level processing and system-in-package—for chipmakers and OEMs; revenue from
+  turnkey packaging and test services.
+
+AMPG: >-
+  Designs and assembles RF and microwave amplifiers and SATCOM components for
+  satellite, 5G, defense and quantum markets; revenue from product sales, IC-packaging
+  distribution and engineering services.
+
+AMPL: >-
+  Provides an AI analytics platform that tracks user behavior in digital
+  products—analytics, session replay, experimentation and activation; revenue
+  primarily from subscriptions sold direct and via product-led growth.
+
+AMPX: >-
+  Makes silicon-anode lithium-ion batteries with high energy density for drones,
+  high-altitude pseudo-satellites and other electric mobility; revenue from battery
+  cell sales to aerospace and defense customers.
+
+AMSC: >-
+  Designs power control and grid systems—voltage compensators, transformers,
+  rectifiers and ship protection systems—for utilities, industry, wind-turbine makers
+  and the U.S. Navy; revenue from grid and wind products and services.
+
+AMT: >-
+  Owns and operates roughly 150,000 communications towers worldwide plus U.S. data
+  centers; earns nearly all revenue leasing tower space to wireless carriers and
+  broadcasters under long-term escalating leases.
+
+AMZN: >-
+  Runs online and physical retail stores, a third-party marketplace and Prime
+  subscriptions, plus AWS cloud computing and advertising; revenue from product sales,
+  seller fees, subscriptions, cloud services and ads.
+
+ANET: >-
+  Supplies high-speed Ethernet switches and routing platforms with its EOS software
+  for AI, cloud, data-center and campus networks; revenue from products and services
+  sold to hyperscalers, providers and enterprises.
+
+AOSL: >-
+  Designs and supplies power semiconductors—MOSFETs, IGBTs, power ICs and modules—for
+  PCs, gaming, appliances and telecom power supplies; revenue from chip sales using
+  its own fab, packaging plants and foundries.
+
+APCX: >-
+  Operates a cloud-native banking platform providing digital banking, onboarding and
+  payments for smaller banks, alongside its FinZeo payments-as-a-service business;
+  revenue from payment processing and platform services.
+
+APH: >-
+  Designs and manufactures electrical, electronic and fiber-optic connectors,
+  interconnect systems, antennas, sensors and cable; revenue from sales across
+  IT/datacom, automotive, aerospace, defense, industrial and mobile markets.
+
+API: >-
+  Provides Real-Time Engagement PaaS—APIs developers use to embed live video, voice,
+  chat, interactive streaming and conversational AI into apps—through its global Agora
+  and China-based Shengwang divisions.
+
+APLD: >-
+  Designs and operates data centers in North Dakota; current revenue from hosting a
+  crypto-mining customer, while building large HPC/AI campuses (Polaris Forge)
+  expected to earn lease revenue once operational.
+
+APLE: >-
+  Lodging REIT owning 217 upscale, rooms-focused hotels with about 29,600 rooms across
+  37 states, mostly under Marriott and Hilton brands; earns hotel room revenue through
+  third-party managers.
+
+APP: >-
+  Provides AI-powered advertising software matching advertiser demand with app and CTV
+  publisher inventory; nearly all revenue comes from its Axon Ads Manager
+  user-acquisition engine.
+
+APPN: >-
+  Provides a process automation platform combining workflow orchestration, data
+  fabric, RPA, and AI tools; earns revenue mainly from subscriptions sold to large
+  enterprises and governments, plus services.
+
+ARE: >-
+  Life science REIT that owns, operates, and develops lab campuses in major US
+  innovation clusters; earns rental income from pharma, biotech, and research tenants
+  plus returns from a venture capital platform.
+
+ARM: >-
+  Licenses energy-efficient CPU architectures, GPU/NPU IP, and compute subsystems used
+  in smartphones, data centers, and vehicles; earns license fees and per-chip
+  royalties, and now sells its own AGI CPU silicon.
+
+ARQQ: >-
+  Develops quantum-safe encryption software, including symmetric key agreement
+  platforms and encryption risk analytics; sells licenses and advisory services to
+  governments, militaries, telecoms, and enterprises.
+
+ARR: >-
+  Externally managed mortgage REIT investing in agency MBS and US Treasuries funded
+  with repurchase-agreement leverage; income comes from the spread between portfolio
+  yields and hedged borrowing costs.
+
+ARRY: >-
+  Makes single-axis solar trackers, fixed-tilt racking, foundations, and control
+  software for utility-scale PV plants; sells to solar developers, utilities, and
+  EPCs, mostly in the US, under supply contracts.
+
+ASAN: >-
+  Offers a cloud work management platform where teams and AI agents coordinate
+  projects, goals, and workflows; earns tiered seat-based subscription revenue via
+  self-service, direct sales, and channel partners.
+
+ASNS: >-
+  Supplies cyber-hardened networking gear that upgrades existing copper and coax lines
+  to fiber-grade speeds for IoT, military, traffic, and telecom networks; most revenue
+  comes from IoT and federal customers.
+
+ASTC: >-
+  Commercializes a compact mass spectrometry platform via subsidiaries selling
+  explosive and narcotics trace detectors, with instruments in development for
+  cannabis, breath analysis, and environmental testing.
+
+ASTI: >-
+  Manufactures flexible, lightweight CIGS thin-film solar modules for space,
+  satellite, UAV, and other weight-sensitive uses; sells finished modules and
+  integrated power solutions to aerospace and defense customers.
+
+ASUR: >-
+  Provides cloud human capital management software—payroll, tax filing, HR compliance,
+  time tracking, and benefits—for employers; earns recurring per-employee and
+  transaction fees directly and via reseller partners.
+
+ATDS: >-
+  Sells data security and privacy management software—classification, archiving,
+  ransomware recovery, and threat intelligence; earns mostly multiyear subscription
+  revenue via channel partners and OEM deals.
+
+ATEN: >-
+  Provides application delivery and network security products—load balancing,
+  carrier-grade NAT, DDoS and API protection—to service providers and enterprises;
+  revenue comes from hardware, software, and support.
+
+ATEX: >-
+  Holds nationwide licensed 900 MHz spectrum for private broadband networks serving
+  utilities and critical infrastructure; earns revenue from spectrum sales and leases
+  plus tower access and connectivity services.
+
+ATKR: >-
+  Manufactures electrical conduit, cable, and fittings plus metal framing, mechanical
+  tube, and perimeter security products; sells mainly through US electrical and
+  industrial distributors to construction markets.
+
+ATNI: >-
+  Operates fixed, mobile, and carrier telecommunications networks in rural US markets,
+  Alaska, Bermuda, and the Caribbean; earns revenue from broadband, wireless, managed
+  services, and wholesale infrastructure.
+
+ATOM: >-
+  Develops MST, a licensed thin-film silicon technology that boosts transistor
+  performance and power efficiency; earns license fees, royalties, and engineering
+  service fees from foundries, chipmakers, and wafer makers.
+
+AVAI: >-
+  Develops and acquires AI technologies, including a self-training text-generation
+  system, and provides IT consulting; also owns a customizable news app offering free
+  downloads with paid feature subscriptions.
+
+AVB: >-
+  Apartment REIT that develops, acquires, and operates rental communities in coastal
+  and expansion US metros under Avalon, AVA, eaves, and Kanso brands; earns rental
+  income from roughly 88,800 apartment homes.
+
+AVGO: >-
+  Designs semiconductors for AI data centers, networking, wireless, storage, and
+  broadband—custom accelerators, Ethernet switching, RF chips—and sells infrastructure
+  software including VMware.
+
+AVNW: >-
+  Supplies microwave and millimeter-wave wireless transport and access equipment plus
+  network software; sells products and turnkey services to telecom service providers
+  and private government and utility networks.
+
+AVPT: >-
+  Provides a cloud data governance, backup, and security platform spanning Microsoft,
+  Google, AWS, and other SaaS ecosystems; earns recurring subscriptions across its
+  Control, Resilience, and Modernization suites.
+
+AVTR: >-
+  Distributes lab consumables and equipment through its VWR channel and manufactures
+  high-purity chemicals, silicones, and fluid-handling products; serves biopharma,
+  healthcare, education, and advanced-tech customers.
+
+AXIA: >-
+  Generates, transmits, and sells electricity in Brazil through regional subsidiaries
+  and dozens of SPEs; supplies about 17% of Brazil's installed capacity, earning
+  revenue from power sales and transmission concessions.
+
+AXTI: >-
+  Produces compound semiconductor substrates—indium phosphide, gallium arsenide, and
+  germanium wafers—plus related raw materials, all made in China; sells wafers for
+  fiber optic, 5G, data center, and LED uses.
+
+BAND: >-
+  Operates a cloud communications platform on an owned global network; earns
+  usage-based revenue from APIs for voice, messaging, emergency, and AI voice services
+  sold to UCaaS/CCaaS platforms and large enterprises.
+
+BB: >-
+  Sells QNX embedded software for vehicles, medical, and industrial systems plus
+  secure communications products for governments; earns revenue from software
+  licenses, royalties, and related services.
+
+BBAI: >-
+  Delivers AI solutions—generative AI via Ask Sage, computer vision, biometrics, and
+  edge orchestration—for defense, national security, travel, and trade, chiefly
+  serving US government and select commercial partners.
+
+BBLR: >-
+  AI company monetizing patented search and generative-AI technology; offers AI Vault
+  for secure enterprise LLM use and the AI Seek app, pursuing licensing and
+  partnership revenue in early commercial stages.
+
+BCHT: >-
+  Provides specialty activated carbon technologies for mercury capture at coal-fired
+  power plants, earning from sorbent sales and patent licensing, and is developing
+  PFAS-focused water treatment products.
+
+BDN: >-
+  REIT that acquires, develops, and manages office, life science/lab, residential, and
+  mixed-use properties in Philadelphia, its suburbs, and Austin; earns rental income
+  from a diversified tenant base.
+
+BE: >-
+  Manufactures solid-oxide fuel cell systems for onsite power generation plus a
+  hydrogen electrolyzer; earns mainly from Energy Server sales with recurring revenue
+  from long-term operations and maintenance agreements.
+
+BELFA: >-
+  Designs and manufactures components that power, protect, and connect electronic
+  circuits — power conversion, connectors, and magnetics — sold into defense,
+  aerospace, networking, industrial, and transport markets.
+
+BEP: >-
+  Owns and operates a global portfolio of renewable power assets (about 47,200 MW)
+  plus sustainable-solutions investments; earns cash flows from long-term contracted
+  electricity sales to creditworthy counterparties.
+
+BESS: >-
+  Development-stage developer of utility-scale battery storage and solar projects; not
+  yet generating revenue, it plans to earn through tolling agreements, energy
+  arbitrage, and grid services once projects are built.
+
+BFNH: >-
+  Markets a private-label vitamin and mineral supplement powder under the Eclipse
+  brand, sourced from a contract manufacturer; targets retail and online channels,
+  with minimal sales to date.
+
+BFS: >-
+  REIT that owns and manages about 50 grocery-anchored shopping centers and nine
+  mixed-use properties, mostly in the Washington, DC/Baltimore area; earns rents and
+  is developing transit-oriented residential projects.
+
+BHE: >-
+  Provides electronics manufacturing, precision metal machining, and design
+  engineering services to OEMs in aerospace/defense, medical, industrial, semi-cap,
+  and computing markets; earns fees for building complex products.
+
+BHM: >-
+  Externally managed REIT investing in apartments, build-to-rent communities, and
+  scattered single-family rental homes across growth markets; earns rental income from
+  roughly 5,600 residential units.
+
+BILI: >-
+  Operates a Chinese video community platform for young audiences built on
+  creator-uploaded videos, live broadcasting, and anime; earns revenue from
+  value-added services, advertising, mobile games, and IP derivatives.
+
+BILL: >-
+  Provides a cloud financial operations platform that automates accounts payable,
+  receivable, and spend/expense management for small and midsize businesses,
+  processing hundreds of billions in payments annually.
+
+BIO: >-
+  Develops and manufactures instruments, reagents, and consumables for life science
+  research and clinical diagnostics labs; diagnostics (about 60% of sales) generates
+  recurring test-kit and consumable revenue.
+
+BKH: >-
+  Regulated utility generating and distributing electricity to about 227,000 customers
+  in four states and natural gas to about 1.1 million customers in six; earns
+  regulated rates and runs a coal mine supplying its plants.
+
+BL: >-
+  Sells cloud software that automates financial close, account reconciliation, and
+  invoice-to-cash processes for corporate finance teams; earns subscription revenue
+  from mid-size and enterprise customers.
+
+BLIN: >-
+  Provides AI-powered marketing software, led by the HawkSearch site-search and
+  personalization suite plus web content and eCommerce platforms; earns SaaS
+  subscription and licensing fees plus services revenue.
+
+BLKB: >-
+  Provides cloud software for nonprofits, schools, and corporate-giving programs
+  covering fundraising, financial management, and grantmaking; earns recurring
+  subscriptions plus donation- and tuition-processing fees.
+
+BLND: >-
+  Provides software that digitizes mortgage, consumer-loan, and deposit-account
+  origination for banks and credit unions; earns mostly success-based SaaS fees on
+  completed transactions plus partner revenue shares.
+
+BLZE: >-
+  Operates a low-cost cloud storage platform offering B2 object storage for AI, media,
+  and backup workloads and a flat-rate computer backup service; nearly all revenue is
+  recurring usage and subscription fees.
+
+BMI: >-
+  Manufactures water meters, radio endpoints, water-quality sensors, and related
+  software for water utilities (about 89% of sales) plus flow instrumentation for
+  industrial customers; earns from hardware and SaaS sales.
+
+BMR: >-
+  Develops content-adaptive video compression technology that cuts storage and
+  delivery costs for streaming platforms, studios, and
+  machine-vision/autonomous-vehicle data workflows; earns by selling its software
+  solutions.
+
+BMTM: >-
+  Marketing services company spanning digital publishing (Mom.com and related sites),
+  ad tech, consumer insights, and creative/media services; earns from ad sales,
+  programmatic exchange fees, and campaign and research fees.
+
+BNAI: >-
+  Builds enterprise conversational AI agents powered by a proprietary Engagement
+  Language Model for healthcare, automotive, insurance, and hospitality uses; largely
+  pre-revenue, with early pilots and partnerships.
+
+BNL: >-
+  Industrial-focused net lease REIT owning 771 single-tenant properties across the
+  U.S. and Canada; earns long-term rental income with contractual escalations from 206
+  tenants across 57 industries.
+
+BNSOF: >-
+  Manufactures electronic sensor-based scales and pet electronic products in China for
+  private-label OEM customers; also earns rental income from leasing factory space, a
+  segment it plans to expand via redevelopment.
+
+BNZI: >-
+  Sells marketing technology SaaS tools including the Demio webinar platform and video
+  creation and hosting products OpenReel, CreateStudio, and Vidello; earns recurring
+  subscription fees and grows through acquisitions.
+
+BOX: >-
+  Provides a cloud content management platform where organizations store, share,
+  secure, and govern files across their lifecycle; earns SaaS subscriptions from
+  enterprises, sold direct, online, and via channel partners.
+
+BRKR: >-
+  Develops and manufactures high-performance scientific instruments — magnetic
+  resonance, mass spectrometry, X-ray, and microscopy systems — sold to research,
+  biopharma, diagnostics, and industrial customers worldwide.
+
+BRSP: >-
+  Internally managed commercial real estate credit REIT that originates senior
+  mortgage loans plus selective mezzanine and preferred equity investments; earns
+  interest income and rent from net leased properties.
+
+BRT: >-
+  REIT that owns and operates multi-family apartment properties — 21 wholly owned and
+  ten through joint ventures, mainly in the Southeast U.S. and Texas; earns rental
+  income from roughly 8,300 units.
+
+BRX: >-
+  REIT that owns and operates 348 grocery-anchored open-air shopping centers across
+  the U.S.; earns rent from national value and grocery retailers such as TJX, Kroger,
+  and Burlington.
+
+BRZE: >-
+  Customer engagement software platform that lets brands send personalized
+  cross-channel messages (email, SMS, in-app, push); pricing is based largely on
+  consumers reached and message volume.
+
+BSY: >-
+  Infrastructure engineering software maker (MicroStation, OpenRoads, ProjectWise,
+  Seequent, iTwin); earns recurring revenue from users who design, build, and operate
+  roads, utilities, and other infrastructure assets.
+
+BWXT: >-
+  Manufactures nuclear components, reactors, and fuel for the U.S. Navy's nuclear
+  propulsion program, plus commercial nuclear equipment and medical radioisotopes;
+  revenue comes largely from long-term government contracts.
+
+BXMT: >-
+  Real estate finance REIT that originates and manages senior floating-rate mortgage
+  loans on commercial property in North America, Europe, and Australia; earns interest
+  income and is externally managed by Blackstone.
+
+BXP: >-
+  Office REIT that develops, owns, and manages premier workplaces — 179 properties in
+  Boston, LA, New York, San Francisco, Seattle, and Washington DC; earns rent from
+  office, retail, and residential tenants.
+
+CACI: >-
+  Provides IT, cyber, signals-intelligence, and mission-support expertise and
+  technology to U.S. defense, intelligence, and federal civilian agencies; nearly all
+  revenue comes from U.S. government contracts.
+
+CARG: >-
+  Online automotive marketplace connecting car shoppers with dealers; earns revenue
+  from dealer subscription fees, advertising from automakers and brands, and
+  partnerships with financing companies.
+
+CARS: >-
+  Operates the Cars.com marketplace plus dealer websites, media solutions, and
+  trade-in appraisal tools; earns subscriptions from roughly 19,500 dealer customers
+  and advertising from automakers.
+
+CBAT: >-
+  Manufactures high-power lithium and sodium batteries for light electric vehicles,
+  EVs, and energy storage, and sells NCM precursor and cathode battery materials
+  through its majority-owned Hitrans unit in China.
+
+CBL: >-
+  REIT owning and operating regional malls, outlet, lifestyle, and open-air centers,
+  mainly in the southeastern and midwestern U.S.; earns rent, percentage rents, and
+  expense reimbursements from retail tenants.
+
+CCI: >-
+  Owns and leases over 40,000 U.S. communications towers as a REIT; earns recurring
+  site rent under long-term contracts with T-Mobile, AT&T, and Verizon (~90% of
+  revenue), and is selling its fiber and small-cell business.
+
+CCIX: >-
+  Blank-check company (SPAC) with no operating revenue; formed to complete a business
+  combination and has agreed to merge with autonomous driving technology firm PlusAI.
+
+CCSI: >-
+  Provides secure digital cloud fax and information-exchange SaaS (eFax and related
+  brands) for healthcare, government, and other regulated industries; earns recurring
+  subscription and usage fees from ~703,000 customers.
+
+CDLX: >-
+  Runs a commerce media network inside banks' digital channels, delivering card-linked
+  cash-back offers targeted with anonymized purchase data; earns fees from marketers,
+  with bank partners including Chase and Wells Fargo.
+
+CDNS: >-
+  Develops electronic design automation software, accelerated hardware, and
+  semiconductor IP used to design and verify chips and electronic systems; earns from
+  licenses to semiconductor and systems companies.
+
+CDP: >-
+  REIT owning office properties and data center shells near key U.S. defense
+  installations; earns rent from the U.S. Government and defense contractors engaged
+  in national security missions.
+
+CDR-PB: >-
+  REIT owning 12 grocery-anchored shopping centers totaling 1.9 million square feet in
+  the Northeast; earns rent from necessity-based retail tenants and operates as a
+  subsidiary of Wheeler REIT.
+
+CEG: >-
+  Generates power from the largest U.S. nuclear fleet plus natural gas, hydro, wind,
+  and solar; earns by selling wholesale and retail electricity to ~2.5 million
+  customer accounts, recently expanded through the Calpine merger.
+
+CERT: >-
+  Provides biosimulation software and consulting for model-informed drug development,
+  simulating how drugs behave in the body; earns software licenses and
+  technology-enabled services fees from biopharma companies.
+
+CETI: >-
+  Water science company developing filtration and remediation systems for contaminated
+  industrial wastewater, targeting oil and gas, meat packing, and municipal markets;
+  an early-stage business with limited revenue.
+
+CEVA: >-
+  Licenses silicon and software IP for wireless connectivity (Bluetooth, Wi-Fi, 5G),
+  sensing, and edge AI inference; earns by licensing to semiconductor and OEM
+  customers who embed its designs in their chips.
+
+CFTR-PA: >-
+  Non-traded REIT investing in income-producing commercial, industrial, multifamily,
+  and net-lease properties across the U.S.; earns rental income and is externally
+  managed by an affiliate of its Cantor Fitzgerald sponsor.
+
+CGCT: >-
+  Blank-check company (SPAC) sponsored by an affiliate of Cartesian Capital seeking a
+  merger with a high-growth transnational business; holds IPO proceeds in trust and
+  generates no operating revenue.
+
+CGEH: >-
+  Makes oil-free microturbine systems for on-site power, heat, and cooling at data
+  centers, hospitals, and industrial sites; earns from equipment sales through
+  distributors plus rentals, PPAs, and service agreements.
+
+CGNX: >-
+  Makes industrial machine vision systems — hardware and software that locate,
+  identify, and inspect items on production and distribution lines; earns from sales
+  to logistics, packaging, electronics, and automotive customers.
+
+CHCT: >-
+  Healthcare REIT owning 198 properties across 36 states, including medical office
+  buildings, inpatient rehab, and behavioral facilities; earns rent from hospitals,
+  physicians, and healthcare systems.
+
+CHMI: >-
+  Residential mortgage REIT investing in mortgage servicing rights and agency RMBS on
+  a leveraged basis; earns net interest income and servicing-related cash flows,
+  distributed largely as dividends.
+
+CHOW: >-
+  Provides one-stop cloud solutions in Asia-Pacific — consulting, migration,
+  AI-powered managed services, and IT infrastructure; earns fees from IT partner and
+  end-user clients, mainly in Hong Kong and Singapore.
+
+CHPT: >-
+  Sells EV charging hardware and cloud software across North America and Europe; earns
+  from networked charging station sales plus subscriptions to its charger-management
+  platform and Assure warranty services.
+
+CHR: >-
+  Operates a China-based mobile e-commerce and entertainment platform (CHEERS App)
+  offering an online store, video content, live streaming, and games; earns from
+  advertising and content production services.
+
+CIEN: >-
+  Provides networking hardware, software, and services—optical transport, routing and
+  switching, and Blue Planet automation software—earning revenue from cloud providers,
+  telecom carriers, and other network operators worldwide.
+
+CIIT: >-
+  Ocean freight forwarder chartering container and bulk cargo space from shipowners
+  and reselling it to cargo owners, mainly in Asia-Pacific; most revenue from
+  logistics services, plus small electronics sales and consulting.
+
+CLDT: >-
+  Hotel REIT owning 33 upscale extended-stay and premium select-service hotels (5,021
+  rooms) in 15 states and D.C.; revenue comes from hotel room sales at properties run
+  by a third-party management company.
+
+CLFD: >-
+  Designs and manufactures fiber management, protection, and delivery
+  products—cabinets, cassettes, and access terminals—for broadband providers; revenue
+  from sales to community broadband, national carriers, and cable operators.
+
+CLIR: >-
+  Develops low-emission combustion technology (ClearSign Core burners) and flame
+  sensors for refinery process heaters, boilers, and flares; has limited commercial
+  deployments and has funded operations mainly by selling equity.
+
+CLOW: >-
+  Shell-stage company exploring options to develop and market web hosting and data
+  storage services (Hostwizer, W8hosting, JeyCloud); has no employees and minimal
+  operations after divesting its prior hosting business.
+
+CLPR: >-
+  Self-managed REIT that owns and operates multifamily residential and commercial
+  buildings in Manhattan and Brooklyn; about 78% of revenue comes from apartment
+  rents, the rest from commercial and retail tenants.
+
+CLPS: >-
+  Provides IT consulting and solutions to banking, wealth management, e-commerce, and
+  automotive clients in China and globally; earns fees building and maintaining
+  clients' fintech systems via onshore and offshore delivery teams.
+
+CLRO: >-
+  Former maker of audio conferencing and video collaboration products that sold its IP
+  and inventory to Biamp in 2025; now fulfills legacy warranty obligations and
+  evaluates strategic alternatives, with no material revenue expected.
+
+CLS: >-
+  Contract manufacturer and ODM offering design, engineering, and electronics
+  manufacturing; revenue from data center hardware (switches, servers, storage) for
+  hyperscalers plus aerospace, industrial, and healthtech OEM programs.
+
+CLVT: >-
+  Provides curated data, analytics software, and services for academia and government,
+  intellectual property, and life sciences customers; revenue mostly from
+  subscriptions plus recurring patent and trademark renewal services.
+
+CMBMF: >-
+  Designs fixed wireless and PON broadband, Wi-Fi, and LAN switching equipment for
+  service providers, enterprises, and governments; earns from hardware sales plus
+  cnMaestro network-management subscriptions and services.
+
+CMI: >-
+  Manufactures diesel, natural gas, electric, and hybrid powertrains, engine
+  components, and power generation systems; revenue from OEMs, distributors, and
+  dealers worldwide across engine, components, distribution, and power segments.
+
+CMRC: >-
+  Provides SaaS commerce technology—the BigCommerce ecommerce platform, Feedonomics
+  product-data syndication, and Makeswift site building; revenue from subscriptions
+  sold to B2C, B2B, and small-business merchants.
+
+CNET: >-
+  Provides omni-channel digital advertising, precision and influencer marketing for
+  SME clients, plus blockchain SaaS and IP licensing; revenue mainly from ad and
+  marketing services, recently refocused outside mainland China.
+
+CNP: >-
+  Utility holding company whose subsidiaries operate electric transmission,
+  distribution, and generation in Texas and Indiana plus natural gas distribution in
+  Minnesota, Texas, Indiana, and Ohio, earning regulated delivery rates.
+
+CNTHP: >-
+  Regulated electric utility delivering power to about 1.32 million customers in 157
+  Connecticut cities and towns; earns state-approved distribution and transmission
+  rates, passing energy supply costs through without markup.
+
+COHR: >-
+  Vertically integrated manufacturer of lasers, optical transceivers, optoelectronic
+  devices, and engineered materials; revenue from products sold into communications,
+  industrial, instrumentation, and electronics markets.
+
+COHU: >-
+  Supplies semiconductor test automation, inspection and metrology equipment,
+  automated test systems, test contactors, and analytics software; revenue splits
+  between equipment sales and recurring interface products, spares, and services.
+
+CONC: >-
+  Shell company with no operations or revenue since 2008, formerly a developer of
+  automatic meter reading technology; seeks to merge with an operating business in
+  exchange for shares of its common stock.
+
+CPT: >-
+  REIT engaged in the ownership, management, development, and construction of
+  multifamily apartment communities—175 properties with roughly 59,900 homes across
+  the U.S.; revenue comes from apartment rents.
+
+CRCW: >-
+  Provides blockchain consulting, education, and training services, and is developing
+  the Frame Layer 1 interoperability blockchain acquired in 2026; recent revenue has
+  come mainly from consulting and education.
+
+CRDO: >-
+  Designs high-speed connectivity for AI data centers—active electrical cables,
+  optical transceivers and DSPs, retimers, and SerDes chiplets; revenue from sales to
+  hyperscalers and OEMs plus SerDes IP licensing.
+
+CREX: >-
+  Provides digital signage and in-store retail media solutions in North America;
+  revenue from reselling display hardware, design/installation/support services, and
+  recurring SaaS licenses for its content management platforms.
+
+CRM: >-
+  Provides cloud CRM software spanning sales, service, marketing, commerce, data
+  management, and AI agents on its Agentforce 360 Platform, including Slack; revenue
+  comes primarily from subscriptions sold to businesses worldwide.
+
+CRNC: >-
+  Builds conversational and generative AI voice assistants and audio software for
+  cars, sold white-label to major automakers; revenue from per-vehicle software
+  licenses, connected services, and professional services.
+
+CRSR: >-
+  Makes high-performance gaming and streaming hardware—keyboards, mice, headsets,
+  capture cards, power supplies, cooling, memory, and prebuilt PCs; revenue from
+  retail and direct-to-consumer sales worldwide.
+
+CRWD: >-
+  Provides the cloud-native, AI-driven Falcon cybersecurity platform covering
+  endpoint, cloud workload, identity, and SIEM protection; revenue from SaaS
+  subscriptions to its 33 platform modules.
+
+CRWV: >-
+  Operates purpose-built AI cloud infrastructure—GPU data centers with proprietary
+  orchestration software and managed services for model training and inference;
+  revenue mostly from multi-year take-or-pay capacity contracts.
+
+CSAI: >-
+  Provides cloud-based AI video surveillance and remote guarding services, mainly for
+  multifamily property managers; earns monthly subscription fees for monitoring
+  software and live guard response.
+
+CSCO: >-
+  Designs and sells networking, security, collaboration, and observability hardware
+  and software; earns from product sales and lifecycle services to businesses,
+  governments, and service providers.
+
+CSPI: >-
+  Resells third-party IT hardware and software and provides managed IT and
+  professional services; also sells ARIA cybersecurity software and network adapters,
+  with most revenue from the reseller segment.
+
+CSR: >-
+  Apartment REIT that owns and manages 61 communities with about 12,262 homes in
+  markets like Minneapolis, Denver, and Salt Lake City; earns rental income from
+  residents.
+
+CTGL: >-
+  Develops modular small-drone platforms built around a standardized core control unit
+  for defense and dual-use missions; aims at NDAA-compliant, large-scale production
+  with its SkyTech Replicator platform family.
+
+CTKB: >-
+  Makes full-spectrum flow cytometry instruments for single-cell analysis, plus
+  reagents, software, and services; sells to pharma, biotech, academic, and clinical
+  research customers worldwide.
+
+CTO: >-
+  REIT owning retail and mixed-use properties, mainly shopping centers in Sun Belt
+  markets; earns rental income plus management fees from Alpine Income Property Trust
+  and interest on commercial loan investments.
+
+CTRE: >-
+  REIT that owns skilled nursing and senior housing properties leased to independent
+  operators under triple-net leases; also earns interest on real estate loans and
+  income from managed senior housing communities.
+
+CTS: >-
+  Manufactures sensors, connectivity components, and actuators sold to OEMs and
+  tier-one suppliers in transportation, industrial, medical, and aerospace and defense
+  markets, with transportation the largest end market.
+
+CTSH: >-
+  Provides IT consulting, application development, systems integration, and business
+  process services; earns from clients in health sciences, financial services,
+  products and resources, and communications and media.
+
+CUBE: >-
+  Self-storage REIT owning 662 properties in 25 states and D.C. and managing 862 more
+  for third parties; earns month-to-month rents from residential and commercial
+  storage customers plus management fees.
+
+CUZ: >-
+  REIT that develops, acquires, and owns Class A office properties and mixed-use
+  developments in Sun Belt markets such as Austin, Atlanta, and Charlotte; earns
+  rental income from office tenants.
+
+CVLT: >-
+  Sells cyber resilience and data protection software through its cloud platform for
+  backup, cyber recovery, and data security; earns mainly subscription and SaaS fees
+  plus support and professional services.
+
+CWEN: >-
+  Owns roughly 12.9 GW of wind, solar, battery storage, and dispatchable gas
+  generation across 27 U.S. states; earns revenue from long-term contracts for the
+  output and capacity of these facilities.
+
+CXAI: >-
+  Offers an AI-powered employee experience SaaS platform with workplace apps, mapping,
+  and analytics for hybrid offices; earns recurring subscription fees plus
+  professional service fees for deployments.
+
+CXDO: >-
+  Provides cloud communications and UCaaS offerings—voice, video, contact center—plus
+  licensed telecom platform software for service providers; earns recurring
+  subscriptions, license sales, and support fees.
+
+CXM: >-
+  Sells a unified customer experience management SaaS platform with AI capabilities
+  for customer service, marketing, and social channels; earns subscriptions from large
+  enterprises, including much of the Fortune 100.
+
+CXW: >-
+  Owns and operates correctional, detention, and residential reentry facilities for
+  federal, state, and local agencies; earns per-diem fees for bed capacity and
+  services plus rent on leased government properties.
+
+CYN: >-
+  Develops DriveMod autonomous driving software integrated onto OEM industrial
+  vehicles such as tuggers, forklifts, and stockchasers; earns from commercial
+  deployments, licenses, and paid development projects.
+
+D: >-
+  Regulated electric utility serving about 4.1 million customers in Virginia and the
+  Carolinas with 30.7 GW of generating capacity; roughly 95% of earnings come from
+  state-regulated utility operations.
+
+DBD: >-
+  Makes ATMs, cash recyclers, point-of-sale and self-checkout systems with related
+  software for banks and retailers; services such as maintenance, implementation, and
+  managed services are the largest revenue area.
+
+DBX: >-
+  Operates a cloud platform for storing, syncing, and sharing content, plus tools like
+  Sign, DocSend, and AI search product Dash; earns subscription fees from about 18
+  million paying users, mostly self-serve.
+
+DDD: >-
+  Provides 3D printing solutions—plastic and metal printers, proprietary materials,
+  software, and services—for healthcare applications like dental and implants and
+  industrial markets such as aerospace and automotive.
+
+DDOG: >-
+  Runs a SaaS observability and security platform unifying infrastructure monitoring,
+  application performance monitoring, log management, and cloud security; earns
+  subscriptions from about 32,700 customers worldwide.
+
+DEA: >-
+  REIT that acquires, develops, and manages Class A commercial properties leased to
+  U.S. Government agencies, mostly through the GSA; about 90% of revenue comes from
+  federal tenant leases.
+
+DEI: >-
+  REIT owning and operating office buildings and apartment communities in coastal Los
+  Angeles submarkets and Honolulu; earns rents from office tenants and multifamily
+  residents.
+
+DELL: >-
+  Sells IT infrastructure—AI-optimized and traditional servers, storage, and
+  networking—plus PCs and peripherals; earns from hardware sales, services, and
+  financing across commercial and consumer customers.
+
+DGII: >-
+  Supplies IoT connectivity hardware such as embedded modules, routers, and console
+  servers, plus subscription offerings including SmartSense condition monitoring and
+  managed network services; sells largely through distributors.
+
+DHC: >-
+  REIT owning senior living communities, medical office, and life science properties
+  across 33 states; earns resident fees from third-party-managed senior housing plus
+  rents from medical office and life science tenants.
+
+DHR: >-
+  Operates more than 15 science and technology companies across biotechnology, life
+  sciences, and diagnostics segments; earns from instruments, consumables, software,
+  and services, much of it recurring revenue.
+
+DIOD: >-
+  Makes discrete, analog, and mixed-signal semiconductors — over 28,000 products for
+  automotive, industrial, computing, consumer, and communications markets; sells
+  worldwide mainly through distributors and direct OEM customers.
+
+DKI: >-
+  Develops, publishes, and operates mobile games through Hong Kong subsidiaries; earns
+  from self-developed and licensed titles distributed via third-party digital
+  storefronts, plus video marketing on platforms like YouTube.
+
+DLR: >-
+  Data center REIT owning about 310 facilities across six continents; earns rent and
+  fees from data center space, colocation, and interconnection leased to cloud
+  providers and enterprises.
+
+DOCN: >-
+  Cloud platform offering virtual machines, managed services, and GPU/AI
+  infrastructure aimed at growing technology companies; revenue comes from usage-based
+  fees, with predictable pricing and a self-service acquisition model.
+
+DOCS: >-
+  Professional network and clinical tools for U.S. physicians, free to members; earns
+  revenue from pharmaceutical makers and health systems buying its marketing, hiring,
+  and workflow (telehealth, scheduling, AI) solutions.
+
+DOCU: >-
+  Sells e-signature and Intelligent Agreement Management software; nearly all revenue
+  comes from one-to-three-year subscriptions sold to over 1.8 million customers, from
+  global enterprises to very small businesses.
+
+DOMO: >-
+  Cloud-based AI and data platform that connects, analyzes, visualizes, and automates
+  business data across organizations; earns subscription revenue from more than 2,400
+  customers via a land-and-expand model.
+
+DRH: >-
+  Lodging REIT owning 35 premium U.S. hotels and resorts; collects the operating
+  profits of its third-party-managed properties, which run independently or under
+  Marriott, Hilton, and IHG brands.
+
+DSP: >-
+  Operates a self-service demand-side platform for programmatic ad buying across CTV,
+  streaming audio, mobile, and desktop; revenue comes from marketers and agencies
+  running campaigns through the platform.
+
+DT: >-
+  Sells an observability, application-security, and AI-operations software platform
+  for monitoring cloud and IT environments; earns subscription revenue, mostly SaaS,
+  from about 4,100 enterprise customers under consumption-based licensing.
+
+DTCX: >-
+  Operates over 3,100 Scrypt ASIC miners in colocation data centers, merged-mining
+  Litecoin and Dogecoin; earns by selling hashrate through marketplaces, typically
+  settled in Bitcoin, while managing a digital-asset treasury.
+
+DTGI: >-
+  Provides cloud communications (UCaaS) — hosted IP/PBX, VoIP, SIP trunking — plus
+  broadband and SD-WAN connectivity to small and midsize businesses; earns monthly
+  subscription fees under the Verve Cloud brand.
+
+DTST: >-
+  Operates Nexxis, a nationwide provider of managed business voice, internet, data
+  transport, and SD-WAN services, after selling its cloud-hosting unit; earns telecom
+  service fees while pursuing technology acquisitions.
+
+DUOT: >-
+  Builds and operates modular edge data centers in underserved markets, provides
+  infrastructure sourcing services, and maintains legacy rail-inspection AI systems;
+  earns deployment, colocation, and energy-service revenue.
+
+DV: >-
+  Verifies digital ad quality, measuring fraud, viewability, brand suitability, and
+  geography across programmatic, social, and CTV channels; earns a fee per media
+  transaction measured for over 2,500 brand customers.
+
+DXC: >-
+  Provides IT services — consulting and engineering, managed infrastructure, and
+  insurance software — to global enterprises and public-sector clients; earns from
+  service and software contracts across three segments.
+
+EA: >-
+  Develops and publishes video games for consoles, PC, and mobile across sports,
+  shooter, and simulation genres; live services such as Ultimate Team extra content
+  generate about 71% of net revenue.
+
+EAI: >-
+  Regulated utility generating, transmitting, and selling electricity to retail
+  customers in Arkansas, with nuclear and hydro generation; earns through rates set by
+  the Arkansas Public Service Commission and FERC-regulated wholesale sales.
+
+EBZT: >-
+  Develops blockchain, database, and zero-trust data-security products (BuildDB, EB
+  Control) plus blockchain advisory services; seeks recurring revenue from software
+  subscriptions, licensing agreements, and transaction fees.
+
+EGAN: >-
+  Sells SaaS customer-engagement software built around an AI knowledge hub that
+  delivers trusted answers to service agents and customers; revenue comes from
+  enterprise subscriptions, with operations in the US, UK, and India.
+
+EGP: >-
+  Industrial REIT developing, acquiring, and operating about 550 distribution
+  properties in high-growth markets such as Texas, Florida, California, and Arizona;
+  earns rent from roughly 1,700 tenant leases.
+
+ELC: >-
+  Regulated utility generating and delivering electricity to retail customers in
+  Louisiana, with nuclear plants including River Bend and Waterford 3; earns through
+  rates overseen by the Louisiana Public Service Commission.
+
+ELPC: >-
+  Generates renewable electricity from hydro and wind plants and transmits and
+  distributes power mainly in Brazil's Parana state; earns from regulated distribution
+  tariffs and energy sales under ANEEL concessions.
+
+ELS: >-
+  REIT owning 453 manufactured-home and RV communities and marinas across 35 states
+  and British Columbia; earns rent from site leases and membership subscriptions, plus
+  home sales and rental operations.
+
+ELSE: >-
+  Manufactures industrial production-monitoring and process-control systems — speed,
+  temperature, vibration, and hazard monitors; sells through reps and distributors to
+  grain, milling, food, and other processing industries.
+
+ELTK: >-
+  Israeli manufacturer of custom printed circuit boards, focused on quick-turn
+  prototype and low-to-medium-volume flex-rigid PCBs; sells to electronics OEMs in
+  Israel, Europe, North America, and Asia.
+
+EMAT: >-
+  Recycles end-of-life magnets, batteries, and electronic scrap into rare earth
+  oxides, metals, permanent magnets, and battery materials; sells these critical
+  materials to OEMs, gigafactories, defense suppliers, and refineries.
+
+EMP: >-
+  Regulated utility delivering electricity to retail customers in Mississippi and
+  purchasing capacity and energy from the Grand Gulf nuclear station; earns through
+  rates set by the Mississippi Public Service Commission.
+
+EMR: >-
+  Sells industrial automation products — control valves, measurement instruments,
+  control systems, and asset-optimization software — to process, hybrid, and discrete
+  manufacturers; about half of sales come from the Americas.
+
+ENPH: >-
+  Designs and sells home energy systems built on solar microinverters plus batteries,
+  EV chargers, and energy-management software; revenue comes from products sold
+  through distributors and installers in over 160 countries.
+
+ENS: >-
+  Makes industrial batteries, chargers, and stored-energy systems for telecom, data
+  centers, forklifts, and aerospace/defense; revenue comes from product sales and
+  aftermarket services to customers in over 100 countries.
+
+ENTG: >-
+  Supplies advanced materials and contamination-control products for semiconductor
+  manufacturing; revenue comes from deposition materials, CMP slurries and pads,
+  specialty gases, filters, and wafer-handling products.
+
+EOSE: >-
+  Manufactures zinc-based battery energy storage systems for utility-scale, microgrid,
+  and commercial long-duration use; revenue comes from turnkey DC systems plus
+  commissioning and maintenance services.
+
+EPAM: >-
+  Provides software engineering, cloud, and AI-enabled digital transformation services
+  to global enterprises; revenue comes from consulting and end-to-end product
+  development delivered by multidisciplinary global teams.
+
+EPR: >-
+  Net-lease REIT investing in experiential real estate—theatres, eat-and-play venues,
+  attractions, ski and gaming properties—plus a legacy education portfolio; earns rent
+  and interest under long-term triple-net leases.
+
+EPRT: >-
+  Acquires and net-leases single-tenant properties to middle-market service and
+  experience businesses like car washes, restaurants, and early childhood education;
+  earns long-term rent, mostly via sale-leaseback structures.
+
+EQIX: >-
+  Operates 280 carrier-neutral and hyperscale data centers in 77 markets worldwide;
+  earns recurring revenue from colocation space and power, interconnection, and
+  related digital infrastructure services.
+
+EQR: >-
+  Owns and manages rental apartment properties concentrated in major U.S. coastal
+  metros plus Denver, Atlanta, Dallas/Ft. Worth, and Austin; earns rental income as a
+  multifamily REIT.
+
+ES: >-
+  Public utility holding company delivering electricity, natural gas, and water
+  through regulated subsidiaries in Connecticut, Massachusetts, and New Hampshire;
+  earns rate-regulated distribution and transmission revenue.
+
+ESBA: >-
+  Operating partnership of a NYC-focused REIT holding Manhattan office, retail, and
+  multifamily assets including the Empire State Building; earns rent plus ticket sales
+  from the building's Observatory.
+
+ESE: >-
+  Makes engineered components for aerospace and Navy programs, diagnostic instruments
+  for electric utilities, and RF test-and-measurement systems; revenue spans three
+  segments, including U.S. government contracts.
+
+ESMR: >-
+  Runs a digital platform connecting tattoo artists with clients through hosted
+  portfolios; seeks revenue from subscriptions to an AI tattoo-idea generator API plus
+  planned premium features and partnerships.
+
+ESP: >-
+  Designs and builds rugged power electronics—power supplies, converters,
+  transformers, and distribution equipment—for military and rail applications; revenue
+  comes largely from defense contractors and government orders.
+
+ESRT: >-
+  NYC-focused REIT owning modernized Manhattan office, retail, and multifamily
+  properties anchored by the Empire State Building; earns rent plus Observatory ticket
+  sales.
+
+ESS: >-
+  Owns, operates, and develops apartment communities along the U.S. West Coast—259
+  communities with about 63,000 homes; earns rental income as a self-managed
+  multifamily REIT.
+
+ESTC: >-
+  Provides a search and AI data platform with observability and security solutions,
+  delivered as cloud services or self-managed software; about 94% of revenue comes
+  from subscriptions.
+
+ETI-P: >-
+  Regulated electric utility serving retail customers in Texas; earns rate-regulated
+  revenue from electricity delivery, with retail rates overseen by the PUCT and
+  wholesale rates by FERC.
+
+ETN: >-
+  Makes power management products—electrical equipment, aerospace systems, and vehicle
+  and eMobility technologies—for data center, utility, industrial, and mobility
+  markets; revenue comes from global product segments.
+
+ETR: >-
+  Utility holding company whose regulated subsidiaries deliver electricity in
+  Arkansas, Louisiana, Mississippi, New Orleans, and Texas; earns regulated rates plus
+  wholesale power sales and nuclear decommissioning services.
+
+EVCM: >-
+  Provides vertically tailored SaaS for service-based small businesses in home,
+  health, and wellness verticals; revenue comes from subscriptions to business
+  management, billing and payments, and customer-experience software.
+
+EVER: >-
+  Operates an online insurance-shopping marketplace connecting consumers with property
+  and casualty carriers and agents; earns revenue by selling consumer inquiries as
+  referrals to insurance providers.
+
+EVLV: >-
+  Sells AI-powered weapons-screening systems for venues, schools, and hospitals under
+  a Security-as-a-Service model; earns recurring subscription revenue bundling
+  hardware, software, and support.
+
+EVTC: >-
+  Processes payment transactions across Latin America, Puerto Rico, and the
+  Caribbean—merchant acquiring, payment services, and core banking technology; earns
+  recurring fees, with about 29% of revenue from Popular.
+
+EXFY: >-
+  Cloud expense-management platform that scans receipts and automates approvals,
+  reimbursement, cards, invoicing, and travel; earns subscription revenue from paid
+  members at businesses of all sizes.
+
+EXR: >-
+  Self-storage REIT owning or operating 4,281 stores across 43 states; earns
+  month-to-month rents plus tenant reinsurance premiums, third-party management fees,
+  and bridge-loan interest.
+
+EXTR: >-
+  Designs wired, wireless, and SD-WAN networking equipment with AI-powered cloud
+  management for enterprises; revenue comes from equipment sales, software
+  subscriptions, and maintenance contracts.
+
+FA: >-
+  Provides background screening, identity verification, drug and health screening, and
+  continuous workforce monitoring; earns revenue from over 200 million screens
+  annually for employers worldwide.
+
+FATN: >-
+  Develops enterprise SD-WAN, SASE, cybersecurity, and network-monitoring software
+  sold mainly as subscriptions; revenue comes from customers concentrated in the
+  United States and India, plus security testing services.
+
+FBRT: >-
+  Externally managed real estate finance REIT originating commercial mortgage,
+  mezzanine, and bridge loans and investing in CMBS; earns interest income plus agency
+  lending revenue from its NewPoint business.
+
+FCCN: >-
+  Early-stage quantum technology platform company pursuing Quantum-as-a-Service; seeks
+  revenue from licensing its AI and hybrid-computing patent portfolio, software
+  products, and acquisitions of small tech companies.
+
+FCUV: >-
+  Develops universal smart IoT technology and AI financial-reporting software; earns
+  revenue from horticultural sensors and filters and audio/video and home-automation
+  installations through its subsidiaries.
+
+FE: >-
+  Electric utility holding company whose regulated subsidiaries distribute and
+  transmit electricity across Ohio, Pennsylvania, New Jersey, West Virginia and
+  Maryland; earns regulated rates for power delivery.
+
+FFIV: >-
+  Sells multicloud application delivery and security solutions for apps and APIs;
+  revenue comes from software in perpetual, subscription and SaaS models, plus
+  hardware systems and support services.
+
+FIEE: >-
+  Digital service provider offering brand content management and MCN services, custom
+  software development, and AI/blockchain artwork authentication; operates mainly
+  through Hong Kong and Japan subsidiaries.
+
+FISN: >-
+  Develops a small modular pressurized-water reactor emplaced in mile-deep boreholes
+  for power generation; pre-revenue and development stage, pursuing DOE demonstration
+  and NRC licensing.
+
+FIVN: >-
+  Cloud contact-center software with an AI-powered customer experience platform for
+  enterprises; earns monthly SaaS subscription fees per license plus usage-based
+  telephony and consumption-based AI revenue.
+
+FKWL: >-
+  Makes 5G/4G wireless devices — mobile hotspots and fixed wireless routers — plus
+  device-management software; sells mainly to North American wireless operators, with
+  manufacturing outsourced to Asia.
+
+FLEX: >-
+  Contract manufacturer providing design, supply-chain and manufacturing services
+  across data center, healthcare, industrial, automotive and consumer markets; also
+  sells power and cooling products for cloud infrastructure.
+
+FLNC: >-
+  Supplies grid-scale battery energy storage systems with integrated hardware and
+  software; earns from storage solution sales, recurring operations and maintenance
+  services, and digital optimization applications.
+
+FMHS: >-
+  Public-company platform evaluating acquisitions and a digital-asset treasury
+  initiative (Bitcoin and tokenized gold); current revenue is limited to small
+  intellectual-property licensing royalties.
+
+FN: >-
+  Provides precision optical and electro-mechanical contract manufacturing for OEMs;
+  most revenue comes from optical communications components, with the rest from
+  automotive, industrial laser and sensor products.
+
+FNGR: >-
+  Provides mobile payment and recharge services and enterprise SMS/MMS messaging in
+  China via carrier agreements; also developing marketplace platforms and data
+  analytics, earning mainly telecom transaction rebates.
+
+FORM: >-
+  Makes semiconductor test products — probe cards, analytical probes, probe stations,
+  thermal and cryogenic systems; earns from selling customized probe cards to
+  chipmakers plus systems for lab and production testing.
+
+FPI: >-
+  REIT owning about 71,600 acres of North American farmland; earns rent from fixed and
+  variable leases on row and specialty crop farms, plus loans to farmers and
+  renewable-energy land leases.
+
+FR: >-
+  REIT that owns, develops and manages industrial real estate — 414 properties with
+  roughly 70 million square feet across 15 U.S. logistics markets; earns rental income
+  from warehouse and logistics tenants.
+
+FROG: >-
+  Software supply chain platform for storing, securing and distributing software
+  packages and AI models (Artifactory, Xray, Curation); earns subscriptions from
+  enterprise DevOps and security teams.
+
+FRSH: >-
+  Sells AI-powered service software for IT and employee experience (Freshservice) and
+  customer experience (Freshdesk suite); earns subscription revenue from roughly
+  75,000 companies of all sizes.
+
+FSLR: >-
+  Manufactures cadmium-telluride thin-film photovoltaic solar modules using an
+  integrated production process at plants in the U.S., Malaysia, Vietnam and India;
+  earns by selling modules for solar power generation.
+
+FSLY: >-
+  Operates an edge cloud platform combining content delivery, edge computing and
+  application security (WAF, bot and DDoS protection); earns from usage of its network
+  and security services by digital businesses.
+
+FSP: >-
+  REIT focused on U.S. sunbelt and mountain-west office properties; earns rental
+  income from 14 owned office buildings, plus property dispositions and asset and
+  property management fees.
+
+FTNT: >-
+  Provides cybersecurity converging networking and security — FortiGate firewalls,
+  unified SASE and AI-driven security operations; earns from appliance sales plus
+  subscription security and support services.
+
+FTV: >-
+  Sells industrial instrumentation, software and services through two segments —
+  intelligent operating solutions (test tools, facility and safety software) and
+  advanced healthcare solutions (sterilization, clinical software).
+
+FUSE: >-
+  Provides enterprise AI products (AI Studio platform, AI Engines, AI Agents) and
+  implementation services; earns from software and services engagements helping
+  companies deploy AI, supported by a global talent pool.
+
+FVR: >-
+  Net-lease REIT owning 303 properties with road frontage across 37 states, leased to
+  service tenants like restaurants, medical providers and banks; earns rental income
+  under long-term net leases.
+
+FYNN: >-
+  Fintech holding company developing the Fyniti AI/ML platform for quantitative
+  investing and customizable index baskets sold as SaaS to advisors and institutions;
+  pre-profit and dependent on outside financing.
+
+GAFC: >-
+  Development-stage mobile app maker publishing iOS and Android apps; earns from app
+  development for third parties, in-app purchases and advertising, plus software
+  development consulting for small businesses.
+
+GAUZ: >-
+  Makes light- and vision-control products — SPD and liquid-crystal smart-glass films
+  plus camera-based driver-assistance systems; sells to aerospace, automotive and
+  architectural OEMs and glass fabricators.
+
+GBCS: >-
+  Owns and operates assisted living, independent living and skilled nursing facilities
+  in the southern U.S.; earns from resident care paid by Medicare, Medicaid and
+  private sources under an owner-operator model.
+
+GCTS: >-
+  Fabless designer of 5G and 4G LTE transceiver and modem chipsets for wireless
+  routers, fixed wireless access equipment and IoT devices; sells chipsets and modules
+  to wireless operators, ODMs and OEMs.
+
+GDDY: >-
+  Provides domain registration, website building, hosting and commerce tools for small
+  businesses and entrepreneurs; earns subscription and payments revenue from about 20
+  million customers.
+
+GDLG: >-
+  Develops AI content-generation engines for novels, manga short dramas, and
+  social-commerce videos; earns revenue from AI-assisted book sales, tool
+  subscriptions, and TikTok Shop merchant service commissions.
+
+GDS: >-
+  Develops and operates high-performance data centers across mainland China, leasing
+  capacity to cloud and hyperscale customers; also holds a minority stake in DayOne, a
+  Singapore-based data center platform.
+
+GEDC: >-
+  Early-stage developer of a master-planned data center campus in the northwestern
+  U.S. with onsite natural gas power; plans to sell or lease construction-ready,
+  pre-permitted building sites to data center operators.
+
+GEG: >-
+  Alternative asset manager whose subsidiaries advise a BDC and an industrial outdoor
+  storage REIT; earns management, incentive, and property fees based on assets under
+  management, plus build-to-suit land development sales.
+
+GEN: >-
+  Provides consumer cybersecurity, identity protection, and financial wellness
+  software under Norton, Avast, LifeLock, and MoneyLion brands; earns mostly annual
+  subscription fees from about 79 million paid customers.
+
+GEOS: >-
+  Designs and manufactures seismic data-acquisition equipment for energy exploration,
+  smart water meter connectors and valves, and industrial sensors; also provides
+  specialized contract manufacturing services.
+
+GEV: >-
+  Builds and services electric power equipment — gas, steam, nuclear, and hydro
+  turbines, wind turbines, and grid electrification systems; earns from equipment
+  sales and long-term service agreements on its installed base.
+
+GFS: >-
+  Semiconductor foundry manufacturing differentiated chips for automotive, smart
+  mobile, IoT, and communications customers; earns wafer-fabrication revenue from fabs
+  in the U.S., Germany, and Singapore.
+
+GGRP: >-
+  Provides enterprise VR, AR, and spatial-computing software and services through
+  subsidiary studios; earns revenue from B2B projects and products such as its Spatial
+  Core platform for defense and large-enterprise clients.
+
+GIBO: >-
+  Operates GIBO.ai, an AI-powered animation and short-drama platform where creators
+  across Asia make and publish video content using its GIBO Create tools; monetizes
+  content distribution and creator services on the platform.
+
+GIG: >-
+  Blank-check acquisition company with no operations or revenue; formed to merge with
+  a target business and has agreed to a business combination with Hadron Energy,
+  funded by cash held in its IPO trust account.
+
+GILT: >-
+  Develops and manufactures satellite ground-segment equipment — VSATs, modems,
+  amplifiers, and antennas — and runs managed connectivity networks; about 73% of
+  revenue is from product sales and 27% from services.
+
+GLOO: >-
+  Builds a technology and AI platform for churches and faith-based nonprofits; earns
+  subscription fees for tools like Gloo 360 and Workspace plus donor-marketing, media,
+  and fundraising services revenue.
+
+GNL: >-
+  Internally managed REIT owning about 820 net-leased industrial, retail, and office
+  properties across the U.S., Canada, and Europe; collects rent largely from
+  investment-grade tenants under long-term leases.
+
+GNRC: >-
+  Designs and manufactures power generation equipment — home standby, portable, and
+  large industrial generators — plus energy storage and management products; sells to
+  residential, commercial, data center, and telecom markets.
+
+GOOG: >-
+  Operates Google's search, YouTube, Android, and cloud businesses along with AI
+  models such as Gemini; earns most revenue from advertising, plus consumer
+  subscriptions, app-store fees, devices, and Google Cloud services.
+
+GPJA: >-
+  Vertically integrated electric utility in the Southern Company system, owning
+  generation, transmission, and distribution; earns regulated rates serving retail
+  customers in Georgia and wholesale customers in the Southeast.
+
+GPMT: >-
+  Internally managed REIT that originates and manages senior floating-rate commercial
+  real estate loans; earns interest income on a roughly $1.7 billion loan portfolio
+  financed through credit facilities and CRE CLOs.
+
+GRHI: >-
+  Holding company pursuing technology assets: its LOOT8 subsidiary runs a pre-revenue
+  Web3 commerce and content platform, and its K-Project division markets AI
+  translation and sports apps; revenue to date is minimal.
+
+GSIT: >-
+  Fabless chipmaker selling high-speed SRAM memory to networking, test, and defense
+  customers, which funds development of its Gemini compute-in-memory AI processors;
+  APU revenue so far comes mainly from defense SBIR contracts.
+
+GTIJF: >-
+  Developer of a patented process converting palm kernel shells into synthetic
+  graphite and graphene for EV batteries and other uses; still pre-revenue, with a
+  planned Malaysian plant and a supply agreement with Toyoda.
+
+GTLB: >-
+  Provides an open-core DevSecOps platform unifying development, security, and
+  operations with AI-agent orchestration; earns seat-based subscription revenue across
+  Free, Premium, and Ultimate tiers plus usage-based AI credits.
+
+GTLL: >-
+  Holding company whose Primecare Supply unit links 503B pharmaceutical makers with
+  licensed clinics via its Sinq Ops platform, earning per-transaction procurement
+  fees; its advisory units have yet to generate revenue.
+
+GTM: >-
+  Sells a go-to-market intelligence platform with company and contact data for sales,
+  marketing, operations, and recruiting teams; earns subscription revenue priced on
+  functionality, users, and records under management.
+
+GWH: >-
+  Makes long-duration iron flow batteries using salt, iron, and water electrolytes;
+  sells its configurable Energy Base systems and core power trains to utilities,
+  independent power producers, and commercial customers.
+
+GWRE: >-
+  Provides core software for property and casualty insurers — policy administration,
+  claims, and billing — delivered mainly as cloud subscriptions priced on direct
+  written premium, plus term licenses, support, and services.
+
+GXAI: >-
+  Develops consumer AI applications spanning game-developer tools, text and image
+  generation, faith and wellness apps, and AI-enabled games; also markets health
+  products through its majority-owned RNK Health venture.
+
+HE: >-
+  Holding company whose regulated utilities supply electricity to about 95% of
+  Hawaii's population across five island grids; revenue comes from regulated electric
+  service as it divests non-utility businesses.
+
+HGIT: >-
+  Non-traded REIT sponsored by Hines that invests in a diversified portfolio of 55
+  commercial properties across the U.S. and internationally; earns rental income and
+  is externally managed by a Hines-affiliated advisor.
+
+HIMX: >-
+  Fabless semiconductor maker of display driver ICs and timing controllers for TVs,
+  phones, and especially automotive displays; also sells ultralow-power WiseEye AI
+  sensing and LCoS optics chips for AR/VR devices.
+
+HIW: >-
+  Office REIT that owns, develops, leases, and manages workplaces in Sun Belt business
+  districts such as Atlanta, Nashville, Raleigh, and Tampa; earns rental income from
+  office tenants.
+
+HLIT: >-
+  Provides software-based broadband access solutions (cOS platform, DAA nodes, OLT
+  hardware) to cable and telco operators; revenue comes from product sales,
+  subscriptions, and support, mostly in the Americas.
+
+HNGE: >-
+  Digital musculoskeletal care platform using AI motion tracking, a nerve-stimulation
+  wearable, and physical-therapist care teams; earns recurring contract revenue from
+  self-insured employers and health plans.
+
+HNRG: >-
+  Vertically integrated power producer and coal company in Indiana; sells accredited
+  capacity and wholesale energy from its Merom plant into MISO and mines Illinois
+  Basin coal for Midwest and Southeast power plants.
+
+HPE: >-
+  Sells servers, hybrid cloud storage, and networking equipment plus GreenLake
+  pay-per-use cloud services to enterprises and governments; revenue from hardware,
+  software, services, and financing.
+
+HPQ: >-
+  Makes personal computers, printers, and related devices; earns revenue from PC and
+  printer hardware plus recurring ink and toner supplies, services, and subscriptions,
+  sold mostly through channel resellers.
+
+HQ: >-
+  Develops quantum software infrastructure, including the Triple Alpha environment for
+  building hardware-agnostic quantum programs; early stage with operating losses, in
+  early access with quantum hardware partners.
+
+HR: >-
+  REIT owning outpatient medical office buildings across the U.S., mostly on or near
+  hospital campuses; earns rental income from healthcare tenants spanning physician
+  practices, surgery, imaging, and cancer centers.
+
+HST: >-
+  Lodging REIT owning 76 luxury and upper-upscale hotels with about 41,700 rooms,
+  largely U.S. Marriott- and Hyatt-branded properties; earns income from hotel
+  operations in urban and resort markets.
+
+HTCR: >-
+  Provides Go IPO consulting that helps Japanese companies list on Nasdaq and NYSE;
+  earns cash fees of $380,000 to $900,000 per client plus warrants for 1-4% of their
+  shares, after selling its Japan software business.
+
+HUBB: >-
+  Manufactures electrical and utility products—grid transmission components, smart
+  meters, wiring devices, and connectors; revenue from Utility Solutions (about 63%)
+  and Electrical Solutions sold via distributors and utilities.
+
+HUBS: >-
+  Sells a cloud customer platform combining AI agents, marketing, sales, and service
+  hubs on a Smart CRM; earns subscription revenue from mid-market B2B companies via a
+  freemium model and partner channel.
+
+HURC: >-
+  Designs and manufactures CNC machine tools—mills and lathes with proprietary
+  interactive controls—for metal-cutting shops worldwide; revenue mostly from machine
+  sales plus service parts and fees.
+
+HWNI: >-
+  Provides managed cybersecurity through its Overwatch platform-as-a-service sold via
+  MSP channel partners, plus wholesale SIP voice transport; earns recurring revenue
+  from multiyear contracts.
+
+HYSR: >-
+  Develops solar hydrogen panels that split water into hydrogen using only sunlight,
+  via nanoparticle and thin-film module designs; development-stage company focused on
+  R&D and prototype scale-up, not yet commercial.
+
+IBEX: >-
+  Provides outsourced customer experience services—omnichannel support, technical
+  support, and digital marketing—from onshore, nearshore, and offshore centers; earns
+  fees from client contracts, mostly via its Connect BPO unit.
+
+IBM: >-
+  Provides hybrid cloud and AI technology spanning software, consulting,
+  mission-critical infrastructure, and financing; revenue from enterprise clients
+  across software, services engagements, and hardware sales.
+
+ICG: >-
+  Designs ASIC chips and sells Goldshell-branded altcoin mining machines for Dogecoin,
+  Kaspa, and other cryptocurrencies; revenue from mining hardware sales, alongside an
+  Ethereum treasury and new staking services.
+
+ICHR: >-
+  Designs and manufactures gas and chemical fluid delivery subsystems and precision
+  components for semiconductor capital equipment; revenue from OEM customers including
+  Lam Research, Applied Materials, and ASML.
+
+ICRL: >-
+  Externally managed mortgage REIT holding commercial real estate debt, mainly
+  floating-rate first mortgage loans plus subordinate and mezzanine loans; earns
+  interest income from its loan portfolio.
+
+IDA: >-
+  Utility holding company whose Idaho Power unit generates, transmits, and distributes
+  electricity to about 664,000 customers in southern Idaho and eastern Oregon; revenue
+  from regulated retail rates and wholesale sales.
+
+IDT: >-
+  Provides fintech and communications services—point-of-sale platforms for independent
+  retailers, BOSS Money remittances, net2phone cloud communications, and prepaid
+  international calling, which supplies most revenue.
+
+IEHC: >-
+  Manufactures Hyperboloid printed-circuit-board connectors for harsh environments;
+  revenue mainly from defense applications (about 63% of sales) plus commercial
+  aerospace, space launch, and medical customers.
+
+IIIV: >-
+  Provides cloud-native enterprise software to state and local governments for courts,
+  public safety, utilities, permitting, and schools; about 76% recurring revenue from
+  software plus integrated payment processing fees.
+
+ILPT: >-
+  REIT owning 409 industrial and logistics properties across 39 states, including
+  substantial Hawaii land holdings; earns rental income from net-lease tenants such as
+  FedEx and Amazon.
+
+IMAA: >-
+  Early-stage developer of AI digital avatars that generate customizable videos in up
+  to 40 languages through a website and API; seeks revenue from user pricing plans and
+  operates with a single employee.
+
+IMOS: >-
+  Provides semiconductor assembly and test services in Taiwan—wafer probing, final
+  test, packaging, and gold bumping—for memory, logic/mixed-signal, and display driver
+  chips; revenue split across testing, assembly, and bumping.
+
+INDI: >-
+  Designs mixed-signal automotive semiconductors for driver-assistance systems—radar,
+  LiDAR, vision, power management—sold to Tier 1 suppliers and carmakers; revenue from
+  chip sales, with its Wuxi unit pending divestiture.
+
+INFQ: >-
+  Builds neutral-atom quantum technology—optical atomic clocks, quantum RF sensors,
+  and the Sqale quantum computer with supporting software; earns revenue from defense,
+  government, and research customers and partners.
+
+INFY: >-
+  Provides AI-first IT consulting, technology services, and outsourcing to global
+  enterprises across finance, retail, manufacturing, and other industries; earns
+  service fees, mostly from North America and Europe.
+
+INLX: >-
+  Provides document-management software and scanning services to small businesses and
+  governments; earns revenue from SaaS and on-premise licenses plus paper-to-digital
+  conversion, micrographics, and storage services.
+
+INN: >-
+  Lodging REIT owning 95 hotels with about 14,300 guestrooms in 24 states under
+  Marriott, Hilton, Hyatt, and IHG franchise brands; earns room revenue from its
+  properties plus fees from joint-venture asset management.
+
+INOD: >-
+  Supplies data engineering and human-expert services for AI development, including
+  training data, alignment, and safety evaluation; earns fees from big tech firms,
+  frontier AI labs, and enterprises deploying AI systems.
+
+INRE: >-
+  Externally managed REIT owning 52 grocery-anchored and necessity-based retail
+  shopping centers totaling 7.2 million square feet across the U.S.; earns rent from
+  anchor, junior-box, and small-shop tenants.
+
+INSG: >-
+  Designs cloud-managed 5G wireless WAN gear, including mobile broadband and fixed
+  wireless access devices; sells hardware and cloud/SaaS subscriptions to carriers,
+  enterprises, and small and medium businesses.
+
+INTA: >-
+  Sells AI-powered vertical SaaS that helps accounting, consulting, investment
+  banking, legal, and private capital firms manage deals, relationships, and risk;
+  earns subscription revenue through a direct sales model.
+
+INTC: >-
+  Designs and manufactures x86 CPUs and related chips for PCs and data centres as an
+  integrated device manufacturer; revenue comes mainly from Client Computing and Data
+  Center & AI processor sales, plus external wafer fabrication via Intel Foundry.
+
+INTT: >-
+  Supplies test and process technology for semiconductor, auto/EV, defense, and
+  industrial manufacturing; earns revenue from electronic test, environmental
+  technologies, and process technologies products sold worldwide.
+
+INTU: >-
+  Runs a financial technology platform spanning small-business accounting and payroll
+  (QuickBooks), consumer tax prep (TurboTax), personal finance (Credit Karma),
+  marketing (Mailchimp), and professional tax software.
+
+IONQ: >-
+  Builds quantum computers plus quantum networking, sensing, and security products;
+  earns revenue from hardware sales, cloud-based quantum computing access via AWS,
+  Azure, and Google, and professional services.
+
+IOR: >-
+  Externally managed real estate company that invests in mortgage notes receivable
+  secured by land and multifamily properties; earns interest income from those notes,
+  with operations run by advisor Pillar.
+
+IOT: >-
+  Provides a connected-operations platform pairing IoT devices with cloud applications
+  like AI video safety, telematics, and asset tracking; earns revenue from
+  physical-operations businesses across many industries.
+
+IPDN: >-
+  Operates online professional networking and recruitment platforms focused on diverse
+  communities; earns fees from employers seeking talent and from memberships, and is
+  expanding into Web3 and digital-asset initiatives.
+
+IPM: >-
+  Provides managed IT security, private cloud hosting, backup and disaster recovery,
+  procurement, and web hosting to businesses; earns recurring subscription and
+  contract fees plus sales of ManyCam live-streaming software.
+
+IPWR: >-
+  Develops the B-TRAN bidirectional semiconductor power switch for solid-state circuit
+  protection and EV markets; revenue to date comes mainly from development grants plus
+  early sales of discrete devices and power modules.
+
+IREN: >-
+  Owns renewable-powered data centers supporting Bitcoin mining ASICs and AI-focused
+  GPUs; earns revenue from mined Bitcoin, liquidated daily, and from cloud GPU
+  services for AI training and inference workloads.
+
+IRM: >-
+  Stores and manages information for more than 240,000 customers, spanning physical
+  records management, digital solutions, data centers leased to hyperscalers, and IT
+  asset lifecycle management; operates as a REIT.
+
+IRT: >-
+  Self-managed REIT that owns and operates 114 multifamily apartment communities with
+  about 33,500 units in non-gateway Southeastern and Midwestern U.S. markets; earns
+  rental income, boosted by value-add renovations.
+
+ITRI: >-
+  Makes smart meters, sensors, and grid-edge networking and software for electricity,
+  gas, and water utilities and cities; earns revenue from intelligent-infrastructure
+  hardware, software, and related services.
+
+IVDA: >-
+  Sells AI video surveillance and IoT smart-city technology through service-provider
+  partners; most revenue comes from its Taiwan subsidiary, which integrates
+  surveillance systems for airports, banks, and governments.
+
+IVR: >-
+  Mortgage REIT that invests in agency residential and commercial mortgage-backed
+  securities; earns interest income on its portfolio, distributes at least 90% of
+  taxable income, and is managed by an Invesco subsidiary.
+
+IVT: >-
+  REIT that owns, leases, and manages 73 grocery-anchored neighborhood and power
+  centers totaling about 11.6 million square feet in U.S. Sun Belt markets; earns rent
+  from necessity-based retail tenants.
+
+IWAL: >-
+  Designs biometric locking wallets and personal security products with RFID shielding
+  and GPS tracking; seeks revenue from product sales through retail and co-branding
+  channels plus related consulting services.
+
+JBGS: >-
+  REIT that owns, operates, and develops mixed-use multifamily and commercial
+  properties around Washington, D.C., notably National Landing; earns rent from its
+  portfolio plus fees from third-party real estate services.
+
+JBL: >-
+  Contract manufacturer providing design, production, and supply chain services across
+  industries; revenue spans regulated industries, intelligent infrastructure including
+  AI data centers, and connected living markets.
+
+JKHY: >-
+  Provides core data processing, payments, and complementary fintech software to about
+  7,400 community and regional banks and credit unions; earns mostly recurring revenue
+  from cloud hosting and payment contracts.
+
+JOYY: >-
+  Operates global social entertainment apps offering livestreaming, short video,
+  messaging, and casual games to 272 million monthly users; earns revenue from these
+  platforms plus programmatic ads and smart-commerce tools.
+
+KBSR: >-
+  Non-traded REIT holding 12 U.S. office properties and an equity stake in a Singapore
+  REIT; earns rental income from office tenants and is externally advised by KBS
+  Capital Advisors, with liquidation under periodic review.
+
+KC: >-
+  Provides public cloud IaaS and PaaS services, including edge computing and content
+  delivery, mainly in China; also earns revenue from enterprise digital solutions such
+  as Camelot's software for financial institutions.
+
+KD: >-
+  Delivers IT infrastructure services — advisory, implementation, and managed services
+  across cloud, mainframe, data and AI, security, and networks; earns contract revenue
+  from enterprises in more than 60 countries.
+
+KDK: >-
+  Develops an AI virtual-driver system for driverless trucks in long-haul, industrial,
+  and defense use; earns per-vehicle or per-mile license fees, freight fees on its own
+  autonomous trucks, and U.S. military contracts.
+
+KE: >-
+  Contract manufacturer of electronic assemblies, medical devices, and precision
+  molded plastics for automotive, medical, and industrial customers; earns fees
+  building products to customer designs at plants in six countries.
+
+KEYS: >-
+  Makes electronic design and test hardware, software, and services used to develop
+  and validate products in communications, aerospace/defense, automotive, and
+  semiconductors; revenue comes mostly from R&D-focused solutions.
+
+KIM: >-
+  Owns and operates open-air, grocery-anchored shopping centers and mixed-use
+  properties across the U.S. as a REIT; collects rents from retail tenants plus fees
+  from joint-venture investment management programs.
+
+KLAC: >-
+  Supplies process control and yield-management equipment—inspection, metrology, and
+  software—for semiconductor and electronics manufacturing; earns from system sales
+  plus services on its installed base (~22% of revenue).
+
+KLIC: >-
+  Makes capital equipment, tools, and consumables used to assemble semiconductor
+  devices such as ICs, LEDs, and sensors; earns from equipment sales to chipmakers,
+  OSATs, and foundries plus aftermarket parts and services.
+
+KLTR: >-
+  Provides a cloud platform for enterprises to create, manage, and deliver video and
+  rich media experiences, increasingly with agentic AI features; sells to large
+  enterprises, universities, and telecom and media companies.
+
+KOPN: >-
+  Makes miniature microdisplays (AMLCD, LCOS, OLED, MicroLED) and application-specific
+  optical subsystems for headsets and weapon sights; most revenue comes from defense
+  product sales plus funded R&D contracts.
+
+KRC: >-
+  Self-administered REIT that owns, develops, and manages premier office and life
+  science properties in West Coast markets and Austin; earns rental income from
+  technology, media, and life science tenants.
+
+KREF: >-
+  Real estate finance REIT originating transitional senior loans on
+  institutional-quality commercial properties, plus mezzanine and preferred equity;
+  earns net interest income and is externally managed by a KKR subsidiary.
+
+KRG: >-
+  REIT owning and operating open-air, grocery-anchored shopping centers and mixed-use
+  properties, mainly in Sun Belt markets; derives revenue from contractual rents and
+  expense reimbursements from retail tenants.
+
+KTCC: >-
+  Contract manufacturer providing electronics assembly, precision plastic molding,
+  sheet metal fabrication, and full product assembly for OEMs; earns from
+  build-to-spec programs at plants in the U.S., Mexico, China, and Vietnam.
+
+KULR: >-
+  Designs and builds advanced battery systems with thermal-management and safety
+  engineering for space, defense, aviation, grid, and subsea uses; sells battery
+  packs, testing and design services, and vibration-reduction technology.
+
+KVYO: >-
+  Offers a B2C customer-relationship platform that unifies consumer data to power
+  email, text, and WhatsApp marketing and service; earns subscription revenue tiered
+  by consumer profiles stored and messages sent.
+
+KWIK: >-
+  Operates a social-selling platform where sellers offer self-set discounts in
+  exchange for influencer referrals and increased sales volume; aims to earn through
+  platform commissions and licensing its referral technology.
+
+LAB: >-
+  Sells life-science research instruments, consumables, and services—mass cytometry,
+  spatial tissue imaging, and microfluidics genomics platforms—earning revenue from
+  academic, translational, and biopharma research labs.
+
+LADR: >-
+  Commercial real estate finance firm originating balance-sheet and conduit first
+  mortgage loans, holding CMBS securities, and owning net-leased properties; earns net
+  interest income, securitization gains, and rents.
+
+LAES: >-
+  Fabless designer of secure semiconductors—microcontrollers, custom ASICs, and
+  post-quantum-resistant chips—plus PKI certificate services; most revenue comes from
+  secure chip sales, with growing ASIC design work.
+
+LASE: >-
+  Makes laser blasting and cleaning systems for rust removal, de-coating, and surface
+  conditioning, plus laser marking and drilling systems for pharmaceutical
+  manufacturing; earns from equipment sales to government and industry.
+
+LASR: >-
+  Designs and manufactures high-power semiconductor and fiber lasers for directed
+  energy, optical sensing, and industrial cutting and welding; earns from laser
+  product sales and government-funded advanced development programs.
+
+LAW: >-
+  Provides cloud-native, AI-powered legal software for ediscovery, document review,
+  legal hold, and case management; earns usage-based revenue from enterprises, law
+  firms, legal services providers, and governments.
+
+LDOS: >-
+  Delivers IT modernization, mission software, managed health services, security
+  products, and defense systems; about 87% of revenue comes from U.S. government
+  contracts across defense, intelligence, health, and civil agencies.
+
+LDXC: >-
+  Development-stage IT consulting and software firm offering a CRM and
+  applicant-tracking system with out-staffing services from Latvia; plans revenue from
+  subscriptions, customization, and support fees.
+
+LEDS: >-
+  Develops and manufactures LED chips, components, modules, and lighting systems using
+  a vertical copper-alloy chip design; earns from sales to packagers, distributors,
+  and ODMs, focused on UV and specialty lighting uses.
+
+LFT: >-
+  REIT investing in transitional floating-rate commercial mortgage loans, mostly on
+  middle-market multifamily properties; earns net interest income and is externally
+  managed by a Lument/ORIX affiliate.
+
+LIF: >-
+  Runs a family location-sharing and safety app on a freemium model plus Tile
+  Bluetooth and pet GPS trackers; earns from subscriptions, hardware sales,
+  advertising placements, and data partnerships.
+
+LINE: >-
+  Operates a global network of roughly 500 temperature-controlled warehouses as a
+  REIT; earns storage and handling fees from food producers, retailers, and
+  distributors, plus transportation and supply-chain services revenue.
+
+LINK: >-
+  Makes force, touch, piezoelectric, and electrochemical gas sensors plus printed
+  electronics for human-machine interfaces and IoT; earns from standard and custom
+  sensor sales to medical, industrial, automotive, and consumer OEMs.
+
+LITE: >-
+  Supplies optical and photonic chips, modules, and subsystems for cloud data centers,
+  AI infrastructure, and telecom networks, plus industrial and 3D-sensing lasers;
+  earns from product sales in two end-market segments.
+
+LMED: >-
+  Development-stage company building an AI healthcare analytics platform and a
+  technology-enabled care coordination model aimed at Latin American markets,
+  initially Venezuela; has not yet generated revenue.
+
+LNKS: >-
+  Manufactures customized wire and cable harnesses at facilities in Malaysia; earns
+  revenue from made-to-order assemblies sold to home appliance, industrial, and
+  automotive OEMs, mainly in the Asia Pacific region.
+
+LOAN: >-
+  Real estate finance REIT originating short-term, secured "hard money" first-mortgage
+  loans to property investors in the New York metro area and Florida; earns interest
+  income plus origination and servicing fees.
+
+LOGI: >-
+  Designs computer peripherals — mice, keyboards, webcams, gaming gear, and video
+  collaboration hardware; earns revenue selling to retailers, e-tailers, businesses,
+  and consumers across the Americas, EMEA, and Asia Pacific.
+
+LPL: >-
+  Manufactures TFT-LCD and OLED display panels for notebooks, monitors, TVs, mobile
+  devices, and cars; revenue comes from panel sales to global electronics brands and
+  their system integrators, including LG Electronics.
+
+LPTH: >-
+  Makes precision molded lenses, infrared optics, and optical assemblies, expanding
+  into thermal imaging cameras and subsystems; earns revenue from defense, industrial,
+  commercial, telecom, and medical customers.
+
+LRCX: >-
+  Supplies wafer fabrication equipment for deposition, etch, and clean steps in
+  chipmaking; earns revenue from system sales to memory, foundry, and logic
+  manufacturers plus services, spares, and upgrades.
+
+LSCC: >-
+  Develops low-power programmable logic chips (FPGAs) for edge, server, and sensor
+  applications; revenue comes from chip sales into communications, computing,
+  industrial, automotive, and consumer markets plus IP licensing.
+
+LTC: >-
+  REIT investing in seniors housing and skilled nursing properties through triple-net
+  leases, mortgage loans, and operating portfolios; earns rental income, resident
+  fees, and interest on financing receivables.
+
+LTESF: >-
+  Operates eSports gaming platforms in Southeast Asia, including the Matchroom
+  community site and white-label offerings; earns revenue from tournament-pass
+  subscriptions and platform services for telecom and OTT partners.
+
+LTRX: >-
+  Makes edge AI and industrial IoT hardware, software, and services — embedded compute
+  modules, gateways, and out-of-band management; revenue comes from smart-city,
+  enterprise IT, and unmanned-systems customers.
+
+LTSV: >-
+  Non-traded REIT holding real estate and development investments, mainly a majority
+  stake in a Brooklyn Moxy hotel and a minority interest in a Manhattan condominium
+  joint venture; income comes from these New York City ventures.
+
+LUMN: >-
+  Operates a global fiber network providing digital networking and communications
+  services; revenue comes from enterprise and wholesale customers plus legacy
+  copper-based consumer services, after selling its fiber-to-the-home unit to AT&T.
+
+LWLG: >-
+  Develops proprietary electro-optic polymer materials for high-speed optical
+  modulators in silicon photonics; seeks revenue from material sales, IP licensing,
+  and production royalties, with volume revenue not expected before 2027.
+
+LXP: >-
+  REIT owning Class A warehouse and distribution facilities in Sunbelt and lower
+  Midwest markets; earns rent from predominantly single-tenant net leases plus fees
+  from institutional joint ventures.
+
+LZ: >-
+  Online platform for legal services — business formation, compliance, trademarks,
+  registered agent, and attorney access; earns revenue from one-time transactions and
+  subscriptions, which supply about 65% of revenue.
+
+MAA: >-
+  Self-managed REIT that owns, operates, and develops roughly 300 apartment
+  communities across the Southeast, Southwest, and Mid-Atlantic U.S.; earns revenue
+  from apartment rents.
+
+MAC: >-
+  Self-managed REIT that acquires, develops, and manages regional and community
+  shopping centers across the U.S.; earns rental income from tenants at roughly 39
+  million square feet of retail centers.
+
+MANH: >-
+  Develops cloud software for supply chain execution, omnichannel commerce, and
+  inventory planning — warehouse, transportation, and order management; earns revenue
+  mainly from SaaS subscriptions.
+
+MASS: >-
+  Makes handheld mass spectrometry and optical spectroscopy devices for point-of-need
+  chemical analysis in safety and defense; earns revenue from device sales to
+  government agencies plus consumables, accessories, and support.
+
+MBLY: >-
+  Develops advanced driver assistance and autonomous driving systems built on EyeQ
+  chips and software; derives nearly all revenue from ADAS solutions shipped to
+  automakers, with over 230 million SoCs deployed.
+
+MCHP: >-
+  Develops, manufactures, and sells embedded control chips — microcontrollers,
+  microprocessors, analog, FPGA, and memory products; earns revenue from automotive,
+  industrial, data center, aerospace, and consumer customers plus licensing.
+
+MDB: >-
+  Provides a developer data platform built on a document-oriented general purpose
+  database, with search, vector search, and stream processing; earns revenue from
+  database offerings run as a managed cloud service or self-managed.
+
+MEI: >-
+  Designs and manufactures custom mechatronic components — power distribution busbars,
+  user interfaces, LED lighting, and sensors; earns revenue from automotive,
+  industrial, and interface product sales to OEMs and tiered suppliers.
+
+META: >-
+  Builds social and messaging apps (Facebook, Instagram, WhatsApp, Messenger, Threads)
+  plus VR headsets and AI glasses; generates substantially all revenue from selling
+  advertising placements to marketers.
+
+MFA: >-
+  Internally managed REIT investing in residential whole loans and mortgage
+  securities, originating business-purpose loans through its Lima One subsidiary;
+  earns net interest income on its portfolio.
+
+MFON: >-
+  Operates the Recurrency marketing platform that turns point-of-sale data into
+  targeted offers and rewards; earns SaaS licensing fees from restaurant and
+  convenience brands plus per-action fees on Connected Rewards programs.
+
+MGNI: >-
+  Runs a sell-side advertising platform that automates buying and selling of digital
+  ad inventory, with a focus on connected TV; earns fees on transactions between
+  publishers and ad buyers across its marketplace.
+
+MIR: >-
+  Provides radiation detection, measurement, and safety products, software, and
+  services; earns revenue from nuclear power, laboratory, and defense customers plus
+  medical dosimetry and cancer-care safety offerings.
+
+MITI: >-
+  Holding company building data center and cloud hosting services through its Centcore
+  unit and developing AI sales applications through Vero Technology Ventures;
+  early-stage revenue comes from hosting and software development contracts.
+
+MITT: >-
+  Residential mortgage REIT that acquires and securitizes newly originated non-agency
+  home loans; earns net interest income on its portfolio plus mortgage banking income
+  from its majority-owned originator Arc Home.
+
+MKSI: >-
+  Makes products and systems serving the semiconductor, electronics manufacturing, and
+  automotive industries, with operations including chemical manufacturing; revenue
+  comes from product sales to these cyclical markets.
+
+MKTW: >-
+  Publishes subscription financial research, software, and investing tools for
+  self-directed investors under brands like Stansberry Research and TradeSmith; earns
+  revenue from paid subscriptions and software billings.
+
+MKZR: >-
+  Externally managed REIT investing mainly in real estate assets, plus non-traded debt
+  and equity securities of commercial real estate companies; income comes from its
+  property and securities portfolio.
+
+MLAB: >-
+  Designs and manufactures life sciences tools and quality-control products for
+  pharmaceutical, healthcare, and medical device customers; revenue comes from
+  consumables, hardware, and calibration and testing services.
+
+MLGO: >-
+  Develops bespoke central processing algorithms integrated with software and
+  hardware, serving Chinese customers in internet advertising, gaming, and intelligent
+  chip design; earns fees from algorithm services.
+
+MPT: >-
+  Self-advised REIT that acquires and develops hospitals and other healthcare
+  facilities net-leased to operators in the U.S., Europe, and Colombia; revenue comes
+  mainly from rent, plus financing leases and mortgage loans.
+
+MPTI: >-
+  Designs and manufactures highly engineered frequency and spectrum control components
+  and modules for aerospace and defense, avionics, space, and industrial electronics;
+  earns revenue from product sales.
+
+MPWR: >-
+  Fabless maker of high-performance analog and mixed-signal power management
+  semiconductors; sells chips into storage and computing, enterprise data, automotive,
+  industrial, communications, and consumer markets.
+
+MQ: >-
+  Operates a cloud-based, open-API card issuing and transaction processing platform
+  for debit, prepaid, and credit programs; earns revenue as customers run payment
+  volume through the platform.
+
+MRAM: >-
+  Makes magnetoresistive RAM (MRAM) memory chips and TMR sensors for industrial,
+  medical, automotive, aerospace, and data center customers; earns revenue from
+  discrete component sales and technology licensing.
+
+MRCY: >-
+  Builds mission-critical edge processing components, modules, and subsystems for
+  sensor, radar, electronic warfare, and avionics applications; sells to defense prime
+  contractors, the U.S. government, and aerospace OEMs.
+
+MRVL: >-
+  Fabless supplier of data infrastructure semiconductors spanning the data center core
+  to network edge, built on system-on-chip design expertise; revenue comes from chip
+  sales into data center and communications markets.
+
+MSAI: >-
+  Provides multi-sensor condition monitoring and early threat detection, streaming
+  thermal, visual, and acoustic data through an edge-to-cloud platform; earns
+  recurring SaaS revenue from logistics, data center, and industrial sites.
+
+MSFT: >-
+  Develops software, cloud services, devices, and AI solutions spanning cloud
+  computing, productivity and collaboration, and personal computing; revenue comes
+  from cloud services, licenses, devices, gaming, and advertising.
+
+MSPR: >-
+  Recovers improper healthcare payments for Medicare, Medicaid, and commercial
+  insurers using data analytics to identify responsible payers; revenue comes from
+  claims recoveries, largely under the MSP Act.
+
+MTCH: >-
+  Provides digital technologies for meeting people through a portfolio of social
+  connection apps including Tinder, Hinge, Match, OkCupid, and Plenty Of Fish; revenue
+  comes from users of these tailored services worldwide.
+
+MTD: >-
+  Supplies precision instruments — laboratory balances, pipettes, analytical and
+  process instruments — plus related services for life sciences, food, and chemical
+  customers; revenue comes from product sales and services worldwide.
+
+MTEK: >-
+  Develops and manufactures AI-enabled video and edge computing components and
+  assemblies, primarily for defense platform makers; sells OEM-grade components and
+  integrated subsystems to customers in Israel, the U.S., and Europe.
+
+MTSI: >-
+  Designs and manufactures analog semiconductors — ICs, amplifiers, switches, and RF
+  and optical subsystems — for industrial and defense, data center, and telecom
+  markets; earns revenue from standard and custom component sales.
+
+MU: >-
+  Manufactures DRAM, NAND, and NOR memory and storage products under the Micron and
+  Crucial brands; revenue comes from components, modules, and SSDs sold into data
+  center, mobile, client, automotive, and embedded markets.
+
+MVST: >-
+  Designs and manufactures lithium-ion battery components and systems for electric
+  commercial vehicles and energy storage, vertically integrated from cell materials to
+  packs; earns revenue mainly from OEM battery sales.
+
+MX: >-
+  Designs and manufactures analog and mixed-signal power semiconductors — MOSFETs,
+  IGBTs, and power ICs — with Korea-based fabs; revenue comes from sales into consumer
+  electronics, industrial, automotive, and computing applications.
+
+MYSZ: >-
+  Fashion technology group offering AI-driven size-and-fit tools, an Amazon
+  third-party retail business, a European second-hand fashion resale platform, and
+  brand distribution in Israel; earns revenue across these subsidiaries.
+
+NABL: >-
+  Provides a cybersecurity software platform covering endpoint management, security
+  operations, and data protection; sells mainly through managed service providers and
+  channel partners serving small and midsize businesses.
+
+NBIS: >-
+  Netherlands-based AI infrastructure group operating GPU cloud platforms for
+  training and running AI models; revenue comes from renting AI compute and related
+  cloud services to enterprises and AI developers.
+
+NCNO: >-
+  Provides a cloud banking platform that embeds AI-driven workflows into lending,
+  onboarding, and account opening for financial institutions; earns revenue from banks
+  and credit unions using its platform.
+
+NEE: >-
+  Operates FPL, Florida's largest regulated electric utility, and NEER, a developer of
+  contracted renewable, nuclear, gas, and battery storage projects; revenue comes from
+  regulated utility rates and long-term power contracts.
+
+NEON: >-
+  Licenses machine perception and optical sensing technology (MultiSensing and zForce
+  platforms) to OEMs and automotive suppliers; earns per-unit license fees plus
+  non-recurring engineering service revenue.
+
+NEOV: >-
+  Designs and manufactures lithium iron phosphate energy storage systems and hybrid
+  inverters for homes and commercial sites; sells through certified solar installers
+  and distributors across the U.S. and Puerto Rico.
+
+NHP: >-
+  REIT that acquires, owns, and manages senior housing operating properties and
+  outpatient medical facilities across 29 U.S. states; income comes from its senior
+  housing operations and leased outpatient medical space.
+
+NIQ: >-
+  Consumer intelligence provider measuring omnichannel shopping behavior for brands
+  and retailers; earns mostly recurring revenue from multi-year subscription
+  measurement contracts plus custom analytics products.
+
+NIXX: >-
+  Operates a carrier-scale telecom network providing wholesale voice termination and
+  SMS routing; earns from high-volume carrier traffic while developing AI-enabled data
+  infrastructure and payment workflows.
+
+NLCP: >-
+  REIT supplying real estate capital to state-licensed cannabis operators via
+  sale-leasebacks and build-to-suit funding; earns rent from 34 cultivation and
+  dispensary properties under long-term triple-net leases.
+
+NLOP: >-
+  REIT owning single-tenant office properties net-leased to corporate tenants; earns
+  lease revenue from 24 U.S. buildings while managing and selling assets over time
+  following its spin-off from W. P. Carey.
+
+NLST: >-
+  Designs memory subsystems and holds patented memory technologies; earns from
+  reselling memory components and OEM sales of specialty modules for data center and
+  industrial applications.
+
+NLY: >-
+  Internally managed mortgage REIT investing in Agency MBS, residential credit, and
+  mortgage servicing rights; earns the spread between portfolio yields and the cost of
+  borrowings and hedging.
+
+NNDM: >-
+  Provides industrial manufacturing solutions spanning additive electronics,
+  surface-mount technology, inkjet components, and 3D printing; earns from machinery,
+  software, and consumables sold to industrial customers.
+
+NNE: >-
+  Pre-revenue developer of advanced nuclear microreactors, led by the KRONOS
+  gas-cooled design, with ambitions in nuclear fuel, transport, and consulting;
+  targets commercial launch in the early 2030s.
+
+NNN: >-
+  REIT that acquires and owns freestanding retail properties leased under long-term
+  triple-net leases; earns rent from about 3,700 properties across all 50 states with
+  tenants covering operating costs.
+
+NOVT: >-
+  Supplies precision components and sub-systems in photonics, motion, robotics, and
+  vision to medical, life science, and advanced industrial OEMs; earns from
+  proprietary technology on long life-cycle OEM platforms.
+
+NOW: >-
+  Sells a cloud platform that automates and digitalizes enterprise workflows and helps
+  organizations govern, secure, and manage AI; earns subscriptions on AI-powered
+  workflow applications used across departments.
+
+NPWR: >-
+  Energy technology and project developer of low-carbon natural gas power; shifting to
+  build, own, and operate gas plants with post-combustion carbon capture, monetizing
+  electricity, captured CO2, and attributes.
+
+NRDS: >-
+  Runs a digital platform of financial guidance and comparison marketplaces for
+  consumers and SMBs; earns mainly referral fees and lead-generation payments from
+  credit card, loan, insurance, and banking partners.
+
+NREF: >-
+  Commercial mortgage REIT originating senior and mezzanine loans, preferred equity,
+  and CMBS tied to multifamily, single-family rental, self-storage, and life science
+  properties; earns interest and investment income.
+
+NRG: >-
+  Sells electricity, natural gas, and smart-home services to roughly 8 million
+  customers across North America; supported by about 12 GW of Texas-focused generation
+  and the Vivint smart home business.
+
+NRGV: >-
+  Provides energy storage systems—battery, gravity, and hydrogen-based—plus energy
+  management software; earns from delivering projects and increasingly from owning and
+  operating storage assets under offtake deals.
+
+NSARO: >-
+  Regulated electric utility distributing electricity to residential, commercial, and
+  industrial customers in eastern and western Massachusetts; earns regulated delivery
+  rates as an Eversource subsidiary.
+
+NSSC: >-
+  Manufactures electronic security products—door locks, access control, intrusion and
+  fire alarms; earns from equipment sales to dealers plus high-margin recurring fees
+  for cellular alarm communication services.
+
+NSYS: >-
+  Contract manufacturer providing engineering design and production of electromedical
+  devices, wire and cable assemblies, and circuit boards; earns from OEMs in medical,
+  aerospace and defense, and industrial markets.
+
+NTAP: >-
+  Provides data storage and management infrastructure—ONTAP software with all-flash
+  and hybrid arrays plus cloud services; earns from enterprises managing data across
+  on-premises, hybrid, and multi-cloud environments.
+
+NTCT: >-
+  Sells network observability, service assurance, and DDoS protection solutions built
+  on deep packet inspection; earns from enterprises, government agencies, and carriers
+  monitoring and securing their networks.
+
+NTGR: >-
+  Makes networking hardware and software—WiFi mesh systems, routers, mobile hotspots,
+  and business networking with AV-over-IP and security; earns from consumer and
+  small-business sales plus subscription services.
+
+NTNX: >-
+  Sells hyperconverged infrastructure software for running applications and managing
+  data across private, public, and hybrid clouds; earns subscription revenue from
+  term-based licenses with support entitlements.
+
+NTSK: >-
+  Provides a cloud-native security and networking platform that inspects traffic to
+  protect data, stop threats, and secure SaaS and AI use; earns from enterprises using
+  services run on its private edge network.
+
+NTST: >-
+  REIT owning single-tenant retail properties net-leased long term to necessity and
+  essential-service tenants such as grocers and convenience stores; earns rent from
+  761 investments across 45 states.
+
+NTTYY: >-
+  Japan's largest fixed and mobile telecom group offering voice, broadband, IP
+  services, and system integration; earns from regional, long-distance, mobile
+  (DOCOMO), and data communications segments.
+
+NTWK: >-
+  Develops software for asset finance and leasing plus automotive digital retail;
+  earns from license sales, implementation services, and subscription and support fees
+  from auto captives, banks, and lessors.
+
+NVDA: >-
+  Designs GPUs and data-center-scale AI infrastructure spanning chips, networking,
+  systems, and the CUDA software stack; earns from cloud providers, AI model makers,
+  and enterprises deploying accelerated computing.
+
+NVEC: >-
+  Develops and sells spintronic devices—magnetic sensors and couplers that acquire and
+  transmit data for industrial, medical, and IoT systems; earns from product sales
+  plus government research contracts.
+
+NVMI: >-
+  Makes metrology systems for semiconductor process control using optical, X-ray,
+  SIMS, and chemical analysis; earns from selling measurement tools directly to chip
+  manufacturers worldwide.
+
+NVNI: >-
+  Acquires and operates profitable B2B SaaS companies in Brazil serving small and
+  mid-sized enterprises across vertical markets; earns subscription software revenue
+  through its seven subsidiaries.
+
+NVVE: >-
+  Develops vehicle-to-grid technology whose GIVe software aggregates EV and stationary
+  batteries into virtual power plants; earns from grid services, energy-market
+  bidding, and EV charging management.
+
+NXDR: >-
+  Operates a neighborhood social network connecting verified neighbors to local news,
+  safety alerts, and businesses; earns revenue from advertising sold through its
+  hyperlocal-targeting ads platform.
+
+NXDT: >-
+  Externally advised diversified REIT making opportunistic, value-add US commercial
+  real estate investments across equity, mortgage debt, mezzanine, and preferred
+  equity; earns rent and investment income.
+
+NXNT: >-
+  Development-stage company aiming to build a platform of AI-enabled enterprise
+  applications through internal development, acquisitions, and investments in AI and
+  IIoT firms; no established revenue lines described.
+
+NXPI: >-
+  Global semiconductor maker of embedded processors, mixed-signal analog, power
+  management, RF, and security chips; earns from product sales into automotive,
+  industrial/IoT, mobile, and communications infrastructure.
+
+NXPL: >-
+  Operates two segments: e-commerce distribution of satellite phones, trackers, and
+  airtime subscriptions, plus healthcare operations spanning pharmacy services and
+  data analytics; healthcare supplies most revenue.
+
+NXRT: >-
+  REIT focused on value-add Class B multifamily properties in the Southeastern and
+  Southwestern US; earns rental income from roughly 13,300 apartment units, with
+  returns boosted by unit renovation programs.
+
+NXT: >-
+  Supplies solar tracker systems and integrated structural, electrical, and software
+  solutions for utility-scale solar plants; earns from sales to engineering firms,
+  project developers, and plant owners worldwide.
+
+NXTT: >-
+  Provides AI-enabled SaaS software development services to businesses across Asia
+  while pursuing a strategy of acquiring and holding bitcoin; earns from customized
+  software projects alongside its bitcoin holdings.
+
+NYC: >-
+  Owns office-centric commercial buildings in New York City, primarily Manhattan;
+  earns rent from government, retail, non-profit, and office tenants while pursuing
+  diversification beyond its legacy office focus.
+
+O: >-
+  Net-lease REIT owning over 15,500 freestanding commercial properties across the US,
+  UK, and Europe; earns long-term rental income from retail, industrial, data center,
+  and gaming tenants plus real estate credit investments.
+
+ODYS: >-
+  Makes AI-driven visual monitoring systems that use small video sensors for
+  predictive maintenance in aviation, defense, industrial, and medical settings; earns
+  from hardware kits, deployments, and analytics services.
+
+OHI: >-
+  Healthcare REIT investing in skilled nursing, assisted living, and specialty care
+  facilities in the US, UK, and Canada; earns rent primarily through triple-net master
+  leases plus mortgage and other real estate loans.
+
+OKLO: >-
+  Develops Aurora fast-fission nuclear powerhouses and nuclear fuel recycling
+  technology; plans to build, own, and operate plants and sell electricity and heat
+  directly to customers such as data centers and the military.
+
+OKTA: >-
+  Provides cloud identity platforms (Okta and Auth0) that secure workforce and
+  customer logins, access management, and governance; earns primarily from multi-year
+  SaaS subscriptions sold to over 20,000 customers.
+
+OLED: >-
+  Develops phosphorescent OLED emitter materials and licenses OLED patents to display
+  and lighting manufacturers; earns from material sales produced with partner PPG plus
+  license and royalty fees.
+
+OLP: >-
+  Self-managed REIT owning a geographically diversified net-leased portfolio focused
+  on industrial properties across 30 states; earns base rent from tenants who
+  typically also cover taxes, insurance, and maintenance.
+
+OMCL: >-
+  Sells medication management automation for healthcare, including dispensing
+  cabinets, central pharmacy robotics, and IV compounding; earns from product sales
+  plus subscriptions and services to hospitals and pharmacies.
+
+OMQS: >-
+  Provides AI-based machine vision and data collection solutions such as license plate
+  recognition, parking, and safety monitoring; earns from hardware, software, and
+  services sold to governments, airports, and enterprises.
+
+"ON": >-
+  Makes intelligent power and sensing semiconductors, including silicon carbide
+  devices, analog chips, and image sensors; earns from chip sales to automotive,
+  industrial, and AI data center customers via distributors and direct sales.
+
+ONDS: >-
+  Defense and critical infrastructure technology company selling autonomous drones,
+  counter-UAS systems, ground robots, and private industrial wireless networks; earns
+  from integrated systems and services for governments and industry.
+
+ONEI: >-
+  Develops AI-powered real-time translation and interpretation products supporting
+  140+ languages across meetings, phone calls, and live events; earns per-minute usage
+  and subscription fees from enterprises and call centers.
+
+ONFO: >-
+  Holding company that acquires and actively manages small profitable online
+  businesses; earns from B2C e-commerce, B2B SEO and digital marketing services, and
+  digital products across its portfolio.
+
+ONL: >-
+  REIT owning suburban single-tenant net-leased office properties across 26 states,
+  including government and medical assets; earns rent from creditworthy tenants such
+  as the GSA while shifting toward dedicated-use properties.
+
+ONTO: >-
+  Makes metrology and inspection tools, packaging lithography systems, and
+  process-control software for semiconductor manufacturing; earns from equipment sales
+  to chipmakers, wafer producers, and advanced packaging manufacturers.
+
+OOMA: >-
+  Provides cloud-based phone and unified communications services for businesses plus
+  residential VoIP service; earns mainly from monthly subscriptions, with added
+  revenue from devices such as its AirDial analog-line replacement.
+
+OPTT: >-
+  Builds ocean-deployed PowerBuoys, WAM-V autonomous surface vessels, and maritime
+  surveillance software; earns from equipment sales and leases plus data-, robotics-,
+  and power-as-a-service contracts for defense and offshore markets.
+
+OPXS: >-
+  Manufactures optical sighting systems, periscopes, and night vision assemblies for
+  US military vehicles such as the Abrams and Bradley; earns from build-to-print
+  contracts with the DoD and defense primes plus optical coatings.
+
+ORA: >-
+  Vertically integrated geothermal power producer that owns and operates plants
+  selling electricity under long-term PPAs; also sells geothermal power-plant
+  equipment and operates grid-scale battery energy storage facilities.
+
+ORCL: >-
+  Provides enterprise applications and cloud infrastructure for building and running
+  corporate IT; earns from cloud services (OCA/OCI), software licenses, and support
+  across cloud, on-premise, and hybrid deployments.
+
+ORKT: >-
+  Singapore-based group offering Microsoft Dynamics ERP consulting, implementation,
+  and after-sales support, plus a no-code mobile app development platform; earns from
+  software sales and related services.
+
+OSIS: >-
+  Designs and manufactures electronic systems for security screening, patient
+  monitoring, and optoelectronics; sells inspection and healthcare products to end
+  users and components and EMS work to OEM customers.
+
+OSPN: >-
+  Sells cybersecurity software and Digipass authentication hardware plus e-signature
+  and identity-verification tools; earns mainly subscription license fees from banks
+  and enterprises worldwide.
+
+OSS: >-
+  Builds rugged high-performance edge computing, switch fabric, and storage systems
+  for AI and sensor processing; sells to makers of autonomous, medical, industrial,
+  aerospace, and defense platforms.
+
+OTEX: >-
+  Makes information management software that captures, secures, and analyzes
+  enterprise data; earns from software and services delivered via private cloud,
+  public cloud, off-cloud, and API deployments.
+
+OTIS: >-
+  Manufactures, installs, services, and modernizes elevators, escalators, and moving
+  walkways worldwide; the Service segment supplies about 65% of sales and most profit,
+  with New Equipment the rest.
+
+P: >-
+  Provides all-flash storage systems and a unified data-management platform spanning
+  on-premises, cloud, and edge environments; earns from selling storage infrastructure
+  and storage delivered as a service.
+
+PALX: >-
+  Pre-revenue developer of GaN microLED optical transceivers that move data with light
+  inside AI servers and supercomputers; licenses core microLED technology from UC
+  Santa Barbara.
+
+PANW: >-
+  Provides AI-backed cybersecurity platforms — firewalls, SASE, and cloud-delivered
+  security services — securing networks, clouds, and endpoints for enterprises,
+  service providers, and governments.
+
+PAR: >-
+  Supplies cloud software and hardware to restaurants and convenience retailers —
+  point-of-sale, loyalty, digital ordering, and payments; earns from subscriptions,
+  hardware, and professional services.
+
+PATH: >-
+  Develops an enterprise automation platform combining robotic process automation with
+  AI agents and process orchestration; earns by selling the platform to organizations
+  scaling agentic automation.
+
+PAYC: >-
+  Provides cloud-based human capital management software covering payroll, HR, talent,
+  and time tracking in a single database; earns SaaS fees from businesses reached
+  through a direct sales force.
+
+PCOR: >-
+  Provides cloud construction management software connecting owners, general
+  contractors, and specialty contractors; earns subscriptions to bundled products
+  spanning preconstruction through financial management.
+
+PCTY: >-
+  Offers cloud HCM, payroll, and spend-management software for U.S. businesses; earns
+  SaaS subscription fees from roughly 41,650 clients that average over 150 employees
+  each.
+
+PD: >-
+  Operates a digital operations management platform that ingests signals from 700+
+  integrations to orchestrate incident detection and response; earns from enterprises
+  using its Operations Cloud.
+
+PDC: >-
+  Japan-based blockchain company providing ad tracking, visitor management, and NFT
+  offerings; most revenue comes from software and system development, with the rest
+  from consulting and NFT sales.
+
+PDFS: >-
+  Provides data analytics software and services that help semiconductor makers improve
+  yield, quality, and efficiency; earns platform fees (licenses, SaaS, engineering)
+  plus volume-based and royalty fees.
+
+PDYN: >-
+  Develops embodied AI autonomy software, avionics, UAVs, and precision components for
+  defense and industrial markets; sells hardware-agnostic software that adds autonomy
+  to third-party robots and drones.
+
+PECO: >-
+  REIT owning and operating grocery-anchored neighborhood shopping centers across the
+  U.S.; most revenue is lease income from necessity-based retailers, plus fees from
+  managing institutional joint ventures.
+
+PEGA: >-
+  Develops enterprise software for AI decisioning and workflow automation; earns by
+  licensing, hosting, and supporting its low-code platform for large brands and
+  government agencies.
+
+PENG: >-
+  Designs, builds, deploys, and manages enterprise computing, memory, and LED
+  solutions for high-performance workloads; earns from selling customized hardware,
+  software, and services.
+
+PERF: >-
+  Offers AI/AR virtual try-on and skin-diagnostic solutions to beauty and fashion
+  brands alongside YouCam consumer apps; earns from B2B SaaS contracts and consumer
+  app subscriptions.
+
+PINE: >-
+  Externally managed REIT owning 127 single-tenant net-leased commercial properties
+  across 32 U.S. states; earns rental income plus interest from commercial loans
+  secured by real estate.
+
+PLAB: >-
+  Manufactures photomasks — precision quartz plates bearing circuit images used to
+  pattern semiconductor wafers and flat-panel displays; earns from mask sales out of
+  eleven plants in Asia, the U.S., and Europe.
+
+PLD: >-
+  Self-managed REIT that owns, develops, and manages logistics real estate, with
+  selective data center development; earns rent from a 1.3 billion sq ft portfolio
+  plus income from co-investment ventures.
+
+PLTK: >-
+  Operates free-to-play mobile games grown largely through studio acquisitions; earns
+  from in-game content and offers purchased by players, supported by live operations
+  and a proprietary tech platform.
+
+PLTR: >-
+  Builds data-integration and AI software platforms — Gotham, Foundry, Apollo, and AIP
+  — for defense, intelligence, and commercial customers; earns from government and
+  enterprise deployments.
+
+PLUG: >-
+  Builds an end-to-end hydrogen ecosystem — fuel cells for forklifts, PEM
+  electrolyzers, liquefiers, and fueling stations; earns by selling hydrogen equipment
+  and fuel for material handling and industry.
+
+PLXS: >-
+  Contract designer, manufacturer, and servicer of complex electronics for
+  aerospace/defense, healthcare/life sciences, and industrial customers; earns fees
+  across the product lifecycle from design to service.
+
+PNW: >-
+  Electric utility holding company whose APS subsidiary serves about 1.4 million
+  Arizona customers; earns nearly all revenue from regulated electricity generation,
+  transmission, and distribution.
+
+POET: >-
+  Designs photonic integrated packaging based on its Optical Interposer platform;
+  develops optical engines and light-source modules sold to makers of optical
+  transceivers for AI data-center connectivity.
+
+POLA: >-
+  Designs and manufactures DC power generators, hybrid solar, and cooling systems;
+  most sales come from telecom customers, led by DC power systems supporting 5G
+  networks for US Tier-1 carriers.
+
+POR: >-
+  Vertically integrated electric utility serving about 960,000 retail customers in
+  Oregon; earns revenue from regulated generation, transmission, distribution, and
+  wholesale power sales at OPUC-set rates.
+
+POWI: >-
+  Designs analog and mixed-signal ICs for high-voltage power conversion; earns revenue
+  selling power-supply chips, LED drivers, motor drivers, and gate drivers used in
+  appliances, EVs, and industrial systems.
+
+PPL: >-
+  Utility holding company delivering electricity in Pennsylvania, Kentucky, Virginia,
+  and Rhode Island and natural gas in Kentucky and Rhode Island; earns revenue from
+  regulated rates across three segments.
+
+PPSI: >-
+  Designs and services mobile EV charging (e-Boost) and on-site power generation
+  equipment; earns revenue from equipment sales plus recurring maintenance contracts
+  with utility, commercial, and government customers.
+
+PRGS: >-
+  Provides infrastructure software for building, deploying, and managing applications
+  and digital experiences; earns recurring revenue from licenses and subscriptions
+  sold direct and via ISV, OEM, and reseller channels.
+
+PRKR: >-
+  Licenses proprietary RF wireless technologies; revenue comes from one-time license
+  settlements won through patent-infringement litigation against handset, WiFi, and
+  semiconductor companies.
+
+PRPO: >-
+  Operates a cancer-diagnostics business focused on hematologic malignancies; earns
+  revenue from clinical pathology testing services and from selling proprietary assay
+  kits like HemeScreen to other labs.
+
+PRSO: >-
+  Fabless semiconductor maker of mmWave wireless chips and antenna modules for fixed
+  wireless access, military, and consumer links; also earns revenue from NRE services
+  and IP licensing.
+
+PRXA: >-
+  Externally managed hotel REIT owning interests in five select-service US hotel
+  properties; earns revenue from hotel operations leased through taxable REIT
+  subsidiaries under percentage leases.
+
+PSN: >-
+  Provides technology solutions and engineering services in defense, intelligence,
+  cyber, and infrastructure; earns roughly half its revenue from US government
+  contracts and half from global infrastructure programs.
+
+PSTL: >-
+  Internally managed REIT owning about 1,900 properties leased primarily to the US
+  Postal Service; earns rental revenue under modified double-net leases plus fees for
+  managing additional postal properties.
+
+PTC: >-
+  Makes software for product lifecycle management (Windchill), CAD (Creo, Onshape),
+  ALM, and service management; earns mostly recurring subscription revenue from
+  industrial and manufacturing customers.
+
+PUBM: >-
+  Operates a sell-side programmatic advertising platform connecting publishers with ad
+  buyers; earns fees as a percentage of the advertising impressions publishers
+  monetize on its platform.
+
+PW: >-
+  REIT owning railroad infrastructure leased to Norfolk Southern, solar farm land, and
+  cannabis/food greenhouses; earns lease revenue while working to sell or re-lease its
+  distressed greenhouse portfolio.
+
+PWDY: >-
+  Holding company whose CM Tech unit builds custom industrial servomotors for robotics
+  in semiconductor manufacturing equipment; also runs a small custom picture-framing
+  shop, with most motor sales to OEMs.
+
+PXLW: >-
+  Develops and licenses cinematic visualization technology, chiefly the TrueCut Motion
+  platform for motion grading; earns revenue from tools, services, and IP licensing
+  after selling its semiconductor business.
+
+Q: >-
+  Supplies materials for semiconductor and electronics manufacturing, including CMP
+  pads and slurries, photoresists, cleaning chemistries, and interconnect materials;
+  over 90% of revenue is consumable or unit-driven.
+
+QBTS: >-
+  Builds annealing and gate-model quantum computers; earns revenue from cloud-based
+  quantum-computing-as-a-service subscriptions, professional services, and sales of
+  quantum systems.
+
+QCOM: >-
+  Designs Snapdragon chips and wireless technologies for smartphones, automotive, and
+  IoT; earns revenue from integrated circuit sales and from licensing its cellular
+  patent portfolio.
+
+QLYS: >-
+  Provides a cloud platform for IT security, vulnerability management, and compliance;
+  earns revenue from renewable annual SaaS subscriptions sold to over 10,000
+  organizations worldwide.
+
+QMCO: >-
+  Sells data storage and management systems for unstructured data, spanning file
+  storage, backup appliances, object storage, and tape libraries; earns revenue from
+  hardware, software, and support services.
+
+QRVO: >-
+  Makes radio-frequency, analog, power-management, and connectivity chips for
+  smartphones, defense, infrastructure, and IoT devices; earns revenue from
+  semiconductor sales and compound-semiconductor foundry services.
+
+QS: >-
+  Develops solid-state lithium-metal battery technology for electric vehicles;
+  pre-commercial, funded largely through its Volkswagen/PowerCo collaboration and
+  licensing arrangements rather than product sales.
+
+QSI: >-
+  Life sciences company commercializing next-generation single-molecule protein
+  sequencing; earns revenue from Platinum benchtop instruments, consumable kits, and
+  analysis software sold to research labs.
+
+QTRX: >-
+  Makes ultra-sensitive Simoa protein-detection and spatial biology instruments; earns
+  revenue from instrument and consumable sales plus lab testing services, including
+  Alzheimer's blood tests.
+
+QTTOY: >-
+  Operates Chinese mobile content apps, including the Qutoutiao news and short-video
+  feed and free Midu online literature; earns revenue mainly from advertising and
+  marketing services.
+
+QTWO: >-
+  Provides cloud-based digital banking software for banks, credit unions, and
+  fintechs; earns subscription and usage-based SaaS revenue from digital banking,
+  lending, and risk and fraud solutions.
+
+QUBT: >-
+  Develops room-temperature photonic quantum computers and thin-film lithium niobate
+  chips; earns from machine sales, cloud access, foundry services, and photonic
+  semiconductor components for aerospace and sensing.
+
+QUIK: >-
+  Fabless developer of programmable logic: embedded FPGA IP and discrete FPGA chips;
+  earns from IP licensing, professional services, and silicon sales into aerospace,
+  defense, and industrial markets.
+
+QURT: >-
+  Formerly a distributor of consumer radiation detectors, now winding that down to
+  develop CenterEye, an AI call-center analytics platform; expects revenue from
+  software licensing, services, and partnerships.
+
+RAASY: >-
+  Provides cloud-based communications in China—CPaaS, cloud contact centers, and
+  unified communications—earning from recurring subscriptions and project-based
+  solutions sold to enterprises across industries.
+
+RAL: >-
+  Designs, manufactures, and services precision instruments through Test and
+  Measurement and Sensors and Safety Systems segments; sells to engineers in
+  semiconductor, utilities, defense, and industrial markets.
+
+RAMP: >-
+  Provides data collaboration technology that connects and matches customer data
+  across advertisers, ad tech platforms, publishers, and data providers; earns by
+  selling its platform to brands and media companies.
+
+RBBN: >-
+  Supplies communications software, hardware, and network solutions—voice-over-IP,
+  security, and IP optical networking—to telecom service providers and enterprises;
+  earns from product sales and related services.
+
+RBRK: >-
+  Sells Zero Trust data security software: a cloud-native SaaS platform for backup,
+  cyber recovery, and threat analytics; earns mainly from subscriptions sold through a
+  land-and-expand model.
+
+RDVT: >-
+  Builds a cloud identity-intelligence platform used for identity verification, fraud
+  prevention, and due diligence; earns nearly all revenue licensing solutions via
+  usage-based and monthly-fee contracts.
+
+REFI: >-
+  Commercial mortgage REIT originating senior loans secured by real estate to
+  state-licensed cannabis operators; earns interest income, distributed to
+  shareholders as dividends.
+
+REG: >-
+  REIT that acquires, develops, owns, and operates grocery-anchored neighborhood
+  shopping centers in suburban U.S. trade areas; earns rent from necessity, service,
+  and value-oriented retail tenants.
+
+REXR: >-
+  Self-managed REIT owning and operating industrial properties in Southern California
+  infill markets; earns rental income from a 419-property portfolio plus value-add
+  repositioning, development, and selective sales.
+
+RFIL: >-
+  Manufactures interconnect products—RF connectors, coaxial and fiber optic cables,
+  wire harnesses, small cell enclosures, and cooling systems—sold to telecom carriers,
+  network operators, and OEMs.
+
+RGTI: >-
+  Builds superconducting quantum computers with multi-chip processors fabricated in
+  its own Fab-1 facility; earns by selling QPU systems and cloud access to enterprise,
+  government, and research customers.
+
+RHP: >-
+  Lodging REIT owning group-focused Gaylord Hotels and JW Marriott convention resorts
+  managed by Marriott, plus a controlling stake in Opry Entertainment; hotel
+  operations produce most revenue, entertainment the rest.
+
+RIME: >-
+  Operates SemiCab, an AI-enabled logistics software platform helping retailers,
+  brands, and transportation providers solve supply chain problems; sold its legacy
+  Singing Machine karaoke business in 2025.
+
+RITM: >-
+  Global asset manager focused on real estate, credit, and financial services,
+  structured as a REIT; earns via mortgage origination and servicing, asset management
+  fees, and investment portfolios.
+
+RLJ: >-
+  Lodging REIT owning 93 premium-branded, focused-service and compact full-service
+  hotels across U.S. markets; earns room revenue from Marriott, Hilton, and Hyatt
+  branded properties run by independent managers.
+
+RMBS: >-
+  Designs memory interface chips (DDR5 clock drivers, PMICs) and silicon IP for data
+  center and AI systems; earns from fabless chip sales, interface and security IP
+  licensing, and patent licenses.
+
+RNW: >-
+  Indian renewable-power producer operating wind, solar, and hydro projects plus solar
+  module and cell factories; earns by selling electricity under long-term power
+  purchase agreements with utilities and companies.
+
+ROC: >-
+  Develops Vision AI software for facial recognition, multimodal biometrics, video
+  analytics, and digital forensics; earns from SDK and platform sales to law
+  enforcement, defense, and commercial customers.
+
+ROP: >-
+  Operates a portfolio of niche vertical software and technology-enabled product
+  businesses across three segments; earns recurring software and product revenue and
+  grows by acquiring high-margin software companies.
+
+RPMT: >-
+  Develops Mazoola, a COPPA-compliant family digital wallet letting parents oversee
+  children's payments; has not generated significant revenue and aims to monetize via
+  white-label licensing and partnerships.
+
+RSCF: >-
+  Makes life-science equipment including liquid-nitrogen ultra-low temperature and
+  blast freezers, solvent chillers, and lab consumables; sells to pharma, biotech,
+  labs, and cold-chain customers.
+
+RTCJF: >-
+  China-based AI video solution provider offering SaaS/PaaS live streaming and
+  video-on-demand systems, cloud software, and enterprise AI solutions; earns from
+  enterprise customers in training, education, and medical uses.
+
+RUM: >-
+  Runs a video-sharing platform serving creators, with 52 million monthly active
+  users, plus cloud infrastructure; earns by monetizing users through its in-house
+  Rumble Advertising Center.
+
+RUN: >-
+  Installs and owns residential solar and battery systems, selling clean energy as a
+  subscription; earns recurring payments under 20-25 year lease and power purchase
+  agreements plus outright system sales.
+
+RXT: >-
+  Provides hybrid cloud and AI services spanning public cloud, private cloud, and
+  on-premises infrastructure; earns fees for designing, integrating, and operating
+  workloads for regulated and mission-critical enterprises.
+
+S: >-
+  Sells the Singularity Platform, AI-powered cybersecurity software for autonomous
+  endpoint, cloud, and identity protection with a unified data lake; earns
+  subscription revenue from organizations worldwide.
+
+SABR: >-
+  Operates a global travel marketplace connecting airlines, hotels, and other
+  suppliers with travel agencies and buyers; earns distribution fees and SaaS revenue
+  from airline reservation and retailing software.
+
+SAIC: >-
+  Provides engineering and enterprise IT services — IT modernization, digital
+  engineering, AI, mission systems — to defense, intelligence, and civilian agencies;
+  about 98% of revenue comes from U.S. government contracts.
+
+SAIL: >-
+  Sells identity security software governing human, machine, and AI-agent access for
+  enterprises; revenue comes from SaaS subscriptions to Identity Security Cloud and
+  the customer-hosted IdentityIQ product.
+
+SANM: >-
+  Contract manufacturer of electronics for OEMs in industrial, medical,
+  defense/aerospace, automotive, communications, and cloud markets; about 80% of
+  revenue comes from PCB assembly and integrated manufacturing services.
+
+SBAC: >-
+  Owns and leases wireless communications towers in the U.S., Latin America, and
+  Africa, renting antenna space to wireless carriers; site leasing supplies nearly all
+  operating profit, with a smaller site development arm.
+
+SBRA: >-
+  REIT owning skilled nursing, senior housing, behavioral health, and specialty
+  hospital properties in the U.S. and Canada; earns rent from third-party operators
+  plus income from managed communities and loans.
+
+SCIA: >-
+  Makes sputtering targets and other advanced materials for physical vapor deposition
+  thin-film coatings in glass, solar, aerospace, defense, and optics; one
+  multinational customer supplied about 66% of 2025 revenue.
+
+SCKT: >-
+  Makes Bluetooth barcode-scanning and RFID/NFC data capture devices plus a developer
+  SDK; revenue comes mainly from scanners sold through app providers and resellers for
+  mobile point-of-sale and field applications.
+
+SCND: >-
+  Makes benchtop laboratory scales, pill counters, and force gauges under the Torbal
+  and VIVID brands, plus bioprocessing sensor systems; revenue comes from
+  lab-equipment distribution and direct bioprocessing sales.
+
+SDCH: >-
+  Provides cybersecurity services for mid-market companies, chiefly subscription-based
+  virtual CISO engagements, plus its Enclave network-segmentation software and resold
+  third-party security products.
+
+SEDG: >-
+  Makes DC-optimized inverters and power optimizers for solar systems, plus batteries,
+  EV chargers, and energy management software; sells mainly through distributors and
+  large solar installers and EPC firms.
+
+SEII: >-
+  Holding company operating the ECrent online rental marketplace for listing and
+  renting products and services through Hong Kong and PRC subsidiaries;
+  sharing-economy initiatives are early stage with little revenue.
+
+SELF: >-
+  Self-administered REIT that owns and operates thirteen self-storage properties
+  across eight U.S. states; earns revenue from month-to-month storage unit rentals
+  plus one third-party managed store.
+
+SEVN: >-
+  REIT originating floating-rate first mortgage bridge loans of $15-75 million on
+  middle-market transitional commercial real estate; earns interest income plus
+  origination and exit fees, managed externally by Tremont/RMR.
+
+SGST: >-
+  Non-traded REIT investing in self-storage facilities in the U.S. and Canada, with 24
+  operating properties plus joint ventures; earns storage rental income and is
+  externally advised by a SmartStop-sponsored advisor.
+
+SHAZ: >-
+  Australian neocloud operator renting NVIDIA GPU compute for AI and high-performance
+  computing workloads from partner data centers; revenue comes from cloud contracts
+  with customers such as Canva and GMI Cloud.
+
+SHEN: >-
+  Provides broadband internet, video, and voice over fiber and cable networks in eight
+  eastern U.S. states; also earns revenue from dark fiber leasing and Ethernet
+  services for enterprise and wholesale customers.
+
+SHLS: >-
+  Makes electrical balance-of-system components — wire harnesses, combiners,
+  disconnects — for utility-scale solar, battery storage, and data center power;
+  revenue comes from system solutions sold to developers and EPCs.
+
+SIFY: >-
+  Indian ICT company providing network connectivity, data center colocation, and
+  digital services to enterprises over a nationwide network linking 77 data centers;
+  revenue comes from enterprise service contracts.
+
+SIMO: >-
+  Designs NAND flash controllers for SSDs and eMMC/UFS embedded storage, plus
+  single-chip SSD modules; revenue comes from selling controllers to NAND makers,
+  module makers, hyperscalers, and OEMs, mostly outside the U.S.
+
+SITC: >-
+  REIT owning and managing 19 open-air shopping centers across 13 states; earns rent
+  from retail tenants plus management fees, while selling assets in a planned wind-up
+  of its business.
+
+SITM: >-
+  Makes MEMS-based precision timing products — oscillators, clock ICs, resonators, and
+  synchronization software — for AI datacenter, communications, automotive,
+  industrial, and aerospace electronics; sells mainly via distributors.
+
+SKLZ: >-
+  Runs a mobile gaming platform hosting skill-based, real-money tournaments, sharing
+  entry fees with game developers; also owns RZR, a machine-learning performance
+  advertising platform for user acquisition.
+
+SKT: >-
+  REIT owning and operating 31 outlet centers and three open-air lifestyle centers in
+  the U.S. and Canada; earns fixed and percentage-of-sales rents from over 2,600
+  brand-name retail stores.
+
+SLAB: >-
+  Designs low-power wireless microcontrollers and SoCs for IoT devices using
+  Bluetooth, Wi-Fi, Zigbee, Z-Wave, and Thread, sold to industrial, commercial, and
+  home-product makers; agreed to be acquired by Texas Instruments.
+
+SLDP: >-
+  Develops sulfide-based solid electrolyte for solid-state EV batteries, aiming to
+  sell electrolyte to battery makers and OEMs and license cell designs; currently
+  pre-commercial, supported by partnerships and a DOE grant.
+
+SLG: >-
+  REIT that owns, manages, and develops Manhattan commercial real estate, chiefly
+  office towers plus retail and residential holdings; earns office rents along with
+  income from debt and preferred equity investments.
+
+SLP: >-
+  Develops modeling-and-simulation software (GastroPlus, ADMET Predictor,
+  MonolixSuite) and consulting for drug discovery and development; software licenses
+  provided 58% of fiscal 2025 revenue, the rest from services.
+
+SMA: >-
+  Self-managed REIT owning 177 self-storage properties in the U.S. and Canada; earns
+  storage rents plus management and advisory fees from sponsored REITs and a
+  273-property third-party managed platform.
+
+SMCI: >-
+  Builds application-optimized servers, storage systems, and full rack-scale IT
+  solutions, including liquid-cooled AI and HPC clusters; revenue comes from server
+  and storage system sales direct and through channel partners.
+
+SMR: >-
+  Develops small modular nuclear reactors — the 77 MWe NuScale Power Module with NRC
+  design approval; pre-commercial, with no binding module delivery contracts yet,
+  planning revenue from module sales and related services.
+
+SMRT: >-
+  Provides smart-home software and hardware for apartment owners and managers—smart
+  locks, thermostats, access control, work-order tools; earns subscription fees for
+  hosted services plus device sales and installation.
+
+SMSI: >-
+  Makes white-label mobile software for wireless carriers, including the SafePath
+  family-safety platform and CommSuite visual voicemail; earns revenue from carrier
+  deployments to their mobile subscribers.
+
+SMTC: >-
+  Designs analog and mixed-signal semiconductors for data centers, infrastructure and
+  industrial markets, plus IoT modules, routers and connectivity services; sells chips
+  to OEMs and IoT hardware to device makers.
+
+SMTK: >-
+  Develops TRUFLEX organic semiconductor polymer inks for printed transistors in
+  displays and advanced chip packaging; early-stage revenue from ink sales,
+  prototyping services and co-development partnerships.
+
+SNDK: >-
+  Develops and manufactures NAND flash storage—enterprise and client SSDs, embedded
+  products, memory cards and USB drives—sold to cloud and datacenter customers, device
+  OEMs and consumers through retail channels.
+
+SNOW: >-
+  Cloud data platform for storing, analyzing and sharing data and building AI
+  applications across the major public clouds; earns consumption-based fees as
+  customers use compute, storage and services.
+
+SNPS: >-
+  Sells electronic design automation software for chip design and verification,
+  semiconductor IP blocks, and Ansys engineering simulation tools; earns license,
+  subscription and service fees from chip and system makers.
+
+SO: >-
+  Utility holding company with vertically integrated electric utilities in Alabama,
+  Georgia and Mississippi, wholesale power generation, and natural gas distribution in
+  four states; earns regulated rates and wholesale power sales.
+
+SODI: >-
+  Manufactures power transistors, MOSFETs and hybrid circuits for military and
+  aerospace electronics; most sales are custom parts under contracts whose end
+  products go to the U.S. government and defense primes.
+
+SOHON: >-
+  Lodging REIT owning ten full-service upscale hotels in the mid-Atlantic and southern
+  U.S. plus two condo-hotel interests; earns hotel operating income through taxable
+  REIT subsidiaries under third-party management.
+
+SOUN: >-
+  Provides voice AI—in-car assistants, restaurant phone and drive-thru ordering, and
+  enterprise customer-service agents built on its Houndify platform; earns fees from
+  automakers, device makers and businesses that embed it.
+
+SPG: >-
+  Retail REIT that owns, develops and manages malls, Premium Outlets and Mills
+  shopping centers in the U.S. and abroad; earns rent from retail tenants plus income
+  from international and retail-brand investments.
+
+SPSC: >-
+  Runs a cloud supply chain network that lets retailers, suppliers and logistics firms
+  exchange orders, invoices and sell-through data with trading partners; recurring
+  subscriptions were 96% of 2025 revenue.
+
+SPT: >-
+  Makes social media management software for publishing, engagement, analytics and
+  AI-driven social listening across networks; earns per-user subscription fees from
+  businesses, agencies and other organizations.
+
+SQFT: >-
+  REIT holding a small portfolio of office and industrial properties plus model homes
+  leased back to homebuilders on triple-net terms; earns rent from commercial tenants
+  and homebuilders, plus gains on home sales.
+
+SSNC: >-
+  Provides fund administration, transfer agency and financial-operations software and
+  outsourced services to asset managers, plus healthcare claims processing; earns
+  recurring service contracts, subscriptions and licenses.
+
+SSYS: >-
+  Makes polymer 3D printing systems across five technology platforms, plus materials,
+  software and on-demand parts services; sells printers, consumables and services for
+  prototyping and end-use part production.
+
+ST: >-
+  Develops and manufactures sensors, electrical protection components and power
+  conversion products for vehicles, industrial equipment and aerospace; sells to auto
+  OEMs, Tier 1 suppliers and industrial manufacturers.
+
+STAG: >-
+  Industrial REIT that acquires, owns and operates warehouse and industrial buildings
+  across the U.S.—601 buildings in 41 states; earns rent from a diversified tenant
+  base with no tenant over about 3% of revenue.
+
+STEM: >-
+  Provides PowerTrack software for monitoring and optimizing solar and battery storage
+  assets, plus edge hardware and managed and professional services; earns recurring
+  software and services fees from clean-energy asset owners.
+
+STI: >-
+  Develops next-generation battery materials—silicon-rich anodes, solid-state and
+  fire-retardant electrolytes—for EV and storage batteries; largely pre-commercial,
+  pursuing production partnerships with materials makers and OEMs.
+
+STLY: >-
+  Underwrites title insurance and provides title agency, closing and escrow services,
+  mainly in Florida; earns premiums and escrow and title fees, plus income from a
+  real-estate equity investment and advisory services.
+
+STM: >-
+  Designs and manufactures a broad range of semiconductors—microcontrollers, analog
+  and power chips, MEMS sensors, silicon carbide devices—for automotive, industrial,
+  personal electronics and communications customers.
+
+STRW: >-
+  REIT that acquires and triple-net leases skilled nursing facilities and other
+  post-acute healthcare properties across ten states; earns rent from operator
+  tenants, including affiliates of its CEO and a director.
+
+STWI: >-
+  Offers a subscription keyword-research and SEO tool for entrepreneurs, accessed
+  through its website; earns revenue from tiered monthly subscription plans and an API
+  offering, with no employees beyond its executive officers.
+
+STX: >-
+  Makes hard disk drives for mass-capacity cloud and enterprise storage, plus SSDs,
+  storage systems and the Lyve data-transfer and storage-as-a-service platform; sells
+  to cloud providers, OEMs and distributors.
+
+SUI: >-
+  REIT owning manufactured-housing and RV communities in North America and holiday
+  parks in the UK—513 properties; earns site rent from residents and vacationers plus
+  home sales through a taxable subsidiary.
+
+SUNS: >-
+  Externally managed mortgage REIT originating floating-rate secured commercial real
+  estate loans in the Southern U.S.; earns interest plus origination and exit fees on
+  senior, mezzanine and preferred-equity investments.
+
+SURG: >-
+  Sells wireless service—subsidized Lifeline and prepaid plans—through 9,000-plus
+  convenience stores and online, plus point-of-sale transaction processing and
+  wholesale MVNO enablement; earns recurring service and transaction fees.
+
+SVC: >-
+  REIT owning 760 triple-net-leased service retail properties—travel centers are the
+  largest tenant—and 94 hotels operated by Sonesta and others; earns fixed rents plus
+  hotel operating income under management agreements.
+
+SVMB: >-
+  Nevada holding company operating in mainland China through contractually controlled
+  VIEs; earns revenue from smart-parking management fees plus small winery sales and
+  other operations.
+
+SWDR: >-
+  Non-traded REIT owning stabilized commercial properties—multifamily, industrial,
+  office, single-family rentals—plus real estate debt; earns rents and interest under
+  external management by a Starwood affiliate.
+
+SYNA: >-
+  Designs semiconductors for edge AI, wireless connectivity and human
+  interfaces—touch, display, biometrics—selling custom silicon and software platforms
+  to device OEMs across IoT, PC, enterprise and automotive markets.
+
+TACT: >-
+  Makes software-driven terminals and thermal printers for food-service back-of-house,
+  POS and casino gaming (BOHA!, Ithaca); sells hardware to OEMs, resellers and end
+  users plus recurring labels, spare parts and service.
+
+TANAF: >-
+  Holding company operating in China through subsidiaries; produces graphene and
+  graphene-based far-infrared heat therapy products, and is expanding into healthcare
+  services through a new Henan subsidiary.
+
+TASK: >-
+  Provides outsourced digital operations—customer experience, trust and safety, and AI
+  services—for about 200 clients; earns service fees delivered by a roughly
+  65,500-person workforce across 13 countries.
+
+TBCH: >-
+  Designs and markets gaming accessories—headsets, controllers, keyboards, mice,
+  simulation hardware—for consoles and PCs; earns revenue from retail distribution
+  worldwide, including the acquired PDP brand.
+
+TBLA: >-
+  Operates a performance-advertising platform placing ads on publisher sites and apps
+  outside the search and social walled gardens; earns fees when consumers click, view
+  or buy from ads and shares revenue with publishers.
+
+TCI: >-
+  Externally managed real estate company operating multifamily and commercial
+  properties in the Southern U.S.; earns rents plus interest on mortgage notes
+  receivable and holds land for appreciation or development.
+
+TCX: >-
+  Runs three segments: Ting fiber and fixed-wireless Internet access, Wavelo billing
+  platforms for ISPs, and wholesale and retail domain registration (OpenSRS, Enom,
+  Hover); earns subscription and service fees.
+
+TDC: >-
+  Provides an enterprise data-analytics and AI platform built on massively parallel
+  architecture, deployable in public cloud, on-premises or hybrid environments; sells
+  the platform and related services to large organizations.
+
+TDS: >-
+  Provides broadband, video, voice and wireless services to 1.1 million connections
+  via TDS Telecom's fiber, coax and copper networks; also leases tower space and holds
+  spectrum through majority-owned Array.
+
+TEAD: >-
+  Runs an omnichannel ad platform (Outbrain combined with Legacy Teads) connecting
+  advertisers with publisher, app and CTV inventory in a two-sided marketplace; earns
+  revenue when advertisers buy media-owner inventory.
+
+TEAM: >-
+  Makes cloud-based team collaboration and workflow software with AI agents for
+  software, IT and business teams; earns by selling its apps largely through a
+  self-service model to more than 300,000 customers.
+
+TEL: >-
+  Manufactures connectivity and sensor components—connectors, terminals, sensors,
+  relays—for harsh environments; earns product sales through Transportation and
+  Industrial segments serving autos, factories and data centers.
+
+TEM: >-
+  Provides AI-enabled precision-medicine diagnostics, connecting lab test results to
+  patients' clinical data via its platform; earns from diagnostics and data-driven
+  services for providers and life science companies.
+
+TER: >-
+  Makes automated test equipment for semiconductors, wireless products and
+  electronics, plus collaborative and mobile robots; earns from test-system sales
+  concentrated among large customers and robotics sold to manufacturers.
+
+THR: >-
+  Provides engineered industrial process heating—heat-trace cables, boilers, heating
+  blankets, controls—plus engineering and maintenance services; sells to chemical, oil
+  and gas, power and other process industries.
+
+TLN: >-
+  Independent power producer with about 13.1 GW of U.S. generation including the
+  Susquehanna nuclear plant; sells electricity, capacity and ancillary services into
+  wholesale markets and via long-term contracts such as an AWS PPA.
+
+TLS: >-
+  Provides cybersecurity and secure-network solutions—Xacta cyber risk and compliance
+  software, identity and biometric services, TSA PreCheck enrollment—earning most
+  revenue from U.S. federal and enterprise customers.
+
+TMUS: >-
+  Provides wireless and broadband services to 142.4 million customers over a
+  nationwide 5G network under T-Mobile, Metro and Mint brands; earns from service
+  plans, device and accessory sales, and wholesale partners.
+
+TOGI: >-
+  Designs and manufactures ruggedized power-conversion systems for defense, aerospace,
+  medical and industrial applications; also sells EV charging hardware and
+  subscription network management, about 17% of revenue.
+
+TPICQ: >-
+  Independent manufacturer of composite wind blades for turbine OEMs, with plants in
+  the U.S., Mexico and India; earns from outsourced blade production while operating
+  in Chapter 11 as debtor-in-possession.
+
+TPTA: >-
+  REIT originating and managing commercial real estate credit—first mortgages,
+  mezzanine and preferred equity—on U.S. middle-market properties with loans of
+  roughly $10-50 million; earns current interest income.
+
+TRCK: >-
+  Makes GPS offender-tracking devices and monitoring software for courts and
+  corrections agencies; earns recurring subscription revenue from device-agnostic
+  monitoring contracts with U.S. and international governments.
+
+TRIP: >-
+  Operates travel platforms—Tripadvisor guidance and reviews, Viator bookable
+  experiences, TheFork restaurant reservations; earns from experience and dining
+  bookings, hotel commercial partners and advertising.
+
+TRMB: >-
+  Provides software, hardware and cloud platforms connecting field and office
+  workflows in construction, geospatial, transportation and utilities; earns from
+  subscriptions, software licenses and connected hardware.
+
+TRNR: >-
+  Acquisition-focused company owning connected fitness equipment brands Wattbike,
+  CLMBR and FORME; earns by selling specialty fitness hardware and virtual training
+  content to commercial and at-home markets.
+
+TRNS: >-
+  Provides accredited calibration, reliability and compliance services to life
+  sciences, aerospace and other regulated industries, and distributes and rents test
+  instruments through a value-added distribution segment.
+
+TRSO: >-
+  Technology holding company pivoting from online translation into Web3 payments,
+  digital-asset exchange ventures and e-bike charging infrastructure; 2025 revenue
+  came mainly from strategic consulting and tech services.
+
+TRTX: >-
+  Commercial real estate finance REIT externally managed by a TPG affiliate; earns
+  interest income by originating floating-rate first mortgage loans on transitional
+  U.S. commercial properties.
+
+TSEM: >-
+  Pure-play specialty foundry fabricating analog chips—image sensors, RF SOI, SiGe,
+  silicon photonics, power—to customer designs; revenue from processed wafers made in
+  fabs in Israel, the U.S., Japan and Italy.
+
+TSM: >-
+  Dedicated semiconductor foundry manufacturing chips to customers' proprietary
+  designs at nodes down to 2nm; earns revenue from wafer fabrication plus advanced
+  packaging, testing, mask-making and design services.
+
+TT: >-
+  Makes HVAC and transport refrigeration equipment under the Trane and Thermo King
+  brands; revenue from designing, manufacturing, selling and servicing climate
+  solutions for buildings, homes and cold-chain transport.
+
+TTAN: >-
+  Cloud software platform for trades businesses (plumbing, HVAC, roofing) spanning
+  CRM, scheduling, dispatch, ERP and payroll; earns fees from Core, Pro and fintech
+  products including payment processing.
+
+TTD: >-
+  Self-service advertising platform that lets agencies and brands buy and optimize
+  programmatic digital ads across channels; earns platform fees as a percentage of
+  client ad spend plus data and value-added services.
+
+TTMI: >-
+  Manufactures printed circuit boards, RF components, and aerospace/defense mission
+  systems and radar assemblies; revenue from OEM, EMS and government customers across
+  defense, data center, automotive and medical markets.
+
+TTWO: >-
+  Develops and publishes video games through Rockstar Games, 2K and Zynga (Grand Theft
+  Auto, NBA 2K, mobile titles); revenue from game sales, in-game purchases, virtual
+  currency and mobile advertising.
+
+TWAV: >-
+  Holds and stakes TAO, the Bittensor network's cryptocurrency, to give shareholders
+  exposure to the decentralized AI ecosystem; earns staking rewards while winding down
+  legacy Mezzanine video-collaboration products.
+
+TWLO: >-
+  Provides communications APIs for messaging, voice, email and identity plus the
+  Segment customer data platform; earns usage-based fees on messages and calls and
+  subscriptions for email and data products.
+
+TXG: >-
+  Life sciences tools maker whose Chromium single-cell and Visium/Xenium spatial
+  platforms analyze biology at cellular resolution; sells instruments, consumable
+  reagent kits and software to research labs and biopharma.
+
+TXN: >-
+  Designs and manufactures analog and embedded processing semiconductors—power
+  management, signal chain, microcontrollers—sold to electronics makers worldwide,
+  mostly for industrial and automotive markets.
+
+TYGO: >-
+  Makes module-level power electronics for solar systems—optimizers with rapid
+  shutdown and monitoring—plus GO-brand inverters and batteries; sells through
+  distributors and installers, mostly in EMEA and the Americas.
+
+TYL: >-
+  Provides integrated software for the public sector—courts, public safety, ERP, tax,
+  schools and payments—to local, state and federal agencies; revenue from SaaS
+  subscriptions, transaction fees, maintenance and services.
+
+U: >-
+  Platform for building and running games and 3D interactive content: a real-time
+  engine (Create) plus ad-based monetization and user-acquisition tools (Grow);
+  revenue from subscriptions and advertising services.
+
+UCLE: >-
+  Designs and manufactures radiation detection equipment—tritium monitors, water and
+  air monitors, survey meters and x-ray test gear—sold to nuclear plants, government
+  agencies, hospitals and first responders.
+
+UCTT: >-
+  Supplies critical subsystems, gas delivery modules and precision parts to
+  semiconductor equipment makers, plus ultra-high-purity tool-part cleaning, coating
+  and analytical services for chipmakers.
+
+UDR: >-
+  Self-administered apartment REIT owning and operating 165 multifamily communities
+  with about 55,000 homes across 21 U.S. markets; earns rental income from apartment
+  leases.
+
+UHT: >-
+  Healthcare REIT owning medical office buildings, hospitals, emergency departments
+  and childcare centers across 21 states; earns rental income, with many properties
+  leased to Universal Health Services subsidiaries.
+
+UI: >-
+  Develops networking hardware and software—UniFi enterprise WiFi, switching, security
+  cameras, and airMAX wireless broadband gear for service providers—sold through
+  distributors, online retail and webstores.
+
+UIS: >-
+  Global IT services company that manages and modernizes infrastructure, applications
+  and digital workplaces for enterprises and governments; revenue from managed
+  services, cloud migration and enterprise computing.
+
+UMAC: >-
+  Manufactures NDAA-compliant drone components—motors, flight controllers, FPV gear—in
+  U.S. facilities; revenue from B2B sales to drone makers and defense customers plus
+  the Rotor Riot consumer retail channel.
+
+UMC: >-
+  Independent semiconductor foundry fabricating chips to customer designs on mature
+  and specialty nodes from 0.25 micron to 14nm; earns wafer sales from fabless
+  designers and IDMs in communications, consumer and computing.
+
+UMH: >-
+  REIT that owns 145 manufactured home communities with roughly 27,100 homesites in
+  twelve states; earns rent from leased homesites and rental homes plus manufactured
+  home sales and financing through a subsidiary.
+
+UNIT: >-
+  Digital infrastructure company with about 240,000 fiber route miles; revenue from
+  Kinetic fiber broadband to homes and businesses, enterprise cloud and security
+  services, and wholesale wave and transport sales to carriers.
+
+UPLD: >-
+  Sells cloud-based knowledge management and content workflow automation software to
+  enterprises; earns recurring subscription revenue from more than 1,100 customers
+  plus professional services and support.
+
+UPWK: >-
+  Operates an online marketplace connecting businesses with freelance talent, plus
+  Lifted enterprise contingent-workforce services; earns percentage fees on talent
+  billings, client fees, memberships and subscriptions.
+
+VEEA: >-
+  Sells edge computing hardware and software: VeeaHub all-in-one devices combining
+  WiFi, server, storage and 4G/5G with a cloud-managed platform for edge AI; revenue
+  from device sales and platform-as-a-service offerings.
+
+VEEV: >-
+  Provides cloud software, data and consulting for life sciences—Vault applications
+  spanning clinical trials, regulatory, quality and CRM; earns subscription revenue
+  from pharma and biotech plus professional services.
+
+VEON: >-
+  Telecom and digital services operator in Pakistan, Ukraine, Kazakhstan, Bangladesh
+  and Uzbekistan; earns revenue from mobile voice/data, fixed broadband and digital
+  financial, entertainment and health services.
+
+VERX: >-
+  Makes enterprise tax-compliance software that calculates sales tax, VAT, and other
+  indirect taxes and automates returns, e-invoicing, and exemption documents; sells
+  cloud subscriptions and services to 4,800+ enterprises.
+
+VIA: >-
+  Builds software that turns public transit systems into demand-responsive digital
+  networks; earns revenue from platform contracts and technology-enabled services sold
+  to government transit agencies and operators.
+
+VIAV: >-
+  Supplies network test, monitoring, and assurance instruments for telecom, cloud, and
+  defense customers, plus optical coatings, 3D-sensing filters, and color-shifting
+  pigments used in banknote anti-counterfeiting.
+
+VICI: >-
+  REIT owning 93 gaming, hospitality, and entertainment properties, including Caesars
+  Palace and MGM Grand; derives most revenue from long-term triple-net lease rents
+  paid by casino and experiential operators.
+
+VICR: >-
+  Designs and manufactures modular power components and power systems that convert AC
+  or DC input into the regulated DC voltages electronic devices require; earns revenue
+  from sales of these converters and systems.
+
+VISN: >-
+  Supplies communications network infrastructure — RUCKUS enterprise Wi-Fi and
+  switching plus Aurora cable access, video, and transmission equipment; formerly
+  CommScope, it earns revenue from hardware, software, and services.
+
+VLN: >-
+  Israel-based fabless designer of high-speed connectivity chips — HDBaseT for
+  audio-video installations and MIPI A-PHY links for automotive cameras and sensors;
+  revenue comes from chipset sales to AV and automotive customers.
+
+VLTO: >-
+  Provides water analytics and treatment (Hach, Trojan, ChemTreat) and marking,
+  coding, packaging, and color solutions (Videojet, Esko, X-Rite); recurring
+  consumables, software, and services were about 61% of 2025 sales.
+
+VNET: >-
+  Operates carrier- and cloud-neutral internet data centers in China, including
+  hyperscale projects, and is Microsoft's local partner for Azure and 365 offerings;
+  earns revenue from IDC hosting and cloud services.
+
+VNO: >-
+  REIT concentrated in Manhattan office and street-retail properties, plus THE MART in
+  Chicago and 555 California Street; earns rental income and pursues redevelopments
+  such as the PENN District.
+
+VNT: >-
+  Supplies fuel dispensers and environmental monitoring systems (Gilbarco
+  Veeder-Root), convenience-retail and EV-charging software, fleet telematics,
+  car-wash technology, and Matco repair tools sold via mobile franchisees.
+
+VPG: >-
+  Makes precision sensors, strain gages, load cells, weighing solutions, and
+  measurement systems designed into customer products; earns revenue across test and
+  measurement, industrial, transportation, avionics, and defense markets.
+
+VPRB: >-
+  Designs and distributes vaping and smoking products — DISSIM lighters, HoneyStick
+  cannabis vaporizers, GOLD LINE hemp CBD items, and Grandfadda electronic cigars —
+  and licenses its e-cigarette and lighter patents.
+
+VREX: >-
+  Manufactures X-ray imaging components — tubes, flat-panel and photon-counting
+  detectors, linear accelerators, and software — sold mainly to medical-imaging OEMs
+  and to security and industrial inspection customers.
+
+VRSK: >-
+  Provides data, analytics, and technology to property and casualty insurers —
+  underwriting forms, loss costs, claims and catastrophe analytics; over 80% of
+  revenue comes from prepaid subscriptions and long-term agreements.
+
+VRSSF: >-
+  Develops Genius, a cognitive-computing platform based on active inference for
+  building predictive models and AI agents; plans to earn revenue from usage-based
+  SaaS subscriptions sold to enterprise developers.
+
+VRT: >-
+  Makes power and cooling infrastructure for data centers and communication networks —
+  UPS, switchgear, liquid cooling, racks, and management software; earns revenue from
+  equipment sales plus lifecycle services and spares.
+
+VS: >-
+  Licenses B2B gamification and rewards software — in-venue fan-engagement tools and
+  the Winfinite prizing platform — to sports teams, venues, and advertisers; revenue
+  comes from software license fees from a handful of customers.
+
+VSH: >-
+  Manufactures discrete semiconductors (MOSFETs, diodes, optoelectronics) and passive
+  components (resistors, inductors, capacitors) sold to electronics makers in
+  automotive, industrial, computing, military, and medical markets.
+
+VST: >-
+  Integrated power company generating electricity from a roughly 44,000 MW gas,
+  nuclear, coal, solar, and battery fleet; sells retail electricity and natural gas to
+  about 5 million customers across 18 states and D.C.
+
+VTIX: >-
+  Makes Omni omni-directional treadmills that let users walk and run inside VR games
+  and simulations; earns revenue from Omni One hardware, game sales, and subscriptions
+  while developing a defense mission-planning system.
+
+VTR: >-
+  Healthcare REIT with about 1,400 properties spanning senior housing, outpatient
+  medical buildings, research centers, and hospitals; earns income from senior housing
+  operations, rents, and triple-net leases.
+
+VUZI: >-
+  Designs AI-enabled smart glasses, waveguide optics, and display engines for
+  enterprise, medical, defense, and consumer uses; sells branded glasses and supplies
+  custom optics and engineering services to OEM/ODM partners.
+
+VZ: >-
+  Provides wireless, fiber, and fixed wireless broadband services across the U.S.
+  through Consumer (about 77% of revenue) and Business segments; earns from service
+  plans, device sales, and enterprise networking and security.
+
+WAT: >-
+  Makes liquid chromatography and mass spectrometry systems, columns, consumables, and
+  thermal analysis instruments for pharmaceutical and industrial labs; recently
+  acquired BD's biosciences and diagnostics businesses.
+
+WATT: >-
+  Develops RF-based over-the-air wireless power technology — transmitters, receiver
+  chips, and software — enabling battery-free IoT sensors, asset trackers, and shelf
+  labels for retail, logistics, and industrial customers.
+
+WBSR: >-
+  Early-stage specialty real estate developer pursuing the Forge Atlanta mixed-use
+  project after exiting licensed-software operations; currently financing land
+  purchases through promissory notes and planned revenue bonds.
+
+WDAY: >-
+  Provides cloud enterprise software for human capital management, financials, spend,
+  and planning with embedded AI agents; earns subscription revenue from more than
+  11,500 organizations plus professional services.
+
+WDC: >-
+  Develops and manufactures hard disk drives for cloud data centers, enterprise
+  systems, PCs, and consumer storage after spinning off its Sandisk flash business;
+  earns revenue from HDD and storage-platform sales.
+
+WEAV: >-
+  AI-powered patient communications, scheduling, and payments platform for small
+  dental, optometry, veterinary, and specialty medical practices; earns subscription
+  and payments revenue from nearly 40,000 locations.
+
+WELL: >-
+  REIT owning 2,500+ seniors housing, wellness housing and post-acute care communities
+  in the US, UK and Canada. Earns resident revenue from operator-managed properties
+  plus triple-net and outpatient medical rents.
+
+WELPP: >-
+  Regulated utility generating and distributing electricity to about 1.2 million
+  Wisconsin customers, plus Milwaukee steam service. Retail electric rates provide
+  most revenue; a subsidiary of WEC Energy Group.
+
+WETH: >-
+  Makes medium- to large-size projected capacitive touchscreens (7 to 42 inches) for
+  automotive, POS, gaming, medical and industrial HMI markets. Earns from touchscreen
+  sales via Chinese units, about two-thirds domestic.
+
+WEWA: >-
+  Owns a web-based platform for merchant rebates paid in Bitcoin and the Megopoly
+  online board game. Currently pre-revenue, seeking white-label licensing deals; has
+  no full-time employees beyond its sole officer.
+
+WHEN: >-
+  Develops cybersecurity software through an Israeli R&D subsidiary and runs a mobile
+  virtual network operator in Poland. Offers B2B and consumer threat-monitoring
+  products such as OTOGRAPH alongside telecom services.
+
+WHLR: >-
+  Self-managed REIT owning about 65 retail properties, chiefly grocery-anchored
+  shopping centers in secondary Mid-Atlantic, Southeast and Northeast markets. Rent
+  from necessity-based retail tenants provides revenue.
+
+WIMI: >-
+  Holding company operating holographic AR and hologram cloud technology businesses in
+  China through subsidiaries and VIE contracts, including the MicroAlgo
+  central-processing-algorithm unit listed via SPAC merger.
+
+WK: >-
+  Provides a SaaS platform uniting financial reporting, sustainability management, and
+  governance/risk/compliance data for over 6,600 organizations. About 92% of revenue
+  comes from subscription and support fees.
+
+WOLF: >-
+  Makes silicon carbide materials and power devices for electric vehicles, fast
+  charging and renewable energy, with fabs in North Carolina, New York and Arkansas.
+  Filed Chapter 11 in 2025 to restructure its debt.
+
+WPC: >-
+  Diversified REIT owning about 1,682 single-tenant industrial, warehouse and retail
+  properties net-leased long term to companies in the US and Europe. Lease revenue
+  with built-in escalators supplies nearly all income.
+
+WWD: >-
+  Designs and manufactures energy control systems — fuel, combustion, motion and
+  electrical — for aerospace and industrial markets. Sells to OEMs such as RTX, Boeing
+  and Rolls-Royce, plus repair and overhaul services.
+
+WY: >-
+  Timberland REIT owning 10+ million US acres and licensing 14 million in Canada, plus
+  a major wood products manufacturer. Earns from timber harvests, land and
+  natural-resource sales, and lumber and OSB sales.
+
+WYY: >-
+  Delivers telecom lifecycle management, federally certified identity credentials,
+  billing analytics and IT-as-a-service, largely to US government clients.
+  Carrier-service pass-throughs add revenue at thin margins.
+
+XIFR: >-
+  Limited partnership holding stakes in about 10 GW of contracted US wind, solar and
+  battery storage projects across 28 states. Sells power under long-term fixed-price
+  PPAs; NextEra affiliates manage operations for a fee.
+
+XNDU: >-
+  Develops photonic quantum computers and related chips, including the modular
+  room-temperature Aurora system. Funding comes largely from government programs and
+  research partnerships; listed via a 2026 merger.
+
+XRN: >-
+  Internally managed REIT acquiring healthcare facilities, mostly medical office
+  buildings and inpatient rehab centers leased to physician groups and health systems.
+  Earns rent, largely from triple-net leases.
+
+XRX: >-
+  Sells printers, document management systems and managed print services plus IT
+  infrastructure solutions, expanded by the 2025 Lexmark deal. Earns from equipment
+  sales and post-sale supplies, services and financing.
+
+XYZ: >-
+  Operates the Square commerce ecosystem for sellers and the Cash App consumer finance
+  network, plus bitcoin products and TIDAL. Earns from payment processing, software,
+  hardware, and banking and lending services.
+
+XZO: >-
+  Provides turnkey insurance technology and operations to P&C carriers via a platform
+  for underwriting, policy administration and claims. Fees are variable, typically a
+  percentage of premium managed or transactions.
+
+YAAS: >-
+  Chinese SaaS and PaaS provider building customized CRM and omnichannel digital
+  systems for retail brands; recently bought majority of Salesforce partner Celnet.
+  Earns from services, subscriptions and payment fees.
+
+YALA: >-
+  Operates Yalla, a voice-centric group chat app, and Yalla Ludo casual games serving
+  MENA users, plus a wider gaming portfolio. Revenue comes from users buying virtual
+  items, upgrades and game services.
+
+YEXT: >-
+  Digital presence platform letting brands manage listings, reviews, pages and search
+  answers across a 200+ publisher network including Google and AI assistants. Earns by
+  selling its products to multi-location brands.
+
+YOU: >-
+  Secure identity platform best known for CLEAR+, a $209-per-year airport security
+  lane subscription, plus TSA PreCheck enrollment and CLEAR1 B2B verification.
+  Consumer subscriptions and partner fees generate revenue.
+
+YXT: >-
+  Provides AI-enabled enterprise productivity and corporate learning SaaS in China
+  through a VIE structure, rebranding internationally as Radnova. Subscription fees
+  from about 2,300 enterprise customers supply revenue.
+
+ZARE: >-
+  NAV-based perpetual-life REIT investing in a diversified US portfolio of 143
+  residential, industrial, retail and office properties plus real estate debt. Earns
+  rent and investment income; an Ares affiliate manages it.
+
+ZDGE: >-
+  Runs the Zedge wallpaper-and-ringtone marketplace app, GuruShots photo-competition
+  game, and Emojipedia. Earns from in-app ads, virtual currency and subscriptions;
+  building the DataSeeds AI-training image business.
+
+ZENA: >-
+  Sells enterprise SaaS (medical records, field service, compliance software) and
+  drone-as-a-service offerings, growing by acquiring land survey firms. Drone services
+  now provide most revenue, software the rest.
+
+ZETA: >-
+  AI-powered marketing cloud combining a large consumer identity dataset with email,
+  CTV, social and programmatic channels. Enterprises pay to run targeted omnichannel
+  campaigns through its Zeta Marketing Platform.
+
+ZM: >-
+  Provides an AI-first communications platform spanning meetings, phone, chat, contact
+  center and events, anchored by the AI Companion assistant. Revenue comes from paid
+  subscriptions sold to businesses of all sizes.
+
+ZPTA: >-
+  Hardware-agnostic quantum software maker offering Orquestra and benchmarking tools
+  for hybrid quantum-classical applications. Earns via licensing, partnerships and
+  services; restarted operations in 2025 after a halt.
+
+ZS: >-
+  Cloud-native security platform (Zero Trust Exchange) that securely connects users,
+  devices, and workloads to applications, replacing firewalls and VPNs; earns
+  subscription revenue from over 9,400 enterprise and government customers.
+
+ZSPC: >-
+  Makes AR/VR educational technology: glasses-free 3D laptops, styluses, and learning
+  software for K-12 STEM and career-technical training; sells to US school districts
+  directly and via resellers, with international reseller sales.

@@ -68,7 +68,10 @@ def test_load_anchor_tickers_from_real_yaml():
     s = config.get_settings()
     anchors = universe._load_anchor_tickers(s.definitions_path)
     # A handful of anchors that must appear per definitions file.
-    for t in ["NVDA", "MSFT", "EQIX", "VRT", "CLS", "AMZN", "GOOGL", "TSM"]:
+    # GOOG, not GOOGL: the universe holds the GOOG listing for CIK 0001652044,
+    # and an anchor that matches no ticker protects nothing. "ON" must stay
+    # quoted in the YAML or it parses as boolean true.
+    for t in ["NVDA", "MSFT", "EQIX", "VRT", "CLS", "AMZN", "GOOG", "ON", "TSM"]:
         assert t in anchors, f"expected {t} in anchors"
     assert len(anchors) >= 40
 

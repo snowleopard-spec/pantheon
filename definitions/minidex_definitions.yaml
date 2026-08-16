@@ -106,7 +106,10 @@ buckets:
       delivery (feeding high-wattage AI racks) is a core in-scope activity.
     includes: [analog signal chain, power management ICs, SiC/GaN power devices, voltage regulation for servers/GPUs]
     excludes: [grid-scale electrical equipment (dc_power_cooling), utilities (power_generation)]
-    anchors: [TXN, ADI, MPWR, ON]
+    # "ON" MUST stay quoted: YAML 1.1 parses a bare ON as boolean true, which
+    # silently turned this anchor into the ticker "TRUE" and left ON Semi
+    # with no anchor protection. Same trap as company_descriptions.yaml.
+    anchors: [TXN, ADI, MPWR, "ON"]
     keywords: [analog, mixed-signal, power management IC, voltage regulator, SiC, GaN, data converter]
 
   - id: semi_materials
@@ -209,7 +212,7 @@ buckets:
       and operate their own silicon and networking.
     includes: [public cloud providers (AWS, Azure, Google Cloud, Oracle Cloud), consumer/advertising internet giants running self-operated hyperscale infra (Meta family, Google Search + YouTube, TikTok parent), cloud-infra and consumer-internet segments of diversified tech firms (sum both legs)]
     excludes: [GPU-rental specialists offering short-term accelerator capacity without a full cloud platform (see neoclouds), SaaS or enterprise software vendors running on third-party clouds, physical retail / streaming media / telecom revenue whose hyperscale infra is incidental to the customer transaction]
-    anchors: [MSFT, AMZN, GOOGL, ORCL, META]
+    anchors: [MSFT, AMZN, GOOG, ORCL, META]
     keywords: [public cloud, IaaS, hyperscale, cloud platform, data centre operator, consumer internet at scale]
 
   - id: neoclouds

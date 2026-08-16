@@ -66,6 +66,15 @@ def _load_anchor_pairs(definitions_path: Path) -> set[tuple[str, str]]:
     for b in data.get("buckets", []) or []:
         bid = b["id"]
         for t in (b.get("anchors") or []):
+            if not isinstance(t, str):
+                # YAML 1.1 turns a bare ON/OFF/Y/N/TRUE/FALSE ticker into a
+                # bool, which str() would quietly coerce to a ticker that
+                # matches nothing — the anchor then silently does nothing.
+                print(
+                    f"WARNING: anchor {t!r} in bucket '{bid}' parsed as "
+                    f"{type(t).__name__}, not a string. Quote it in the YAML; "
+                    "it currently protects no company."
+                )
             out.add((str(t).strip().upper(), bid))
     return out
 

@@ -798,3 +798,78 @@ overrides:
     df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
     row = df[(df["bucket_id"] == "bucket_a") & (df["ticker"] == "DDD")].iloc[0]
     assert bool(row["is_override"]) is True
+
+
+def test_non_string_anchor_warns(tmp_path: Path, capsys):
+    """A bare YAML `ON` parses as bool and must not fail silently."""
+    defs = """
+buckets:
+  - id: bucket_a
+    name: Bucket Alpha
+    definition: definition-a
+    includes: [a1]
+    anchors: [AAA, ON]
+  - id: bucket_b
+    name: Bucket Beta
+    definition: definition-b
+    includes: [b1]
+    anchors: [BBB]
+"""
+    settings = _settings_with_overrides(tmp_path, defs_yaml=defs)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    out = capsys.readouterr().out
+    assert "parsed as bool" in out
+    assert "protects no company" in out
+
+
+def test_quoted_on_anchor_is_a_string(tmp_path: Path, capsys):
+    """Quoting the ticker keeps it a real anchor and emits no warning."""
+    defs = """
+buckets:
+  - id: bucket_a
+    name: Bucket Alpha
+    definition: definition-a
+    includes: [a1]
+    anchors: [AAA, "ON"]
+  - id: bucket_b
+    name: Bucket Beta
+    definition: definition-b
+    includes: [b1]
+    anchors: [BBB]
+"""
+    settings = _settings_with_overrides(tmp_path, defs_yaml=defs)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    # ON scores 0.0 — it survives only via anchor protection.
+    _seed(conn, cik="cik_on", ticker="ON", bucket_id="bucket_a",
+          scores=(0.0, 0.0), market_cap=10.0)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    assert "protects no company" not in capsys.readouterr().out
+
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+    assert "ON" in set(df[df["bucket_id"] == "bucket_a"]["ticker"])
+
+
+def test_real_definitions_anchors_are_all_strings():
+    """Guard the shipped YAML itself against the bare-ON trap."""
+    import yaml as _yaml
+
+    s = config.get_settings()
+    data = _yaml.safe_load(s.definitions_path.read_text(encoding="utf-8"))
+    bad = [
+        (b["id"], a)
+        for b in data["buckets"]
+        for a in (b.get("anchors") or [])
+        if not isinstance(a, str)
+    ]
+    assert not bad, f"non-string anchors in shipped definitions: {bad}"

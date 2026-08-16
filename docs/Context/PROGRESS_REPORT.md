@@ -677,3 +677,17 @@ The real defect is in the **definition**: leg (a) of `hyperscalers` counts *reve
 **Known items surfaced, not fixed:**
 - The `hyperscalers` anchor list reads `GOOGL` but the universe holds **`GOOG`** — Alphabet currently receives **no anchor protection in any bucket** (the anchor test skips it as "not yet scored"). Harmless at 0.95, latent if a re-score ever drops it below the floor.
 - The exclusion is a patch on an instance, not the rule. A drafted scale gate for the `hyperscalers` definition — a hard pre-scoring test (dozens of regions across continents, own inter-region backbone, capex in the tens of billions) placed so it gates the *activity* rather than the score, since prompt Rule 1 fixes score ≡ revenue fraction — is ready but unapplied; it needs a `prompt_version` bump 1.6 → 1.7 (the `latest_scores` view **averages** within a version, so re-scoring without the bump would blend 0.85 with the new value) and a batch re-score of ~495 companies. Every current member clears the drafted gate by ~200×, so nothing else is at risk.
+
+### 22.1 Anchor-matching bugs (2026-08-16)
+
+Chasing the `GOOGL`/`GOOG` mismatch found in §22 turned up **three** anchors that matched no company. All were silent: `_load_anchor_pairs` coerces with `str(t).strip().upper()`, so a wrong or mistyped ticker just produces a pair that never matches, and the anchor quietly protects nothing.
+
+- **`GOOGL` → `GOOG`.** The universe holds the `GOOG` listing for CIK 0001652044 (Stage 1 prefers one ticker form per CIK), so Alphabet had no anchor protection in any bucket.
+- **`ON` parsed as boolean `true`.** YAML 1.1 reads a bare `ON` as a bool; `str(True).upper()` then yields the ticker `"TRUE"`. ON Semiconductor — a real, scored company (CIK 0001097864, 0.85 on `analog_power`) — was likewise unprotected. **This is the second time this trap has bitten the project**; §21 records the identical fix in `company_descriptions.yaml`. Now quoted, with a comment saying why.
+- **`CFLT` is genuinely absent from the universe.** Confluent is a declared `data_infrastructure` anchor but has no row in `companies` at all, so this is a universe/SIC-filter gap rather than a typo. Left as-is and still skipping in `test_anchors.py`; worth investigating separately.
+
+**Impact: none on output, today.** GOOG scores 0.95 and ON 0.85, both far above the 0.25 floor, so they were members on merit regardless. Rebuild after the fix produced a **byte-identical** weights CSV — zero cell changes across all 342 rows. The bugs were latent: either name silently vanishing from its bucket if a future re-score dropped it below the floor, which is exactly the failure the anchor mechanism exists to prevent.
+
+**Guards added,** because a silent no-op is the whole problem: `_load_anchor_pairs` now warns when an anchor isn't a string (naming the bucket and the parsed type), and `test_real_definitions_anchors_are_all_strings` asserts it against the *shipped* YAML, so the bare-`ON` class cannot be reintroduced by an edit. `minidex/universe.py::_load_anchor_tickers` performs the same coercion but is covered by that YAML-level test rather than a duplicated warning. `test_universe.py` had hard-coded `GOOGL` in its expected-anchor list — it was encoding the bug — and now asserts `GOOG` and `"ON"` instead.
+
+Suite: 256 passed + the 6 pre-existing anchor-calibration failures. Two of the three anchor *skips* are gone (GOOG and ON now resolve and pass the ≥0.3 check); only CFLT still skips.

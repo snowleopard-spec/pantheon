@@ -2,13 +2,13 @@
 
 Every row in the output CSV represents one company's membership in one bucket. There's one row per `(bucket_id, ticker)` pair — so a diversified company like NVIDIA appears multiple times, once per bucket it belongs to.
 
-The 15 columns break into five groups:
+The 16 columns break into five groups:
 
 - **Identifiers** — which company, which bucket
 - **Scoring** — how much this company belongs to this bucket
 - **Financials** — company size context
 - **Weights** — three ways to convert scores into portfolio weights
-- **Rationale + provenance** — audit trail for each score
+- **Rationale + provenance** — audit trail for each score, plus whether a human overrode the floor
 
 ---
 
@@ -151,6 +151,12 @@ Anthropic model ID echoed from the API response.
 - **Deep-score list:** tickers in the `deep_score` list in `definitions/minidex_definitions.yaml` (seeded: INTC, AMD) bypass the embedding shortlist — they are scored against **all 22 buckets** — and run on the stronger `deep_score_model` (`claude-opus-5` in `config.json`) instead of the batch model, so their rows carry a different `model_version`. The list is reserved for diversified names whose Item 1 text is too broad for the similarity gate to ever surface them; it grants no anchor-style privileges (no QC expectation, no weight floor).
 - **Cross-model caveat:** scores from different models are not perfectly calibrated against each other. Mitigations: the shared prompt, two-run averaging, and QC disagreement checks — and the deep list is not a general quality-upgrade lever. When deep-model rows are ingested, the same company's rows from other models at the same `prompt_version` are deleted, so `latest_scores` never mixes models for one company by string-ordering accident.
 
+### `is_override`
+`True` when this row is in the bucket only because a human put it there — an `action: include` entry in the `overrides:` block of the definitions YAML admitted it below the score floor.
+- **Example:** `True` for `DOCN` in `neoclouds` (scores `0.20` against a `0.25` floor)
+- `False` for every row that earned its place on score or anchor status, which is almost all of them.
+- The reverse case leaves no trace here: an `action: exclude` override removes the row entirely, so there is nothing to flag. Read `manifest.json` → `overrides_applied` for the complete picture in both directions, including each override's stated reason.
+
 ---
 
 ## How rows get selected
@@ -158,8 +164,11 @@ Anthropic model ID echoed from the API response.
 A row appears in the CSV only if **all** of these hold:
 
 1. The `(cik, bucket_id)` pair is in the shortlist (the embedding similarity cleared the threshold, the ticker is a declared anchor for that bucket, or the ticker is on the `deep_score` list — which pairs it with every bucket).
-2. Either the average of the two scoring runs is `>= score_floor` (currently `0.25` in `config.json`), **or** the ticker is a declared anchor. Anchors are force-included even at score `0.0`.
-3. The row is the latest available for that `(cik, bucket_id)` — newest `fy`, then newest `prompt_version`, then newest `model_version`.
+2. Either the average of the two scoring runs is `>= score_floor` (currently `0.25` in `config.json`), **or** the ticker is a declared anchor, **or** an `include` override admits it. Anchors are force-included even at score `0.0`.
+3. No `exclude` override names the `(ticker, bucket_id)` pair. An exclusion beats the score floor *and* anchor status — `build` warns when it contradicts an anchor declaration.
+4. The row is the latest available for that `(cik, bucket_id)` — newest `fy`, then newest `prompt_version`, then newest `model_version`.
+
+Overrides change membership only, never magnitude: an included member is weighted on its actual score like everyone else, and gets no anchor-style weight floor.
 
 Weights are re-computed per bucket after this filtering, so `weight_cap_score`, `weight_equal`, and `weight_score` each sum to `1.0` within a bucket.
 
@@ -167,7 +176,7 @@ Weights are re-computed per bucket after this filtering, so `weight_cap_score`, 
 
 ## See also
 
-- `outputs/<asof>/manifest.json` — provenance record (as-of date, prompt SHA, definitions SHA, anchor-floor value, run date).
+- `outputs/<asof>/manifest.json` — provenance record (as-of date, prompt SHA, definitions SHA, anchor-floor value, run date, `overrides_applied`).
 - `docs/ARCHITECTURE.html` §9 — the three weighting schemes in context, plus the mega-cap concentration discussion.
-- `definitions/minidex_definitions.yaml` — full bucket definitions (`includes`, `excludes`, `anchors`).
+- `definitions/minidex_definitions.yaml` — full bucket definitions (`includes`, `excludes`, `anchors`), the `deep_score` list, and the `overrides` block.
 - `prompts/scoring_prompt.md` — the scoring rules the LLM followed.

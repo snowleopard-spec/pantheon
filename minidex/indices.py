@@ -50,6 +50,7 @@ _OUTPUT_COLUMNS = [
     "fy",
     "prompt_version",
     "model_version",
+    "is_override",
 ]
 
 
@@ -69,16 +70,57 @@ def _load_anchor_pairs(definitions_path: Path) -> set[tuple[str, str]]:
     return out
 
 
+_OVERRIDE_ACTIONS = ("include", "exclude")
+
+
+def _load_overrides(
+    definitions_path: Path,
+) -> dict[tuple[str, str], dict[str, str]]:
+    """{(ticker.upper(), bucket_id): {"action", "reason"}} from `overrides`.
+
+    Membership overrides move a scored pair across the bucket boundary in
+    either direction: `include` admits a pair that falls below the score
+    floor, `exclude` removes one that clears it. Action defaults to
+    "include". Unlike anchors, overrides carry no QC expectation and no
+    weight floor — see the commentary above `overrides:` in the YAML.
+    """
+    data = yaml.safe_load(definitions_path.read_text(encoding="utf-8"))
+    out: dict[tuple[str, str], dict[str, str]] = {}
+    for entry in (data.get("overrides") or []):
+        ticker = str(entry.get("ticker", "")).strip().upper()
+        bucket = str(entry.get("bucket", "")).strip()
+        action = str(entry.get("action", "include")).strip().lower()
+        if not ticker or not bucket:
+            print(f"WARNING: skipping malformed override entry {entry!r}.")
+            continue
+        if action not in _OVERRIDE_ACTIONS:
+            print(
+                f"WARNING: override {ticker} -> '{bucket}' has unknown action "
+                f"{action!r} (expected one of {_OVERRIDE_ACTIONS}); skipping it."
+            )
+            continue
+        out[(ticker, bucket)] = {
+            "action": action,
+            "reason": " ".join(str(entry.get("reason", "")).split()),
+        }
+    return out
+
+
 def _load_scored(
     conn: sqlite3.Connection,
     score_floor: float,
     anchor_pairs: set[tuple[str, str]] | None = None,
+    override_pairs: dict[tuple[str, str], dict[str, str]] | None = None,
 ) -> pd.DataFrame:
     """Read latest_scores >= floor joined to companies.market_cap.
 
     Anchor pairs are ALWAYS included regardless of score, so a below-floor
     anchor still lands in its bucket for weight-floor treatment downstream.
-    Adds an `is_anchor` bool column.
+    `include` overrides are also always admitted, but earn no weight-floor
+    treatment; `exclude` overrides drop a pair that would otherwise qualify,
+    and win over both the score floor and anchor status. Adds `is_anchor` and
+    `is_override` bool columns — the latter marks rows PRESENT because of an
+    include override (an excluded pair leaves no row to mark).
     """
     sql = """
     SELECT
@@ -98,11 +140,21 @@ def _load_scored(
     """
     df = pd.read_sql_query(sql, conn)
     pairs = anchor_pairs or set()
-    df["is_anchor"] = df.apply(
-        lambda r: (str(r["ticker"] or "").upper(), r["bucket_id"]) in pairs,
-        axis=1,
+    overrides = override_pairs or {}
+    keys = list(
+        zip(df["ticker"].fillna("").astype(str).str.upper(), df["bucket_id"])
     )
-    keep = (df["score"] >= score_floor) | df["is_anchor"]
+    df["is_anchor"] = [k in pairs for k in keys]
+    df["is_override"] = [
+        overrides.get(k, {}).get("action") == "include" for k in keys
+    ]
+    is_excluded = pd.Series(
+        [overrides.get(k, {}).get("action") == "exclude" for k in keys],
+        index=df.index,
+    )
+    keep = (
+        (df["score"] >= score_floor) | df["is_anchor"] | df["is_override"]
+    ) & ~is_excluded
     return df[keep].reset_index(drop=True)
 
 
@@ -253,9 +305,11 @@ def _write_manifest(
     df: pd.DataFrame,
     settings: Any,
     filing_fy_histogram: dict[str, int],
+    overrides_applied: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     run_date = datetime.now(timezone.utc).date().isoformat()
     manifest = {
+        "overrides_applied": overrides_applied or [],
         "run_date": run_date,
         "asof": asof,
         "n_companies_scored": int(df["cik"].nunique()) if not df.empty else 0,
@@ -283,14 +337,33 @@ def build(asof: str, *, settings: Any = None) -> dict[str, Any]:
     s = settings if settings is not None else config.get_settings()
     bucket_names = _load_bucket_names(s.definitions_path)
     anchor_pairs = _load_anchor_pairs(s.definitions_path)
+    override_pairs = _load_overrides(s.definitions_path)
     anchor_min_weight = float(getattr(s, "anchor_min_weight", 0.0))
+
+    for (ticker, bucket), spec in sorted(override_pairs.items()):
+        if bucket not in bucket_names:
+            print(
+                f"WARNING: override {ticker} -> '{bucket}' names a bucket that "
+                "does not exist in the definitions; it will have no effect."
+            )
+        if spec["action"] == "exclude" and (ticker, bucket) in anchor_pairs:
+            print(
+                f"WARNING: {ticker} is declared an ANCHOR of '{bucket}' and is "
+                "also excluded by an override. The exclusion wins, but the two "
+                "declarations contradict each other — fix the definitions."
+            )
 
     out_dir = s.outputs_dir / asof
     out_dir.mkdir(parents=True, exist_ok=True)
 
     conn = db.connect(s.db_path)
     try:
-        df = _load_scored(conn, s.score_floor, anchor_pairs=anchor_pairs)
+        df = _load_scored(
+            conn,
+            s.score_floor,
+            anchor_pairs=anchor_pairs,
+            override_pairs=override_pairs,
+        )
         if df.empty:
             print(
                 f"build: no scores >= floor {s.score_floor}; writing empty outputs "
@@ -312,6 +385,55 @@ def build(asof: str, *, settings: Any = None) -> dict[str, Any]:
                 "manifest": manifest,
                 "output_dir": out_dir,
             }
+
+        # Reconcile declared overrides against the UNFILTERED score set (an
+        # exclusion has already been dropped from df), so stale entries
+        # surface rather than sitting in the YAML forever.
+        overrides_applied: list[dict[str, str]] = []
+        all_scores = {
+            (str(t).upper(), b): sc
+            for t, b, sc in conn.execute(
+                """
+                SELECT COALESCE(ls.ticker, c.ticker), ls.bucket_id, ls.score
+                FROM latest_scores ls
+                LEFT JOIN companies c ON c.cik = ls.cik
+                """
+            ).fetchall()
+            if t
+        }
+        for (ticker, bucket), spec in sorted(override_pairs.items()):
+            action, reason = spec["action"], spec["reason"]
+            score = all_scores.get((ticker, bucket))
+            if score is None:
+                print(
+                    f"WARNING: override {ticker} -> '{bucket}' matched no scored "
+                    "pair; the company has never been scored against that bucket."
+                )
+                continue
+            qualifies = score >= s.score_floor or (ticker, bucket) in anchor_pairs
+            if action == "include" and qualifies:
+                print(
+                    f"NOTE: include override {ticker} -> '{bucket}' is redundant; "
+                    f"it scores {score:.3f} against floor {s.score_floor} and "
+                    "would be a member anyway. Consider removing it."
+                )
+                continue
+            if action == "exclude" and not qualifies:
+                print(
+                    f"NOTE: exclude override {ticker} -> '{bucket}' is redundant; "
+                    f"it scores {score:.3f} against floor {s.score_floor} and "
+                    "would be dropped anyway. Consider removing it."
+                )
+                continue
+            overrides_applied.append(
+                {
+                    "ticker": ticker,
+                    "bucket": bucket,
+                    "action": action,
+                    "score": f"{score:.3f}",
+                    "reason": reason,
+                }
+            )
 
         df = _compute_weights(df, anchor_min_weight=anchor_min_weight)
         df["bucket_name"] = df["bucket_id"].map(bucket_names).fillna(df["bucket_id"])
@@ -356,6 +478,7 @@ def build(asof: str, *, settings: Any = None) -> dict[str, Any]:
             df=df,
             settings=s,
             filing_fy_histogram=histogram,
+            overrides_applied=overrides_applied,
         )
 
         print(

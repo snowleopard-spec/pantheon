@@ -327,3 +327,49 @@ buckets:
 # privileges: no QC expectation, no weight floor; index membership is still
 # earned through the score and the score_floor.
 deep_score: [INTC, AMD]
+
+# Membership overrides: manual (ticker, bucket) corrections to what the
+# score_floor decides. `action: include` admits a pair scoring below the
+# floor; `action: exclude` drops one that clears it. Action defaults to
+# include when omitted.
+#
+# Deliberately weaker than an anchor. An override carries NO calibration
+# expectation (QC does not assert a minimum score against it) and NO weight
+# floor: an included member enters at its ACTUAL score and is weighted
+# proportionally like everyone else, so a 0.20 score buys a ~5% position, not
+# a seat at the top of the table. Overrides change membership only, never
+# magnitude.
+#
+# Every applied override is stamped into the build manifest, includes are
+# marked `is_override` in the frozen weights CSV, and `build` warns when one
+# is redundant (the floor would reach the same verdict unaided), unmatched
+# (no such scored pair), or contradicts an anchor declaration — so stale
+# entries surface instead of silently persisting.
+#
+# An exclusion is a patch on an instance, not on the rule that produced it.
+# Prefer fixing the bucket definition and re-scoring where the same mistake
+# would recur for the next company; reach for an exclusion when the
+# definition is right and one company is genuinely anomalous.
+overrides:
+  - ticker: DOCN
+    bucket: neoclouds
+    action: include
+    reason: >
+      GPU Droplets and bare-metal GPU capacity are a genuine AI-compute rental
+      line, scored 0.20 across both runs against a 0.25 floor. The score is
+      right — roughly a fifth of the business — but the bucket is a poorer
+      description of the GPU-cloud market without a developer-facing provider
+      in it.
+
+  - ticker: DOCN
+    bucket: hyperscalers
+    action: exclude
+    reason: >
+      Scores 0.85 honestly: essentially all of DigitalOcean's revenue is sold
+      as public-cloud IaaS/PaaS, which is what leg (a) of the definition asks
+      for. The definition is what is wrong — it never enforces the scale its
+      name implies, so a mid-market developer cloud with ~$0.1B of annual
+      capex scores like AWS. Under score-normalised weighting that put a
+      ~$13B company at 19% of the bucket, third behind Alphabet and Meta.
+      Excluded pending the definitional scale gate; remove this entry once
+      that lands and the score itself drops.

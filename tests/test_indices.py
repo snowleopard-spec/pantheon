@@ -131,6 +131,7 @@ def test_build_writes_csv_parquet_manifest(tmp_path: Path):
         "bucket_id", "bucket_name", "ticker", "cik", "score", "confidence",
         "market_cap", "weight_cap_score", "weight_equal", "weight_score",
         "rationale_run1", "rationale_run2", "fy", "prompt_version", "model_version",
+        "is_override",
     ]
     assert list(csv_df.columns) == expected_cols
     assert list(parquet_df.columns) == expected_cols
@@ -471,3 +472,329 @@ def test_manifest_prompt_version_mixed(tmp_path: Path):
         (settings.outputs_dir / "2025-01-15" / "manifest.json").read_text()
     )
     assert m["prompt_version"] == "mixed"
+
+
+# ---------------------------------------------------------------- overrides
+
+
+DEFS_YAML_OVERRIDE = DEFS_YAML + """
+overrides:
+  - ticker: DDD
+    bucket: bucket_a
+    action: include
+    reason: >
+      real but sub-floor exposure; bucket is incomplete without it
+"""
+
+DEFS_YAML_EXCLUDE = DEFS_YAML + """
+overrides:
+  - ticker: CCC
+    bucket: bucket_a
+    action: exclude
+    reason: >
+      clears the floor but the definition is too loose to have caught it
+"""
+
+
+def _settings_with_overrides(tmp_path: Path, defs_yaml: str = DEFS_YAML_OVERRIDE):
+    settings = _settings_for(tmp_path)
+    settings.definitions_path.write_text(defs_yaml, encoding="utf-8")
+    return settings
+
+
+def test_override_admits_below_floor_member(tmp_path: Path):
+    """An overridden pair below the score floor still lands in the bucket."""
+    settings = _settings_with_overrides(tmp_path)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    # DDD scores 0.04, well under the 0.10 floor for this fixture.
+    _seed(conn, cik="cik_d", ticker="DDD", bucket_id="bucket_a",
+          scores=(0.04, 0.04), market_cap=10.0)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+
+    bucket_a = df[df["bucket_id"] == "bucket_a"]
+    assert "DDD" in set(bucket_a["ticker"])
+    row = bucket_a[bucket_a["ticker"] == "DDD"].iloc[0]
+    assert bool(row["is_override"]) is True
+    # Enters at its actual score, not a promoted one.
+    assert row["score"] == pytest.approx(0.04)
+
+
+def test_override_gets_no_weight_floor(tmp_path: Path):
+    """Unlike an anchor, an override is weighted proportionally to its score."""
+    settings = replace(_settings_with_overrides(tmp_path), anchor_min_weight=0.25)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    _seed(conn, cik="cik_d", ticker="DDD", bucket_id="bucket_a",
+          scores=(0.04, 0.04), market_cap=10.0)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+    row = df[(df["bucket_id"] == "bucket_a") & (df["ticker"] == "DDD")].iloc[0]
+
+    # AAA is the anchor and does get floored to 0.25; DDD must not.
+    assert row["weight_cap_score"] < 0.25
+    # score-normalised: 0.04 / (0.8 + 0.4 + 0.04)
+    assert row["weight_score"] == pytest.approx(0.04 / 1.24)
+
+
+def test_override_does_not_leak_into_other_buckets(tmp_path: Path):
+    """The override is scoped to (ticker, bucket), not to the ticker."""
+    settings = _settings_with_overrides(tmp_path)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    _seed(conn, cik="cik_d", ticker="DDD", bucket_id="bucket_a",
+          scores=(0.04, 0.04), market_cap=10.0)
+    _seed(conn, cik="cik_d2", ticker="DDD", bucket_id="bucket_b",
+          scores=(0.04, 0.04), market_cap=10.0)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+
+    assert "DDD" in set(df[df["bucket_id"] == "bucket_a"]["ticker"])
+    assert "DDD" not in set(df[df["bucket_id"] == "bucket_b"]["ticker"])
+
+
+def test_manifest_records_applied_override(tmp_path: Path):
+    settings = _settings_with_overrides(tmp_path)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    _seed(conn, cik="cik_d", ticker="DDD", bucket_id="bucket_a",
+          scores=(0.04, 0.04), market_cap=10.0)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    m = json.loads(
+        (settings.outputs_dir / "2025-01-15" / "manifest.json").read_text()
+    )
+    applied = m["overrides_applied"]
+    assert len(applied) == 1
+    assert applied[0]["ticker"] == "DDD"
+    assert applied[0]["bucket"] == "bucket_a"
+    assert applied[0]["action"] == "include"
+    assert "incomplete" in applied[0]["reason"]
+
+
+def test_redundant_override_is_flagged_and_not_recorded(tmp_path: Path, capsys):
+    """An override whose score now clears the floor is reported as removable."""
+    settings = _settings_with_overrides(tmp_path)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    # 0.5 is comfortably above the 0.10 fixture floor.
+    _seed(conn, cik="cik_d", ticker="DDD", bucket_id="bucket_a",
+          scores=(0.5, 0.5), market_cap=10.0)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    out = capsys.readouterr().out
+    assert "redundant" in out
+
+    m = json.loads(
+        (settings.outputs_dir / "2025-01-15" / "manifest.json").read_text()
+    )
+    assert m["overrides_applied"] == []
+
+
+def test_unmatched_override_warns(tmp_path: Path, capsys):
+    """An override naming a pair that was never scored is surfaced, not silent."""
+    settings = _settings_with_overrides(tmp_path)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)  # no DDD at all
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    out = capsys.readouterr().out
+    assert "matched no scored pair" in out
+
+
+def test_override_naming_unknown_bucket_warns(tmp_path: Path, capsys):
+    bad = DEFS_YAML + """
+overrides:
+  - ticker: AAA
+    bucket: bucket_does_not_exist
+    reason: typo
+"""
+    settings = _settings_with_overrides(tmp_path, defs_yaml=bad)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    out = capsys.readouterr().out
+    assert "does not exist in the definitions" in out
+
+
+def test_no_overrides_block_is_backwards_compat(tmp_path: Path):
+    """A definitions file with no `overrides:` key behaves exactly as before."""
+    settings = _settings_for(tmp_path)  # DEFS_YAML, no overrides block
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+    assert len(df) == 4
+    assert not df["is_override"].any()
+    m = json.loads(
+        (settings.outputs_dir / "2025-01-15" / "manifest.json").read_text()
+    )
+    assert m["overrides_applied"] == []
+
+
+def test_exclude_override_drops_qualifying_member(tmp_path: Path):
+    """A pair that clears the floor is removed when excluded."""
+    settings = _settings_with_overrides(tmp_path, defs_yaml=DEFS_YAML_EXCLUDE)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)  # CCC scores 0.4 in bucket_a, well over the floor
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+
+    bucket_a = df[df["bucket_id"] == "bucket_a"]
+    assert "CCC" not in set(bucket_a["ticker"])
+    # AAA is now alone in bucket_a and absorbs the whole weight.
+    assert bucket_a["weight_score"].sum() == pytest.approx(1.0)
+    # The exclusion is scoped to the pair: CCC survives in bucket_b.
+    assert "CCC" in set(df[df["bucket_id"] == "bucket_b"]["ticker"])
+
+
+def test_exclude_override_beats_anchor_status(tmp_path: Path, capsys):
+    """Excluding a declared anchor works, but warns about the contradiction."""
+    defs = DEFS_YAML + """
+overrides:
+  - ticker: AAA
+    bucket: bucket_a
+    action: exclude
+    reason: contradicts the anchor declaration on purpose
+"""
+    settings = _settings_with_overrides(tmp_path, defs_yaml=defs)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    out = capsys.readouterr().out
+    assert "contradict" in out
+
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+    assert "AAA" not in set(df[df["bucket_id"] == "bucket_a"]["ticker"])
+
+
+def test_manifest_records_exclusion(tmp_path: Path):
+    settings = _settings_with_overrides(tmp_path, defs_yaml=DEFS_YAML_EXCLUDE)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    m = json.loads(
+        (settings.outputs_dir / "2025-01-15" / "manifest.json").read_text()
+    )
+    applied = m["overrides_applied"]
+    assert len(applied) == 1
+    assert applied[0]["ticker"] == "CCC"
+    assert applied[0]["action"] == "exclude"
+    assert applied[0]["score"] == "0.400"
+
+
+def test_redundant_exclusion_is_flagged(tmp_path: Path, capsys):
+    """Excluding a pair already below the floor is reported as removable."""
+    defs = DEFS_YAML + """
+overrides:
+  - ticker: DDD
+    bucket: bucket_a
+    action: exclude
+    reason: already below the floor
+"""
+    settings = _settings_with_overrides(tmp_path, defs_yaml=defs)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    _seed(conn, cik="cik_d", ticker="DDD", bucket_id="bucket_a",
+          scores=(0.04, 0.04), market_cap=10.0)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    out = capsys.readouterr().out
+    assert "would be dropped anyway" in out
+
+    m = json.loads(
+        (settings.outputs_dir / "2025-01-15" / "manifest.json").read_text()
+    )
+    assert m["overrides_applied"] == []
+
+
+def test_unknown_override_action_is_skipped(tmp_path: Path, capsys):
+    defs = DEFS_YAML + """
+overrides:
+  - ticker: CCC
+    bucket: bucket_a
+    action: banish
+    reason: typo in the action field
+"""
+    settings = _settings_with_overrides(tmp_path, defs_yaml=defs)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    out = capsys.readouterr().out
+    assert "unknown action" in out
+
+    # Skipped entirely: CCC keeps its earned membership.
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+    assert "CCC" in set(df[df["bucket_id"] == "bucket_a"]["ticker"])
+
+
+def test_action_defaults_to_include(tmp_path: Path):
+    """Omitting `action` keeps the original include-only behaviour."""
+    defs = DEFS_YAML + """
+overrides:
+  - ticker: DDD
+    bucket: bucket_a
+    reason: no action field at all
+"""
+    settings = _settings_with_overrides(tmp_path, defs_yaml=defs)
+    conn = db.connect(settings.db_path)
+    db.init_schema(conn)
+    _seed_two_buckets(conn)
+    _seed(conn, cik="cik_d", ticker="DDD", bucket_id="bucket_a",
+          scores=(0.04, 0.04), market_cap=10.0)
+    conn.commit()
+    conn.close()
+
+    indices.build("2025-01-15", settings=settings)
+    df = pd.read_csv(settings.outputs_dir / "2025-01-15" / "minidex_weights.csv")
+    row = df[(df["bucket_id"] == "bucket_a") & (df["ticker"] == "DDD")].iloc[0]
+    assert bool(row["is_override"]) is True
